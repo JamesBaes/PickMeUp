@@ -1,23 +1,6 @@
 import { MenuItem, MenuCategory, GroupedMenuItems } from '@/types';
 
 /**
- * Format category names for display
- */
-export const formatCategoryName = (category: MenuCategory): string => {
-  const categoryMap: Record<MenuCategory, string> = {
-    beef_burgers: 'Beef Burgers',
-    chicken_burgers: 'Chicken Burgers',
-    veggie_burgers: 'Veggie Burgers',
-    steak_sandwiches: 'Steak Sandwiches',
-    crowds_sides: 'Sides',
-    extra_armour_sides: 'Extra Toppings',
-    beverages: 'Beverages',
-    combos: 'Combo Meals',
-  };
-  return categoryMap[category] || category;
-};
-
-/**
  * Format price for display
  */
 export const formatPrice = (price: number): string => {
@@ -37,9 +20,37 @@ export const groupByCategory = (items: MenuItem[]): GroupedMenuItems => {
   }, {} as GroupedMenuItems);
 };
 
-export const sortByCategory = (items: MenuItem[]): MenuItem[] => {
-  return [...items].sort((a, b) => a.category.localeCompare(b.category));
+/**
+ * Category display order
+ */
+export const categryOrder: MenuCategory[] = [
+    'beef_burgers',
+    'chicken_burgers',
+    'veggie_burgers',
+    'steak_sandwiches',
+    'crowds_sides',
+    'extra_armour_sides',
+    'beverages',
+    'combos',
+];
+
+/**
+ * Format category names for display
+ */
+export const formatCategoryName = (category: MenuCategory): string => {
+  const categoryMap: Record<MenuCategory, string> = {
+    beef_burgers: 'Beef Burgers',
+    chicken_burgers: 'Chicken Burgers',
+    veggie_burgers: 'Veggie Burgers',
+    steak_sandwiches: 'Steak Sandwiches',
+    crowds_sides: 'Sides',
+    extra_armour_sides: 'Extra Toppings',
+    beverages: 'Beverages',
+    combos: 'Combo Meals',
+  };
+  return categoryMap[category] || category;
 };
+
 
 /**
  * Sort menu items by name

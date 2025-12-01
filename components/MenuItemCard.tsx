@@ -6,14 +6,12 @@ interface MenuItemCardProps {
   item: MenuItem;
 }
 
-const TRANSPARENT_IMAGE_PATH = '/transparent.png';
-
 export default function MenuItemCard({ item }: MenuItemCardProps) {
   return (
-    <div className="card bg-base-100 w-96 shadow-sm">
+    <div className="card bg-base-100 w-96 shadow-sm hover:shadow-xl transition-shadow duration-300 cursor-pointer">
       <figure>
         <img
-          src={item.image_url || TRANSPARENT_IMAGE_PATH}
+          src={item.image_url}
           alt={item.name} />
       </figure>
       <div className="card-body">
@@ -21,7 +19,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
         <p>${item.price}</p>
         <p>{item.description}</p>
         <div className="card-actions justify-end">
-          <button className="btn btn-primary">Add to Cart</button>
+          <button className="btn btn-secondary">Add to Cart</button>
         </div>
       </div>
     </div>

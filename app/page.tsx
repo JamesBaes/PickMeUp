@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/utils/supabase/client';
 import { MenuItem } from '@/types/';
-import { groupByCategory } from '@/helpers/menuHelpers';
+import { groupByCategory, categryOrder } from '@/helpers/menuHelpers';
 import CategorySection from '@/components/CategorySection';
+import Footer from '@/components/Footer';
+import Header from '@/components/Header';
 
 export default function MenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -23,9 +25,8 @@ export default function MenuPage() {
 
 
       setMenuItems((data as MenuItem[]) || []);
-    } catch (err) {
-      console.error('Error fetching menu items:', err);
-      setError('Failed to load menu items. Please try again later.');
+    } catch (error) {
+      console.error('Error fetching menu items:', error);
     }
   };
 
@@ -34,6 +35,7 @@ export default function MenuPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <Header />
 
       {categories.length === 0 ? (
         <div className="alert alert-info">
@@ -48,6 +50,10 @@ export default function MenuPage() {
           />
         ))
       )}
+      
+     {/* footer */}
+     <Footer />
     </div>
+    
   );
 }
