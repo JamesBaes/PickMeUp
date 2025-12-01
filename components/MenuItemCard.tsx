@@ -18,6 +18,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
       </figure>
       <div className="card-body">
         <h2 className="card-title">{item.name}</h2>
+        <p>${item.price}</p>
         <p>{item.description}</p>
         <div className="card-actions justify-end">
           <button className="btn btn-primary">Add to Cart</button>

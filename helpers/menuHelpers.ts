@@ -37,6 +37,10 @@ export const groupByCategory = (items: MenuItem[]): GroupedMenuItems => {
   }, {} as GroupedMenuItems);
 };
 
+export const sortByCategory = (items: MenuItem[]): MenuItem[] => {
+  return [...items].sort((a, b) => a.category.localeCompare(b.category));
+};
+
 /**
  * Sort menu items by name
  */

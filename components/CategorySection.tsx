@@ -1,5 +1,5 @@
 import { MenuItem, MenuCategory } from '@/types/';
-import { formatCategoryName } from '@/helpers/menuHelpers';
+import { formatCategoryName, sortByCategory } from '@/helpers/menuHelpers';
 import MenuItemCard from './MenuItemCard';
 import { CategorySectionProps } from '@/types';
 
