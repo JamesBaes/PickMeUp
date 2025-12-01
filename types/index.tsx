@@ -16,3 +16,21 @@ export interface MenuItemCardProps {
   item: MenuItem;  // The menu item object from database
 }
 
+export interface CategorySectionProps {
+  category: string;  // The category name
+  items: MenuItem[];  // Array of menu items in this category
+}
+
+export type MenuCategory =
+  | 'beef_burgers'
+  | 'chicken_burgers'
+  | 'veggie_burgers'
+  | 'steak_sandwiches'
+  | 'crowds_sides'
+  | 'extra_armour_sides'
+  | 'beverages'
+  | 'combos';
+
+export interface GroupedMenuItems {
+  [key: string]: MenuItem[];
+}
