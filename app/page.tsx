@@ -1,12 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/utils/supabase/client';
+import supabase from '@/utils/supabase/client';
 import { MenuItem } from '@/types/';
-import { groupByCategory, categryOrder } from '@/helpers/menuHelpers';
+import { groupByCategory, categoryOrder } from '@/helpers/menuHelpers';
 import CategorySection from '@/components/CategorySection';
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
 
 export default function MenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -23,6 +21,14 @@ export default function MenuPage() {
         .order('category', { ascending: true })
         .order('name', { ascending: true });
 
+      console.log('Fetch error:', fetchError);
+      console.log('Fetched data:', data);
+      console.log('Number of items:', data?.length);
+
+      if (fetchError) {
+        console.error('Supabase error:', fetchError);
+        return;
+      }
 
       setMenuItems((data as MenuItem[]) || []);
     } catch (error) {
@@ -33,10 +39,12 @@ export default function MenuPage() {
   const groupedItems = groupByCategory(menuItems);
   const categories = Object.keys(groupedItems);
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <Header />
+  console.log('Menu items state:', menuItems);
+  console.log('Grouped items:', groupedItems);
+  console.log('Categories:', categories);
 
+  return (
+    <div className="mx-auto px-4 py-8">
       {categories.length === 0 ? (
         <div className="alert alert-info">
           <p>No menu items available at the moment.</p>
@@ -47,13 +55,10 @@ export default function MenuPage() {
             key={category}
             category={category}
             items={groupedItems[category]}
+ 
           />
         ))
       )}
-      
-     {/* footer */}
-     <Footer />
     </div>
-    
   );
 }

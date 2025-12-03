@@ -25,11 +25,11 @@ const Login = () => {
       </h1>
 
       {/* Login Form Section (Used the jsx from daisyUI) */}
-      <section className="flex gap-6 flex-col">
+      <form className="flex gap-6 flex-col">
         
         <div className="flex flex-1 gap-2 flex-col">
         <p className="font-heading text-background font-medium text-2xl">Email</p>
-        <label className="input validator flex items-center gap-2 bg-background w-md p-3 border-2 border-gray-50 shadow-xs rounded-lg">
+        <label className="input validator flex items-center gap-2 bg-background w-md p-3 border-2 border-gray-50 shadow-xs rounded-lg focus-within:border-gray-50">
           <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <g
               stroke-linejoin="round"
@@ -48,12 +48,12 @@ const Login = () => {
             required 
             className="font-heading focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"/>
         </label>
-        <div className="validator-hint hidden">Enter valid email address</div>       
+        <div className="validator-hint hidden font-heading text-foreground text-right">Enter valid email address</div>       
         </div>
         
         <div className="flex flex-col flex-1 gap-2">
         <p className="font-heading text-background font-medium text-2xl">Password</p>
-        <label className="input validator flex items-center gap-2 bg-background w-md p-3 border-2 border-gray-50 shadow-xs rounded-lg">
+        <label className="input validator flex items-center gap-2 bg-background w-md p-3 border-2 border-gray-50 shadow-xs rounded-lg focus-within:border-gray-50">
           <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <g
               strokeLinejoin="round"
@@ -75,7 +75,7 @@ const Login = () => {
             className="font-heading focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
           />
         </label>
-        <div className="validator-hint hidden">Enter a stronger password</div>       
+        <div className="validator-hint hidden font-heading text-foreground text-right">Enter your password</div>       
         </div>
 
         {/* Lmk if i got you HAHAH its temporary ;p*/}
@@ -96,7 +96,7 @@ const Login = () => {
         </button>
 
           
-      </section>
+      </form>
     </div>
   )
 }

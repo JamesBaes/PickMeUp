@@ -23,7 +23,7 @@ export const groupByCategory = (items: MenuItem[]): GroupedMenuItems => {
 /**
  * Category display order
  */
-export const categryOrder: MenuCategory[] = [
+export const categoryOrder: MenuCategory[] = [
     'beef_burgers',
     'chicken_burgers',
     'veggie_burgers',

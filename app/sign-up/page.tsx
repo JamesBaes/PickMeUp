@@ -45,7 +45,7 @@ const SignUp = () => {
             required 
             className="font-heading focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"/>
         </label>
-        <div className="validator-hint hidden">Enter valid email address</div>       
+        <div className="validator-hint hidden font-heading text-foreground text-right">Enter valid email address</div>       
         </div>
         
         <div className="flex flex-col flex-1 gap-2">
@@ -72,7 +72,7 @@ const SignUp = () => {
             className="font-heading focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
           />
         </label>
-        <div className="validator-hint hidden">Enter a stronger password</div>       
+        <div className="validator-hint hidden font-heading text-foreground text-right">Enter your password</div>       
         </div>
 
         <div className="flex flex-col flex-1 gap-2">
@@ -99,7 +99,7 @@ const SignUp = () => {
             className="font-heading focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
           />
         </label>
-        <div className="validator-hint hidden">The passwords do not match</div>       
+        <div className="validator-hint hidden font-heading text-foreground text-right">The passwords do not match</div>       
         </div>
 
 
