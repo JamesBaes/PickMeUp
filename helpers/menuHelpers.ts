@@ -1,4 +1,4 @@
-import { MenuItem, MenuCategory, GroupedMenuItems } from '@/types';
+import { MenuItem, MenuCategory, GroupedMenuItems, CategoryDescriptions } from '@/types';
 
 /**
  * Format price for display

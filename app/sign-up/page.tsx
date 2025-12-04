@@ -1,12 +1,22 @@
 'use client'
 import React from 'react'
 import Image from 'next/image'
+import { signUp } from '@/helpers/authHelpers'
 
 const SignUp = () => {
 
-  const handleSignUp = (): void => {
-    throw new Error("An error occured");
-  }
+  const handleSignUp = async(formData: FormData) => {
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const confirmPassword = formData.get('confirmPassword') as string;
+
+    if (password !== confirmPassword) {
+      alert ('Passwords do not match')
+      return;
+    }
+
+    await signUp(email, password);
+   }
 
   return (
     <div className="pt-20 flex flex-col items-center gap-8 bg-accent flex-1">
@@ -22,7 +32,8 @@ const SignUp = () => {
         Sign Up
       </h1>
 
-      <section className="flex gap-6 flex-col">
+      {/* Sign Up Form */}
+      <form action={handleSignUp} className="flex gap-6 flex-col">
         
         <div className="flex flex-1 gap-2 flex-col">
         <p className="font-heading text-background font-medium text-2xl">Email</p>
@@ -41,11 +52,12 @@ const SignUp = () => {
           </svg>
           <input 
             type="email" 
+            name="email"
             placeholder="Email@example.com" 
             required 
-            className="font-heading focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"/>
+            className="font-heading py-4 focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"/>
         </label>
-        <div className="validator-hint hidden font-heading text-foreground text-right">Enter valid email address</div>       
+        <div className="validator-hint hidden font-heading text-background font-bold text-right">Enter valid email address</div>       
         </div>
         
         <div className="flex flex-col flex-1 gap-2">
@@ -67,12 +79,13 @@ const SignUp = () => {
           </svg>
           <input 
             type="password" 
+            name="password"
             placeholder="Password"
             required 
-            className="font-heading focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
+            className="font-heading py-4 focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
           />
         </label>
-        <div className="validator-hint hidden font-heading text-foreground text-right">Enter your password</div>       
+        <div className="validator-hint hidden font-heading text-background font-bold text-right">Enter your password</div>       
         </div>
 
         <div className="flex flex-col flex-1 gap-2">
@@ -94,23 +107,22 @@ const SignUp = () => {
           </svg>
           <input 
             type="password" 
-            placeholder="Password"
+            name="confirmPassword"
+            placeholder="Confirm Password"
             required 
-            className="font-heading focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
+            className="font-heading py-4 focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
           />
         </label>
-        <div className="validator-hint hidden font-heading text-foreground text-right">The passwords do not match</div>       
+        <div className="validator-hint hidden font-heading text-background font-bold text-right">Please re-enter your password</div>       
         </div>
 
 
-        <button onClick={() => handleSignUp()} className="mt-2 w-md bg-foreground rounded-lg p-3">
+        <button type='submit' className="mt-2 w-md bg-foreground rounded-lg p-3 hover:shadow-xl hover:cursor-pointer">
           <p className="font-heading font-medium text-lg text-background">
             Create an Account
           </p>
-        </button>
-
-          
-      </section>
+        </button>        
+      </form>
     </div>
   )
 }
