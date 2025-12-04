@@ -11,6 +11,8 @@ import Header from "@/components/Header";
 export default function MenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
+  // SHOULD ADD A LOADING STATE PROBABLY (LIKE HOW WE DID IN MOBILE DEV CPRG-303)
+
   useEffect(() => {
     fetchMenuItems();
   }, []);
