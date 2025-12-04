@@ -1,6 +1,6 @@
-import Image from 'next/image';
-import { MenuItem } from '@/types';
-import { formatPrice } from '@/helpers/menuHelpers';
+import Image from "next/image";
+import { MenuItem } from "@/types";
+import { formatPrice } from "@/helpers/menuHelpers";
 
 interface MenuItemCardProps {
   item: MenuItem;
@@ -9,11 +9,11 @@ interface MenuItemCardProps {
 export default function MenuItemCard({ item }: MenuItemCardProps) {
   return (
     <div className="card bg-base-100 w-96 shadow-sm hover:shadow-xl transition-shadow duration-300 cursor-pointer">
-      <figure>
-        <img
-          src={item.image_url}
-          alt={item.name} />
-      </figure>
+      {item.image_url && (
+        <figure>
+          <img src={item.image_url} alt={item.name} />
+        </figure>
+      )}
       <div className="card-body">
         <h2 className="card-title">{item.name}</h2>
         <p>${item.price}</p>
@@ -23,7 +23,5 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
         </div>
       </div>
     </div>
-
-        
   );
 }
