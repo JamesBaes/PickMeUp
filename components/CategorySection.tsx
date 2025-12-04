@@ -4,7 +4,10 @@ import MenuItemCard from './MenuItemCard';
 import { CategorySectionProps, CategoryDescriptions } from '@/types';
 
 
-export default function CategorySection({ category, items }: CategorySectionProps) {
+export default function CategorySection({
+  category,
+  items,
+}: CategorySectionProps) {
   return (
     <section className="mb-12">
       <div className="flex flex-col">

@@ -1,6 +1,6 @@
-import Image from 'next/image';
-import { MenuItem } from '@/types';
-import { formatPrice } from '@/helpers/menuHelpers';
+import Image from "next/image";
+import { MenuItem } from "@/types";
+import { formatPrice } from "@/helpers/menuHelpers";
 
 interface MenuItemCardProps {
   item: MenuItem;
