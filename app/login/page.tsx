@@ -1,13 +1,16 @@
 'use client'
 import React from 'react'
 import Image from 'next/image'
+import { login } from '@/helpers/authHelpers'
 
 const Login = () => {
 
+  const handleLogin = async (formData: FormData)  => {
+    
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
 
-  // Temporary, we add the login to supabase functionality in this method.
-  const handleLogin = (): void  => {
-    throw new Error('Function not implemented.')
+    await login(email, password);
   }
 
   return (
@@ -25,11 +28,11 @@ const Login = () => {
       </h1>
 
       {/* Login Form Section (Used the jsx from daisyUI) */}
-      <section className="flex gap-6 flex-col">
+      <form action={handleLogin} className="flex gap-6 flex-col">
         
         <div className="flex flex-1 gap-2 flex-col">
         <p className="font-heading text-background font-medium text-2xl">Email</p>
-        <label className="input validator flex items-center gap-2 bg-background w-md p-3 border-2 border-gray-50 shadow-xs rounded-lg">
+        <label className="input validator flex items-center gap-2 bg-background w-md p-3 border-2 border-gray-50 shadow-xs rounded-lg focus-within:border-gray-50">
           <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <g
               stroke-linejoin="round"
@@ -44,16 +47,17 @@ const Login = () => {
           </svg>
           <input 
             type="email" 
+            name="email"
             placeholder="Email@example.com" 
             required 
-            className="font-heading focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"/>
+            className="font-heading py-4 focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"/>
         </label>
-        <div className="validator-hint hidden">Enter valid email address</div>       
+        <div className="validator-hint hidden font-heading text-background font-bold text-right">Enter valid email address</div>       
         </div>
         
         <div className="flex flex-col flex-1 gap-2">
         <p className="font-heading text-background font-medium text-2xl">Password</p>
-        <label className="input validator flex items-center gap-2 bg-background w-md p-3 border-2 border-gray-50 shadow-xs rounded-lg">
+        <label className="input validator flex items-center gap-2 bg-background w-md p-3 border-2 border-gray-50 shadow-xs rounded-lg focus-within:border-gray-50">
           <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <g
               strokeLinejoin="round"
@@ -70,12 +74,13 @@ const Login = () => {
           </svg>
           <input 
             type="password" 
+            name="password"
             placeholder="Password"
             required 
-            className="font-heading focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
+            className="font-heading py-4 focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
           />
         </label>
-        <div className="validator-hint hidden">Enter a stronger password</div>       
+        <div className="validator-hint hidden font-heading text-background font-bold text-right">Enter your password</div>       
         </div>
 
         {/* Lmk if i got you HAHAH its temporary ;p*/}
@@ -89,14 +94,12 @@ const Login = () => {
           </a>
         </div>
 
-        <button onClick={() => handleLogin()} className="w-md bg-foreground rounded-lg p-3">
+        <button type='submit' className="w-md bg-foreground rounded-lg p-3 hover:shadow-xl hover:cursor-pointer">
          <p className="font-heading font-medium text-lg text-background">
           Login
         </p>
         </button>
-
-          
-      </section>
+      </form>
     </div>
   )
 }
