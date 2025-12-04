@@ -2,8 +2,10 @@
 import Link from 'next/link'
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import React from 'react'
-
+import React, { useState } from 'react'
+import type { User } from '@supabase/supabase-js';
+import supabase from '@/utils/supabase/client';
+import { signOut } from '@/helpers/authHelpers';
 
 const links1 = [
   {
@@ -31,9 +33,30 @@ const links2 = [
   },
 ]
 
+const authenticatedLinks = [
+  {
+    name: 'account',
+    path: '/account'
+  },
+  {
+    name: 'order history',
+    path: '/order-history'
+  },
+  {
+    name: 'favorites',
+    path: '/favorites'
+  }
+]
+
 // Desktop NavBar (No Account)
 const NavBar = () => {  
   const pathname = usePathname();
+  const [user, setUser] = useState<User | null>(null);
+
+  const handleSignOut = async () => {
+    signOut();
+  }
+
   return (
     <nav className="flex justify-between w-full px-20 py-4 border-b border-gray-100 bg-gray-50 shadow-lg ">
       <Link

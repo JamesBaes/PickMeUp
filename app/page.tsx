@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/utils/supabase/client";
-import { MenuItem } from "@/types/";
-import { groupByCategory, categryOrder } from "@/helpers/menuHelpers";
-import CategorySection from "@/components/CategorySection";
-import Footer from "@/components/Footer";
-import Header from "@/components/Header";
+import { useEffect, useState } from 'react';
+import supabase from '@/utils/supabase/client';
+import { MenuItem } from '@/types/';
+import { groupByCategory, categoryOrder } from '@/helpers/menuHelpers';
+import CategorySection from '@/components/CategorySection';
 
 export default function MenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -46,6 +44,7 @@ export default function MenuPage() {
             key={category}
             category={category}
             items={groupedItems[category]}
+ 
           />
         ))
       )}
