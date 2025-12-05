@@ -36,8 +36,8 @@ export default function MenuPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       {categories.length === 0 ? (
-        <div className="alert alert-info">
-          <p>No menu items available at the moment.</p>
+        <div>
+          <p></p>
         </div>
       ) : (
         categories.map((category) => (
