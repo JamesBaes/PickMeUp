@@ -6,6 +6,8 @@
   --foreground: #001219;
   --offwhite: #F2F0EF;
   --accent: #A30000;
+  --secondary: #850000;
+  --active: #6d0000;
 }
 
 @theme inline {
@@ -22,6 +24,8 @@
   --color-accent: var(--accent);
   --font-heading: var(--font-heading);
   --font-body: var(--font-body);
+  --color-secondary: var(--secondary);
+  --color-active: var(--active);
 }
 
 @media (prefers-color-scheme: dark) {
