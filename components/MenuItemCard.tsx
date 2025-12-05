@@ -18,9 +18,11 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
 
   return (
     <div className="card bg-background w-full max-w-xs shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer">
-      <figure>
-        <img src={item.image_url} alt={item.name} />
-      </figure>
+      {item.image_url && (
+        <figure>
+          <img src={item.image_url} alt={item.name} />
+        </figure>
+      )}
       <div className="card-body shadow-lg">
         <h2 className="card-title text-foreground font-heading">
           {formattedName()}
