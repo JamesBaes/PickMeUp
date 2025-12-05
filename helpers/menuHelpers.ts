@@ -28,10 +28,11 @@ export const categoryOrder: MenuCategory[] = [
     'chicken_burgers',
     'veggie_burgers',
     'steak_sandwiches',
+    'combos',
     'crowds_sides',
     'extra_armour_sides',
     'beverages',
-    'combos',
+
 ];
 
 /**

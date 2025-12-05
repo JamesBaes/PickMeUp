@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import supabase from '@/utils/supabase/client';
-import { MenuItem } from '@/types/';
-import { groupByCategory, categoryOrder } from '@/helpers/menuHelpers';
-import CategorySection from '@/components/CategorySection';
+import { useEffect, useState } from "react";
+import supabase from "@/utils/supabase/client";
+import { MenuItem } from "@/types/";
+import { groupByCategory, categoryOrder } from "@/helpers/menuHelpers";
+import CategorySection from "@/components/CategorySection";
 
 export default function MenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -29,8 +29,9 @@ export default function MenuPage() {
     }
   };
 
+  // sort category by a specific order, and not alphabetical
   const groupedItems = groupByCategory(menuItems);
-  const categories = Object.keys(groupedItems);
+  const categories = categoryOrder.filter((category) => groupedItems[category]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -44,7 +45,6 @@ export default function MenuPage() {
             key={category}
             category={category}
             items={groupedItems[category]}
- 
           />
         ))
       )}
