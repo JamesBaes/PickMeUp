@@ -28,9 +28,11 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
           {formattedName()}
         </h2>
         <p className="text-foreground font-heading">${item.price}</p>
-        <p className="text-foreground font-heading">{item.description}</p>
+        <p className="hidden lg:line-clamp-4 block text-foreground font-heading ">
+          {item.description}
+        </p>
         <div className="card-actions justify-end">
-          <button className="btn border-0 shadow-none bg-accent">
+          <button className="btn border-0 shadow-none bg-accent hover:bg-secondary active:bg-active">
             <p className="font-heading text-white">Add to Cart</p>
           </button>
         </div>
