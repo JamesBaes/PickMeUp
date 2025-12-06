@@ -18,7 +18,7 @@ const SignUp = () => {
   };
 
   return (
-    <div className="pt-20 flex flex-col items-center gap-8 bg-accent flex-1">
+    <div className="pt-12 flex flex-col items-center gap-8 bg-accent flex-1">
       <Image
         src="/gladiator-logo-circle.png"
         alt="Gladiator Logo"

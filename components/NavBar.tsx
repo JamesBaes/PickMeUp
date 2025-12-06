@@ -92,18 +92,12 @@ const NavBar = () => {
   // Had to handle the redirect on the client side because of the onclick attribute client-side only.
   // other auth redirects are handled through the authhelper file.
   const handleSignOut = async () => {
-    console.log("Client: handleSignOut called");
-    
     const result = await signOut();
-    
-    console.log("Client: received result", result);
-    
+   
     if (result.success) {
-      console.log("Client: redirecting to home");
       router.push('/logout');
       router.refresh();
     } else {
-      console.log("Client: redirecting to error");
       router.push('/error');
     }
   }
