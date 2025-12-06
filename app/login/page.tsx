@@ -2,6 +2,8 @@
 import React from "react";
 import Image from "next/image";
 import { login } from "@/helpers/authHelpers";
+import Link from "next/link";
+import ForgotPassword from "../forgot-password/page";
 
 const Login = () => {
   const handleLogin = async (formData: FormData) => {
@@ -93,15 +95,13 @@ const Login = () => {
           </div>
         </div>
 
-        {/* Lmk if i got you HAHAH its temporary ;p*/}
+
         <div className="font-heading text-background text-right hover:text-gray-200">
-          <a
-            href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href={"/forgot-password"}
           >
             Forgot Password?
-          </a>
+          </Link>
         </div>
 
         <button
