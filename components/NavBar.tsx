@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import type { User } from "@supabase/supabase-js";
 import supabase from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 import { signOut } from "@/helpers/authHelpers";
 
 const links1 = [
@@ -51,6 +52,7 @@ const authenticatedLinks = [
 // Desktop NavBar (No Account)
 const NavBar = () => {
   const pathname = usePathname();
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
 
   // useEffect block to check if user is logged in or not
@@ -87,9 +89,24 @@ const NavBar = () => {
     checkUserOnRouteChange();
   }, [pathname]);
 
+  // Had to handle the redirect on the client side because of the onclick attribute client-side only.
+  // other auth redirects are handled through the authhelper file.
   const handleSignOut = async () => {
-    await signOut();
-  };
+    console.log("Client: handleSignOut called");
+    
+    const result = await signOut();
+    
+    console.log("Client: received result", result);
+    
+    if (result.success) {
+      console.log("Client: redirecting to home");
+      router.push('/logout');
+      router.refresh();
+    } else {
+      console.log("Client: redirecting to error");
+      router.push('/error');
+    }
+  }
 
   return (
     <nav className="flex justify-between w-full px-20 py-4 border-b border-gray-100 bg-gray-50 shadow-lg ">
@@ -156,8 +173,8 @@ const NavBar = () => {
           })}
           {/* Sign Out Button */}
           <button
-            onClick={handleSignOut}
-            className="content-center text-xl capitalize font-heading font-semibold hover:text-accent transition-all"
+            onClick={() => handleSignOut()}
+            className="content-center text-xl capitalize font-heading font-semibold hover:text-accent cursor-pointer transition-all"
           >
             sign out
           </button>

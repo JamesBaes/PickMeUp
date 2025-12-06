@@ -49,12 +49,13 @@ export async function signOut() {
 
    // redirects to temporary error page
   if (error) {
+    console.log("Sign Out Error: " + error.message)
     redirect('/error')
   }
 
   // does a "refresh" and redirects to/account page.
   revalidatePath('/', 'layout')
-  redirect('/')
+  return { success: true };
 }
 
 export async function getCurrentUser() {

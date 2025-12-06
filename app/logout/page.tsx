@@ -1,4 +1,5 @@
 "use client";
+
 import React from "react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -6,7 +7,7 @@ import supabase from "@/utils/supabase/client";
 
 // temporary success page
 
-const success = () => {
+const Logout = () => {
   const router = useRouter();
 
   // redirects to menupage after 2 seconds
@@ -33,9 +34,9 @@ const success = () => {
           d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
         ></path>
       </svg>
-      <span>Welcome to Gladiator Burger.</span>
+      <span>Logging out.</span>
     </div>
   );
 };
 
-export default success;
+export default Logout;
