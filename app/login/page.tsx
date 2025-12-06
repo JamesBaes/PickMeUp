@@ -38,7 +38,7 @@ const Login = () => {
               <g
                 strokeLinejoin="round"
                 strokeLinecap="round"
-                stroke-width="2.5"
+                strokeWidth="2.5"
                 fill="none"
                 stroke="currentColor"
               >
