@@ -137,7 +137,7 @@ const SignUp = () => {
 
         <button
           type="submit"
-          className="mt-2 w-md bg-foreground rounded-lg p-3 hover:shadow-xl hover:cursor-pointer"
+          className="mt-2 w-md bg-foreground rounded-lg p-3 hover:shadow-xl hover:cursor-pointer mb-6"
         >
           <p className="font-heading font-medium text-lg text-background">
             Create an Account

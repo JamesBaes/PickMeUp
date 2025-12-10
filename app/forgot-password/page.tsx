@@ -33,7 +33,7 @@ const ForgotPassword = () => {
         width="96"
         height="96"
       />
-      <h1 className="font-heading text-4xl font-semibold text-white">Reset Password</h1>
+      <h1 className="font-heading text-4xl font-semibold text-white">Forgot Password</h1>
       
       {sent ? (
         <p className="font-heading text-background font-medium text-2xl">Check your email for reset link!</p>
