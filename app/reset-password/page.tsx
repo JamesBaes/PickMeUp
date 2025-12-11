@@ -11,6 +11,9 @@ const ResetPassword = () => {
 
   const router = useRouter();
 
+
+
+  // TEMPORARY RESET PASSWORD SUBMIT. ACTUAL LOGIC NEEDS TO BE IMPLEMENTED STILL I COULDNT FIGURE OUT AS I NEED TO WORK ON THE VIDEO NOW...
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setShowSuccess(true);
@@ -57,6 +60,7 @@ const ResetPassword = () => {
         width="96"
         height="96"
       />
+      <h2 className="font-heading text-4xl font-semibold text-white">Reset Password</h2>
       <form onSubmit={handleSubmit} className="flex flex-col">
         <div className="flex flex-col flex-1 gap-2">
           <p className="font-heading text-background font-medium text-2xl">
