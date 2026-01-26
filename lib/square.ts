@@ -1,9 +1,20 @@
-import { Client, Environment } from "square";
+import { payments } from "square";
 
-// creating the square client
-export const squareClient = new Client({
-  accessToken: process.env.SQUARE_ACCESS_TOKEN,
-  environment: Environment.Sandbox, // Switch to Environment.Production when going live. For now, keep as sandbox to test functionality.
-});
+export function getSquareClient() {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { SquareClient, SquareEnvironment } = require("square");
+  
+  if (!process.env.SQUARE_ACCESS_TOKEN) {
+    throw new Error("Missing SQUARE_ACCESS_TOKEN environment variable");
+  }
 
-export const paymentsApi = squareClient.paymentsApi;
+  const client = new SquareClient({
+    token: process.env.SQUARE_ACCESS_TOKEN,
+    environment: SquareEnvironment.Sandbox,
+  });
+
+  return {
+    payments: client.payments,
+    client,
+  };
+}

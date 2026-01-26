@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 declare global {
   interface Window {
@@ -8,74 +8,99 @@ declare global {
   }
 }
 
+// Defining the data of the payment component
+// All the information that is needed to create an order
+interface OrderDetails {
+  customerName: string;
+  customerPhone: string;
+  items: Array<{ name: string; quantity: number; priceCents: number }>;
+  totalCents: number;
+  pickupTime: string;
+}
+
 interface PaymentFormProps {
-  amount: number; // in cents
-  onPaymentSuccess: (paymentId: string) => void;
-  onPaymentError: (error: string) => void;
+  orderDetails: OrderDetails;
+  onSuccess: (orderId: string) => void;
+  onError: (error: string) => void;
 }
 
 export default function PaymentForm({
-  amount,
-  onPaymentSuccess,
-  onPaymentError,
+  orderDetails,
+  onSuccess,
+  onError,
 }: PaymentFormProps) {
+  // starts as null until Square is ready. It holds the card after initialization
   const [card, setCard] = useState<any>(null);
+  // tracking if the payment is being processed or not
   const [loading, setLoading] = useState(false);
-  const cardContainerRef = useRef<HTMLDivElement>(null);
 
+  // Initialize Square
   useEffect(() => {
     const initializeSquare = async () => {
+      // check if square has been loaded or not
       if (!window.Square) {
-        console.error("Square SDK not loaded");
+        onError("Payment system failed to load");
         return;
       }
 
-      const payments = window.Square.payments(
-        process.env.NEXT_PUBLIC_SQUARE_APP_ID,
-        process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID,
-      );
+      // Create the payments instance to return the object afterwards
+      try {
+        const payments = window.Square.payments(
+          process.env.NEXT_PUBLIC_SQUARE_APP_ID,
+          process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID,
+        );
 
-      const card = await payments.card();
-      await card.attach("#card-container");
-      setCard(card);
+        // Create the card instance -> Square's prebuilt UI for entering card info
+        const card = await payments.card();
+        // Attach to the DOM. Tells square to render the card.
+        // The card info DOES NOT GO INTO THE PAGE/CODE. Only into Square's iframe
+        await card.attach("#card-container");
+        // Save to state to handle the payment
+        setCard(card);
+      } catch (e) {
+        console.error("Square initialization error:", e);
+        onError("Failed to initialize payment form");
+      }
     };
 
     initializeSquare();
-  }, []);
+  }, [onError]);
 
+  // Payment Handler
   const handlePayment = async () => {
+    // the 'guard' clause. if Square is not initialized, then don't do anything
     if (!card) return;
 
     setLoading(true);
+
     try {
-      // Tokenize the card (converts card info to a secure token)
-      const result = await card.tokenize();
+      // Tokenize card info (converts to secure token from Square's iframe).
+      // card is tokenized, does not receive actual card number whatsoever
+      const tokenResult = await card.tokenize();
 
-      if (result.status === "OK") {
-        // Send token to your backend
-        const response = await fetch("/api/payments", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sourceId: result.token,
-            amount: amount,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          onPaymentSuccess(data.paymentId);
-        } else {
-          onPaymentError(data.error);
-        }
-      } else {
-        onPaymentError(
-          result.errors?.[0]?.message || "Card tokenization failed",
-        );
+      if (tokenResult.status !== "OK") {
+        throw new Error(tokenResult.errors?.[0]?.message || "Card error");
       }
-    } catch (error) {
-      onPaymentError("Payment failed. Please try again.");
+
+      // Send to your API
+      const response = await fetch("/api/payments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sourceId: tokenResult.token,
+          orderDetails: orderDetails,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        onSuccess(data.orderId);
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error: any) {
+      onError(error.message || "Payment failed");
     } finally {
       setLoading(false);
     }
@@ -85,16 +110,18 @@ export default function PaymentForm({
     <div className="space-y-4">
       <div
         id="card-container"
-        ref={cardContainerRef}
-        className="border rounded-lg p-4 min-h-[50px]"
+        className="border border-gray-300 rounded-lg p-4 min-h-[50px] bg-white"
       />
       <button
         onClick={handlePayment}
         disabled={loading || !card}
-        className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium
-                   hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold
+                   hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed
+                   transition-colors"
       >
-        {loading ? "Processing..." : `Pay $${(amount / 100).toFixed(2)}`}
+        {loading
+          ? "Processing..."
+          : `Pay $${(orderDetails.totalCents / 100).toFixed(2)}`}
       </button>
     </div>
   );
