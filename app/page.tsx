@@ -37,7 +37,7 @@ export default function MenuPage() {
     <div className="container mx-auto px-4 py-8">
       {categories.length === 0 ? (
         <div>
-          <p></p>
+          <p>No items found.</p>
         </div>
       ) : (
         categories.map((category) => (

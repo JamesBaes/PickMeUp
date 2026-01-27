@@ -51,3 +51,24 @@ export const CategoryDescriptions: Record<MenuCategory, string> = {
     "Enjoy our rich and thick creamy shakes blended to perfection! OR satisfy your thirst from one of our great selection of drinks",
   combos: "",
 };
+
+// Cart Related Types
+
+export interface CartItem {
+  menuItem: MenuItem
+  quantity: number
+}
+
+export interface CartContextType {
+  items: CartItem[]
+  addItem: (item: MenuItem, quantity?: number) => void
+  removeItem: (itemId: string) => void
+  clearCart: () => void
+  updateQuantity: (itemId: string, quantity: number) => void
+  getItemCount: () => number
+  getTotal: () => number
+}
+
+export interface CartProvideProps {
+  children: React.ReactNode
+}
