@@ -36,6 +36,8 @@ export default function PaymentForm({
 
   // Initialize Square
   useEffect(() => {
+    let cardInstance: any = null;
+
     const initializeSquare = async () => {
       // check if square has been loaded or not
       if (!window.Square) {
@@ -51,12 +53,12 @@ export default function PaymentForm({
         );
 
         // Create the card instance -> Square's prebuilt UI for entering card info
-        const card = await payments.card();
+        cardInstance = await payments.card();
         // Attach to the DOM. Tells square to render the card.
         // The card info DOES NOT GO INTO THE PAGE/CODE. Only into Square's iframe
-        await card.attach("#card-container");
+        await cardInstance.attach("#card-container");
         // Save to state to handle the payment
-        setCard(card);
+        setCard(cardInstance);
       } catch (e) {
         console.error("Square initialization error:", e);
         onError("Failed to initialize payment form");
@@ -64,6 +66,13 @@ export default function PaymentForm({
     };
 
     initializeSquare();
+
+    // Cleanup function to destroy the card instance when component unmounts
+    return () => {
+      if (cardInstance) {
+        cardInstance.destroy();
+      }
+    };
   }, [onError]);
 
   // Payment Handler
