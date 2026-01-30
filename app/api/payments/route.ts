@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         total_cents: orderDetails.totalCents,
         square_payment_id: payment.id,  // Changed from result.payment.id
         status: "paid",
-        pickup_time: orderDetails.pickupTime,
+        pickup_time: orderDetails.pickupTime || new Date(Date.now() + 30 * 60000).toISOString(),
     })
     .select()
     .single();
