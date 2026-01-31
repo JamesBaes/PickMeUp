@@ -1,5 +1,7 @@
+'use client'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { MenuItem, CartItem, CartContextType, CartProvideProps } from '@/types'
+import { useAuth } from './authContext';
 
 // create cart context
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -7,6 +9,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 // provider component for the cart context
 export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
 
+  const { user, isGuest } = useAuth();
   const [ items, setItems ] = useState<CartItem[]>([])
 
   useEffect(() => {
@@ -38,24 +41,28 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
   // function for adding item to the cart
   const addItem = (menuItem: MenuItem, quantity: number = 1) => {
     setItems((prevItems) => {
-      const existingItem = prevItems.find(item => item.menuItem.item_id === menuItem.item_id)
+      const existingItem = prevItems.find(item => item.item_id === menuItem.item_id)
 
       if (existingItem) {
-        // if the item already exisits in the cart, update the quantity
+        // if the item already exists in the cart, update the quantity
         return prevItems.map(item => 
-          item.menuItem.item_id === menuItem.item_id ? { ...item, quantity: item.quantity + quantity } : item
+          item.item_id === menuItem.item_id ? { ...item, quantity: item.quantity + quantity } : item
         )
       }
 
-      return [...prevItems, { menuItem, quantity }]
+      const newCartItem: CartItem = {
+        ...menuItem,
+        quantity
+      };
+
+      return [...prevItems, newCartItem]
     })
   }
   
   // function to remove an item from the cart by item_id 
   const removeItem = (itemId: string) => {
-      setItems((prevItems) => prevItems.filter(item => item.menuItem.item_id !== itemId))
+      setItems((prevItems) => prevItems.filter(item => item.item_id !== itemId))
   }
-
 
   // function to update the quantity of an item
   const updateQuantity = (itemId: string, quantity: number) => {
@@ -65,11 +72,10 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
       }
       setItems((prevItems) => 
           prevItems.map((item) =>
-              item.menuItem.item_id === itemId ? {...item, quantity} : item
+              item.item_id === itemId ? {...item, quantity} : item
           )
       )
   }
-
 
   // function for clearing cart
   const clearCart = () => {
@@ -83,7 +89,7 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
 
   const getTotal = () => {
       return items.reduce(
-          (total, item) => total + item.menuItem.price + item.quantity, 0
+          (total, item) => total + item.price * item.quantity, 0
       );
   }
 
@@ -103,3 +109,12 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
     </CartContext.Provider>
   );
 }
+
+export const useCart = () => {
+  const context = useContext(CartContext)
+  if (context === undefined) {
+    throw new Error('useCart must be used within an CartProvider')
+  }
+  return context
+}
+

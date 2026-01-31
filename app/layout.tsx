@@ -3,6 +3,8 @@ import { DM_Sans, Nunito } from "next/font/google";
 import Footer from "@/components/Footer";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
+import { AuthProvider } from "@/context/authContext";
+import { CartProvider } from "@/context/cartContext";
 
 const headingText = DM_Sans({
   variable: "--font-heading",
@@ -29,9 +31,14 @@ export default function RootLayout({
       <body
         className={`${headingText.variable} ${bodyText.variable} flex flex-col min-h-screen antialiased`}
       >
-        <NavBar />
-        <main className="flex flex-col grow">{children}</main>
-        <Footer />
+        <AuthProvider>
+          <CartProvider>
+            <NavBar />
+            <main className="flex flex-col grow">{children}</main>
+            <Footer />
+          </CartProvider>
+        </AuthProvider>
+
       </body>
     </html>
   );
