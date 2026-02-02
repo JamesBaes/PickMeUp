@@ -7,6 +7,7 @@ import type { User } from "@supabase/supabase-js";
 import supabase from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { signOut } from "@/helpers/authHelpers";
+import { useLocation } from "@/components/LocationContext";
 
 const links1 = [
   {
@@ -102,6 +103,9 @@ const NavBar = () => {
     }
   }
 
+  //Listen to use Location to change select location into the new locations name in the NavBar
+  const { currentLocation, isHydrated } = useLocation();
+
   return (
     <nav className="flex justify-between w-full px-20 py-4 border-b border-gray-100 bg-gray-50 shadow-lg ">
       <Link href={"/"} className="flex gap-4 items-center">
@@ -119,6 +123,21 @@ const NavBar = () => {
       {/* Center navigation: Menu, Select Location, Cart */}
       <div className="flex gap-16">
         {links1.map((link, index) => {
+          // Special handling for select location link
+          if (link.path === "/select-location") {
+            return (
+              <Link
+                href="/select-location"
+                key={index}
+                className={`${
+                  pathname === "/select-location" && "text-accent"
+                } text-xl content-center capitalize font-heading font-semibold hover:text-accent transition-all`}
+              >
+                {isHydrated ? (currentLocation ? currentLocation.name : "select location") : "select location"}
+              </Link>
+            );
+          }
+          
           return (
             <Link
               href={link.path}
