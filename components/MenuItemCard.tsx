@@ -1,4 +1,5 @@
-
+import Image from "next/image";
+import Link from "next/link";
 import { MenuItem } from "@/types";
 import { useState } from "react";
 import { useCart } from "@/context/cartContext";
@@ -39,12 +40,14 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
   }
 
   return (
-    <div className="card bg-background w-full max-w-xs shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer">
+    <Link href={`/${item.item_id}`}>
+      <div className="card bg-background w-full max-w-xs shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer" >
       {item.image_url && (
         <figure>
           <img src={item.image_url} alt={item.name} />
         </figure>
       )}
+      </div>
       <div className="card-body shadow-lg">
         <h2 className="card-title text-foreground font-heading">
           {formattedName()}
@@ -65,6 +68,6 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
           </button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
