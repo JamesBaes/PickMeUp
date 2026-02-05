@@ -1,8 +1,6 @@
 // Proxy.ts file grabbed from https://supabase.com/docs/guides/getting-started/tutorials/with-nextjs?queryGroups=database-method&database-method=dashboard
-
-// This is apparently needed for refreshing expire auth tokens. This proxy.ts file is in the upper level directory so that it handles every request besides the stuff in the matcher.
-
 import { type NextRequest } from 'next/server'
+
 import { updateSession } from '@/utils/supabase/proxy'
 export async function proxy(request: NextRequest) {
   // update user's auth session
