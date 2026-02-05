@@ -1,20 +1,24 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
-import { signUp } from "@/helpers/authHelpers";
+import Link from "next/link";
+import { signUp } from "./actions";
 
 const SignUp = () => {
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
   const handleSignUp = async (formData: FormData) => {
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-    const confirmPassword = formData.get("confirmPassword") as string;
+    setLoading(true);
+    setError(null);
 
-    if (password !== confirmPassword) {
-      alert("Passwords do not match");
-      return;
+    const result = await signUp(formData);
+
+    // Only runs if signup failed (success redirects)
+    if (result?.error) {
+      setError(result.error);
+      setLoading(false);
     }
-
-    await signUp(email, password);
   };
 
   return (
@@ -33,6 +37,13 @@ const SignUp = () => {
 
       {/* Sign Up Form */}
       <form action={handleSignUp} className="flex gap-6 flex-col">
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded font-heading">
+            {error}
+          </div>
+        )}
+
         <div className="flex flex-1 gap-2 flex-col">
           <p className="font-heading text-background font-medium text-2xl">
             Email
@@ -59,12 +70,10 @@ const SignUp = () => {
               name="email"
               placeholder="Email@example.com"
               required
-              className="font-heading py-4 focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
+              disabled={loading}
+              className="font-heading py-4 focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0 disabled:opacity-50"
             />
           </label>
-          <div className="validator-hint hidden font-heading text-background font-bold text-right">
-            Enter valid email address
-          </div>
         </div>
 
         <div className="flex flex-col flex-1 gap-2">
@@ -93,12 +102,13 @@ const SignUp = () => {
               name="password"
               placeholder="Password"
               required
-              className="font-heading py-4 focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
+              disabled={loading}
+              className="font-heading py-4 focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0 disabled:opacity-50"
             />
           </label>
-          <div className="validator-hint hidden font-heading text-background font-bold text-right">
-            Enter your password
-          </div>
+          <p className="font-heading text-background text-sm">
+            Must be 8+ characters with uppercase and number
+          </p>
         </div>
 
         <div className="flex flex-col flex-1 gap-2">
@@ -127,22 +137,28 @@ const SignUp = () => {
               name="confirmPassword"
               placeholder="Confirm Password"
               required
-              className="font-heading py-4 focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
+              disabled={loading}
+              className="font-heading py-4 focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0 disabled:opacity-50"
             />
           </label>
-          <div className="validator-hint hidden font-heading text-background font-bold text-right">
-            Please re-enter your password
-          </div>
         </div>
 
         <button
           type="submit"
-          className="mt-2 w-md bg-foreground rounded-lg p-3 hover:shadow-xl hover:cursor-pointer mb-6"
+          disabled={loading}
+          className="mt-2 w-md bg-foreground rounded-lg p-3 hover:shadow-xl hover:cursor-pointer mb-6 disabled:opacity-50"
         >
           <p className="font-heading font-medium text-lg text-background">
-            Create an Account
+            {loading ? "Creating Account..." : "Create an Account"}
           </p>
         </button>
+
+        <p className="font-heading text-background text-center">
+          Already have an account?{" "}
+          <Link href="/login" className="underline hover:text-gray-200">
+            Login
+          </Link>
+        </p>
       </form>
     </div>
   );
