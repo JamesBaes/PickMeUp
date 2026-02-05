@@ -1,16 +1,9 @@
 'use client'
 import Image from 'next/image';
-import { useState } from 'react';
+import { CartItem } from '@/types';
 
 interface CartItemCardProps {
-  item?: {
-    id: number
-    name: string
-    price: number
-    quantity: number
-    image: string
-    size?: string
-  }
+  item: CartItem
   onQuantityChange?: (newQuantity: number) => void
   onRemove?: () => void
 }
@@ -20,42 +13,50 @@ const CartItemCard = ({
   onQuantityChange,
   onRemove
 }: CartItemCardProps) => {
-  const [quantity, setQuantity] = useState(item?.quantity || 1);
 
   const handleIncrease = () => {
-    const newQuantity = quantity + 1;
-    setQuantity(newQuantity);
-    onQuantityChange?.(newQuantity);
+    onQuantityChange?.(item.quantity + 1)
   };
 
   const handleDecrease = () => {
-    if (quantity > 1) {
-      const newQuantity = quantity - 1;
-      setQuantity(newQuantity);
-      onQuantityChange?.(newQuantity);
+    if (item.quantity > 1) {
+      onQuantityChange?.(item.quantity - 1)
     }
   };
 
-  if (!item) return null;
+  const itemTotal = item.price * item.quantity;
+
+  // same format name function as MenuItemCard, replaces _ with spaces and capitalizes
+  const formattedName = item.name
+    .replace(/_/g, " ")
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
 
   return (
     <div className="flex items-center gap-6 p-4 bg-white  border-gray-200">
 
       {/* image */}
       <div className="relative w-24 h-24 shrink-0">
-        <Image 
-          src={item.image} 
-          alt={item.name}
-          fill
-          className="object-cover rounded-md"
-        />
+        {item.image_url ? (
+          <Image 
+            src={item.image_url} 
+            alt={item.name}
+            fill
+            className="object-cover rounded-md"
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-200 rounded-md flex items-center justify-center">
+            <span className="text-gray-400 text-xs">No image</span>
+          </div>
+        )}
       </div>
 
       {/* details */}
       <div className="grow">
-        <p className="text-xs text-gray-500 font-body mb-1">{item.size}</p>
-        <h3 className="font-heading font-semibold text-xl mb-2">{item.name}</h3>
-        <p className="font-body text-lg font-medium text-gray-900">${item.price.toFixed(2)}</p>
+        <p className="text-xs text-gray-500 font-body mb-1">{item.category}</p>
+        <h3 className="font-heading font-semibold text-xl mb-2">{formattedName}</h3>
+        <p className="font-body text-lg font-medium text-gray-900">${itemTotal.toFixed(2)}</p>
       </div>
 
       {/* quantity */}
@@ -66,7 +67,7 @@ const CartItemCard = ({
         >
           -
         </button>
-        <span className="font-body text-lg w-8 text-center">{quantity}</span>
+        <span className="font-body text-lg w-8 text-center">{item.quantity}</span>
         <button 
           onClick={handleIncrease}
           className="w-8 h-8 rounded-full border border-gray-300 hover:bg-gray-100 hover:cursor-pointer flex items-center justify-center"

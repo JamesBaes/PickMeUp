@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react'
 import supabase from '@/utils/supabase/client'
 import { useAuth } from '@/context/authContext'
 import { useCart } from '@/context/cartContext'
+import { CartItem } from '@/types'
 
 // tax rate for ontario
 const TAX_RATE = 0.13;
@@ -26,7 +27,7 @@ const Cart = () => {
   } = useCart();
 
   const [selectedLocation, setSelectedLocation] = useState("Brampton");
-  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [cartItems, setCartItems] = useState<(CartItem & { cart_id?: string })[]>([]);
   const [subtotal, setSubtotal] = useState(0);
   const [tax, setTax] = useState(0);
   const [total, setTotal] = useState(0);
@@ -92,9 +93,10 @@ const Cart = () => {
       }
 
       setCartItems(prev => prev.map(item => 
-        item.id === itemId ? { ...item, quantity: newQuantity } : item
+        item.item_id === itemId ? { ...item, quantity: newQuantity } : item
       ));
     } else {
+
       // Guest: update via cartContext
       updateGuestQuantity(itemId, newQuantity);
     }
@@ -112,7 +114,7 @@ const Cart = () => {
         return;
       }
 
-      setCartItems(prev => prev.filter(item => item.id !== itemId));
+      setCartItems(prev => prev.filter(item => item.item_id !== itemId));
     } else {
       removeGuestItem(itemId);
     }
@@ -171,11 +173,11 @@ const Cart = () => {
         ) : (
           <div className="flex flex-col divide-y divide-gray-300">
             {cartItems.map((item) => (
-              <div key={item.id} className="py-4">
+              <div key={item.item_id} className="py-4">
                 <CartItemCard 
                   item={item}
-                  onQuantityChange={(quantity) => handleUpdateQuantity(item.id, quantity)}
-                  onRemove={() => handleRemoveItem(item.id)}
+                  onQuantityChange={(quantity) => handleUpdateQuantity(item.item_id, quantity)}
+                  onRemove={() => handleRemoveItem(item.item_id)}
                 />
               </div>
             ))}

@@ -53,7 +53,6 @@ export const CategoryDescriptions: Record<MenuCategory, string> = {
 };
 
 // Cart Related Types
-
 export interface CartItem extends MenuItem {
   quantity: number
 }
