@@ -52,13 +52,32 @@ export const CategoryDescriptions: Record<MenuCategory, string> = {
   combos: "",
 };
 
-// Checkout types
-export interface CartItem {
-  name: string;
+// Cart Related Types
+export interface CartItem extends MenuItem {
   quantity: number;
-  priceCents: number;
-  image: string;
 }
+
+export interface CartContextType {
+  items: CartItem[];
+  addItem: (item: MenuItem, quantity?: number) => void;
+  removeItem: (itemId: string) => void;
+  clearCart: () => void;
+  updateQuantity: (itemId: string, quantity: number) => void;
+  getItemCount: () => number;
+  getTotal: () => number;
+}
+
+export interface CartProvideProps {
+  children: React.ReactNode;
+}
+
+// Checkout types
+// export interface CartItem {
+//   name: string;
+//   quantity: number;
+//   priceCents: number;
+//   image: string;
+// }
 
 export interface PromoCodeInputProps {
   value: string;

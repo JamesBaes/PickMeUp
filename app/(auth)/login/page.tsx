@@ -1,16 +1,27 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
-import { login } from "@/helpers/authHelpers";
+import { login } from "./actions";
 import Link from "next/link";
-import ForgotPassword from "../forgot-password/page";
 
 const Login = () => {
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
   const handleLogin = async (formData: FormData) => {
+    setLoading(true);
+    setError(null);
+
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    await login(email, password);
+    const result = await login(email, password);
+
+    // if login failed (success redirects)
+    if (result?.error) {
+      setError(result.error);
+      setLoading(false);
+    }
   };
 
   return (
@@ -25,8 +36,15 @@ const Login = () => {
       />
       <h1 className="font-heading text-4xl font-semibold text-white">Login</h1>
 
-      {/* Login Form Section (Used the jsx from daisyUI) */}
+      {/* Login Form Section */}
       <form action={handleLogin} className="flex gap-6 flex-col">
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded font-heading">
+            {error}
+          </div>
+        )}
+
         <div className="flex flex-1 gap-2 flex-col">
           <p className="font-heading text-background font-medium text-2xl">
             Email
@@ -53,12 +71,10 @@ const Login = () => {
               name="email"
               placeholder="Email@example.com"
               required
-              className="font-heading py-4 focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
+              disabled={loading}
+              className="font-heading py-4 focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0 disabled:opacity-50"
             />
           </label>
-          <div className="validator-hint hidden font-heading text-background font-bold text-right">
-            Enter valid email address
-          </div>
         </div>
 
         <div className="flex flex-col flex-1 gap-2">
@@ -87,29 +103,23 @@ const Login = () => {
               name="password"
               placeholder="Password"
               required
-              className="font-heading py-4 focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
+              disabled={loading}
+              className="font-heading py-4 focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0 disabled:opacity-50"
             />
           </label>
-          <div className="validator-hint hidden font-heading text-background font-bold text-right">
-            Enter your password
-          </div>
         </div>
 
-
         <div className="font-heading text-background text-right hover:text-gray-200">
-          <Link
-            href={"/forgot-password"}
-          >
-            Forgot Password?
-          </Link>
+          <Link href="/forgot-password">Forgot Password?</Link>
         </div>
 
         <button
           type="submit"
-          className="w-md bg-foreground rounded-lg p-3 hover:shadow-xl hover:cursor-pointer"
+          disabled={loading}
+          className="w-md bg-foreground rounded-lg p-3 hover:shadow-xl hover:cursor-pointer disabled:opacity-50"
         >
           <p className="font-heading font-medium text-lg text-background">
-            Login
+            {loading ? "Logging in..." : "Login"}
           </p>
         </button>
       </form>

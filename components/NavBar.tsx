@@ -7,6 +7,7 @@ import type { User } from "@supabase/supabase-js";
 import supabase from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { signOut } from "@/helpers/authHelpers";
+import { useLocation } from "@/components/LocationContext";
 
 const links1 = [
   {
@@ -54,6 +55,8 @@ const NavBar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
+  
 
   // useEffect block to check if user is logged in or not
   useEffect(() => {
@@ -89,18 +92,24 @@ const NavBar = () => {
     checkUserOnRouteChange();
   }, [pathname]);
 
-  // Had to handle the redirect on the client side because of the onclick attribute client-side only.
-  // other auth redirects are handled through the authhelper file.
+
   const handleSignOut = async () => {
-    const result = await signOut();
+    setSigningOut(true);
+
+    const { error } = await supabase.auth.signOut();
    
-    if (result.success) {
-      router.push('/logout');
-      router.refresh();
-    } else {
-      router.push('/error');
+    if (error) {
+      console.error("Sign out error:", error.message);  
+      setSigningOut(false);  
+      return;
     }
+
+    router.push("/");  
+    router.refresh();
   }
+
+  //Listen to use Location to change select location into the new locations name in the NavBar
+  const { currentLocation, isHydrated } = useLocation();
 
   return (
     <nav className="flex justify-between w-full px-20 py-4 border-b border-gray-100 bg-gray-50 shadow-lg ">
@@ -119,6 +128,21 @@ const NavBar = () => {
       {/* Center navigation: Menu, Select Location, Cart */}
       <div className="flex gap-16">
         {links1.map((link, index) => {
+          // Special handling for select location link
+          if (link.path === "/select-location") {
+            return (
+              <Link
+                href="/select-location"
+                key={index}
+                className={`${
+                  pathname === "/select-location" && "text-accent"
+                } text-xl content-center capitalize font-heading font-semibold hover:text-accent transition-all`}
+              >
+                {isHydrated ? (currentLocation ? currentLocation.name : "select location") : "select location"}
+              </Link>
+            );
+          }
+          
           return (
             <Link
               href={link.path}
@@ -167,10 +191,11 @@ const NavBar = () => {
           })}
           {/* Sign Out Button */}
           <button
-            onClick={() => handleSignOut()}
-            className="content-center text-xl capitalize font-heading font-semibold hover:text-accent cursor-pointer transition-all"
+            onClick={handleSignOut}  
+            disabled={signingOut}    
+            className="content-center text-xl capitalize font-heading font-semibold hover:text-accent cursor-pointer transition-all disabled:opacity-50"  
           >
-            sign out
+            {signingOut ? "signing out..." : "sign out"}
           </button>
         </div>
       )}
