@@ -20,7 +20,7 @@ const ErrorPage = () => {
   }, [router]);
 
   return (
-    <div>An error occurred trying to log you in or sign you up. Rerouting you back to the menu page.</div>
+    <div>An error occurred trying to log you in or sign you up. Please Try Again.</div>
 
   )
 }
