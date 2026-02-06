@@ -39,8 +39,9 @@ export async function signUp(formData: FormData) {
   });
 
   if (error) {
+    console.log(error.message);
     return { error: "Could not create account. Please try again." };
   }
 
-  redirect("/verify-email");
+  redirect("/verify-email?from=signup");
 }
