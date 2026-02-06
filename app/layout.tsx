@@ -3,6 +3,7 @@ import { DM_Sans, Nunito } from "next/font/google";
 import Footer from "@/components/Footer";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
+import {LocationProvider} from "@/components/LocationContext";
 import { AuthProvider } from "@/context/authContext";
 import { CartProvider } from "@/context/cartContext";
 
@@ -31,6 +32,11 @@ export default function RootLayout({
       <body
         className={`${headingText.variable} ${bodyText.variable} flex flex-col min-h-screen antialiased`}
       >
+        <LocationProvider>
+        <NavBar />
+          <main className="flex flex-col grow">{children}</main>
+        <Footer />
+        </LocationProvider>
         <AuthProvider>
           <CartProvider>
             <NavBar />
