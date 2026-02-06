@@ -52,7 +52,6 @@ export const CategoryDescriptions: Record<MenuCategory, string> = {
   combos: "",
 };
 
-
 // Cart Related Types
 export interface CartItem extends MenuItem {
   quantity: number
