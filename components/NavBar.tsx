@@ -55,6 +55,8 @@ const NavBar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
+  
 
   // useEffect block to check if user is logged in or not
   useEffect(() => {
@@ -90,17 +92,20 @@ const NavBar = () => {
     checkUserOnRouteChange();
   }, [pathname]);
 
-  // Had to handle the redirect on the client side because of the onclick attribute client-side only.
-  // other auth redirects are handled through the authhelper file.
+
   const handleSignOut = async () => {
-    const result = await signOut();
+    setSigningOut(true);
+
+    const { error } = await supabase.auth.signOut();
    
-    if (result.success) {
-      router.push('/logout');
-      router.refresh();
-    } else {
-      router.push('/error');
+    if (error) {
+      console.error("Sign out error:", error.message);  
+      setSigningOut(false);  
+      return;
     }
+
+    router.push("/");  
+    router.refresh();
   }
 
   //Listen to use Location to change select location into the new locations name in the NavBar
@@ -186,10 +191,11 @@ const NavBar = () => {
           })}
           {/* Sign Out Button */}
           <button
-            onClick={() => handleSignOut()}
-            className="content-center text-xl capitalize font-heading font-semibold hover:text-accent cursor-pointer transition-all"
+            onClick={handleSignOut}  
+            disabled={signingOut}    
+            className="content-center text-xl capitalize font-heading font-semibold hover:text-accent cursor-pointer transition-all disabled:opacity-50"  
           >
-            sign out
+            {signingOut ? "signing out..." : "sign out"}
           </button>
         </div>
       )}

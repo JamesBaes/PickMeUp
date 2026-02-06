@@ -4,6 +4,8 @@ import Footer from "@/components/Footer";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
 import {LocationProvider} from "@/components/LocationContext";
+import { AuthProvider } from "@/context/authContext";
+import { CartProvider } from "@/context/cartContext";
 
 const headingText = DM_Sans({
   variable: "--font-heading",
@@ -35,6 +37,14 @@ export default function RootLayout({
           <main className="flex flex-col grow">{children}</main>
         <Footer />
         </LocationProvider>
+        <AuthProvider>
+          <CartProvider>
+            <NavBar />
+            <main className="flex flex-col grow">{children}</main>
+            <Footer />
+          </CartProvider>
+        </AuthProvider>
+
       </body>
     </html>
   );

@@ -7,9 +7,11 @@ import { groupByCategory, categoryOrder } from "@/helpers/menuHelpers";
 import CategorySection from "@/components/CategorySection";
 
 export default function MenuPage() {
+
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
   // SHOULD ADD A LOADING STATE PROBABLY (LIKE HOW WE DID IN MOBILE DEV CPRG-303)
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchMenuItems();
@@ -26,6 +28,8 @@ export default function MenuPage() {
       setMenuItems((data as MenuItem[]) || []);
     } catch (error) {
       console.error("Error fetching menu items:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -33,11 +37,18 @@ export default function MenuPage() {
   const groupedItems = groupByCategory(menuItems);
   const categories = categoryOrder.filter((category) => groupedItems[category]);
 
+  if (loading) 
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <p className="font-body text-gray-600">Loading menu...</p>
+      </div>
+    )
+
   return (
     <div className="container mx-auto px-4 py-8">
       {categories.length === 0 ? (
         <div>
-          <p></p>
+          <p>No items found.</p>
         </div>
       ) : (
         categories.map((category) => (
