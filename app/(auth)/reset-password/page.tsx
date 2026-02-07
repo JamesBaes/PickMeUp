@@ -30,6 +30,14 @@ const ResetPassword = () => {
     checkSession();
   }, [router]);
 
+  // checking for a valid session.
+  useEffect(() => {
+    const checkSession = async() => {
+
+    }
+  })
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
