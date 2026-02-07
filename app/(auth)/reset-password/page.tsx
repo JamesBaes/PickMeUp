@@ -8,18 +8,29 @@ const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isValidSession, setIsValidSession] = useState(false);
+
 
   const router = useRouter();
+
+
+  // checking for a valid session.
+  useEffect(() => {
+    const checkSession = async() => {
+
+    }
+  })
 
 
 
   // TEMPORARY RESET PASSWORD SUBMIT. ACTUAL LOGIC NEEDS TO BE IMPLEMENTED STILL I COULDNT FIGURE OUT AS I NEED TO WORK ON THE VIDEO NOW...
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowSuccess(true);
-    setTimeout(() => {
-      router.push("/login");
-    }, 2000);
+    setError(null);
+    setIsLoading(true);
+    
   }
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
