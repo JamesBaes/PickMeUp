@@ -3,19 +3,76 @@
 import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import supabase from '@/utils/supabase/client'
 
 const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isValidSession, setIsValidSession] = useState(false);
 
   const router = useRouter();
 
+  // check if user has a valid session 
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+
+        // redirect to forgot password if not a valid session
+        router.push('/forgot-password');
+      } else {
+        setIsValidSession(true);
+      }
+    };
+    checkSession();
+  }, [router]);
 
 
-  // TEMPORARY RESET PASSWORD SUBMIT. ACTUAL LOGIC NEEDS TO BE IMPLEMENTED STILL I COULDNT FIGURE OUT AS I NEED TO WORK ON THE VIDEO NOW...
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!/[A-Z]/.test(newPassword)) {
+      setError('Password must contain an uppercase letter');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!/[0-9]/.test(newPassword)) {
+      setError('Password must contain a number');
+      setIsLoading(false);
+      return;
+    }
+
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    if (updateError) {
+      setError(updateError.message);
+      setIsLoading(false);
+      return;
+    }
+
+    // sign out after form is completed. User gets a "fresh" start for logging on.
+    await supabase.auth.signOut();
+
     setShowSuccess(true);
     setTimeout(() => {
       router.push("/login");
@@ -31,6 +88,15 @@ const ResetPassword = () => {
   };
 
   const passwordsMatch = newPassword === confirmPassword;
+
+  // making sure we don't render the form until the session is verified
+  if (!isValidSession) {
+    return (
+      <div className="pt-20 flex flex-col items-center gap-8 bg-accent flex-1 px-4">
+        <p className="font-heading text-background font-medium text-2xl">Verifying session...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-20 flex flex-col items-center gap-8 bg-accent flex-1 px-4 ">
@@ -50,6 +116,24 @@ const ResetPassword = () => {
             ></path>
           </svg>
           <span>Password Successfully Updated.</span>
+        </div>
+      )}
+      {error && (
+        <div role="alert" className="alert alert-error mt-4">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            className="h-6 w-6 shrink-0 stroke-current"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+          <span>{error}</span>
         </div>
       )}
       <Image
@@ -132,15 +216,18 @@ const ResetPassword = () => {
           )}
           <button
             type="submit"
-            className="w-md bg-foreground rounded-lg p-3 hover:shadow-xl hover:cursor-pointer mt-4"
-            disabled={!passwordsMatch || !newPassword || !confirmPassword}
+            className="w-md bg-foreground rounded-lg p-3 hover:shadow-xl hover:cursor-pointer mt-4 disabled:opacity-50"
+            disabled={!passwordsMatch || !newPassword || !confirmPassword || isLoading}
           >
             <p className="font-heading font-medium text-lg text-background">
-              Reset Password
+              {isLoading ? 'Updating...' : 'Reset Password'}
             </p>
           </button>
         </div>  
       </form>
+      <p className="font-heading text-background text-sm">
+        Must be 8+ characters with uppercase and number
+      </p>
     </div>
   )
 }
