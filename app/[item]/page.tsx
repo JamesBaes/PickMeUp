@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import supabase from "@/utils/supabase/client";
 import { MenuItem } from "@/types";
 import Image from "next/image";
+import { useCart } from "@/context/cartContext";
 
 interface ItemPageProps {
   params: Promise<{
@@ -18,6 +19,7 @@ export default function ItemPage({ params }: ItemPageProps) {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const router = useRouter();
+  const { addItem } = useCart();
 
   useEffect(() => {
     fetchItem();
@@ -49,8 +51,8 @@ export default function ItemPage({ params }: ItemPageProps) {
   };
 
   const handleAddToCart = () => {
-    // TODO: Implement cart functionality
-    console.log(`Adding ${quantity} of ${item?.name} to cart`);
+    if (!item) return;
+    addItem(item, quantity);
   };
 
   if (loading) {

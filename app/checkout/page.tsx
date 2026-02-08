@@ -8,9 +8,11 @@ import ContactDetailsForm from "@/components/ContactDetailsForm";
 import CardholderForm from "@/components/CardholderForm";
 import BillingAddressForm from "@/components/BillingAddressForm";
 import { generatePickupTime } from "@/helpers/checkoutHelpers";
+import { useCart } from "@/context/cartContext";
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const { items } = useCart();
   const [error, setError] = useState<string | null>(null);
 
   // Customer information state
@@ -24,28 +26,13 @@ export default function CheckoutPage() {
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [pickupTime, setPickupTime] = useState("");
 
-  // In reality, you'd get this from your cart state/context. For now, it is hardcoded
-  // change this to take in James' cart state
-  const cartItems = [
-    {
-      name: "Spanish Rice",
-      quantity: 1,
-      priceCents: 1800,
-      image: "/spanish-rice.jpg",
-    },
-    {
-      name: "Italy Pizza",
-      quantity: 1,
-      priceCents: 1800,
-      image: "/italy-pizza.jpg",
-    },
-    {
-      name: "Combo Plate",
-      quantity: 1,
-      priceCents: 1800,
-      image: "/combo-plate.jpg",
-    },
-  ];
+  // Convert cart context items (dollars) to checkout format (cents)
+  const cartItems = items.map((item) => ({
+    name: item.name,
+    quantity: item.quantity,
+    priceCents: Math.round(item.price * 100),
+    image: item.image_url,
+  }));
 
   const subtotalCents = cartItems.reduce(
     (sum, item) => sum + item.priceCents * item.quantity,

@@ -34,14 +34,23 @@ export default function PaymentForm({
   // tracking if the payment is being processed or not
   const [loading, setLoading] = useState(false);
 
-  // Initialize Square
+  // Initialize Square (retries while the SDK script loads via afterInteractive)
   useEffect(() => {
     let cardInstance: any = null;
+    let retryTimeout: ReturnType<typeof setTimeout>;
+    let attempts = 0;
+    const MAX_ATTEMPTS = 20; // ~10 seconds max wait
 
     const initializeSquare = async () => {
       // check if square has been loaded or not
       if (!window.Square) {
-        onError("Payment system failed to load");
+        attempts++;
+        if (attempts >= MAX_ATTEMPTS) {
+          onError("Payment system failed to load");
+          return;
+        }
+        // Script may still be loading, retry shortly
+        retryTimeout = setTimeout(initializeSquare, 500);
         return;
       }
 
@@ -69,6 +78,7 @@ export default function PaymentForm({
 
     // Cleanup function to destroy the card instance when component unmounts
     return () => {
+      clearTimeout(retryTimeout);
       if (cardInstance) {
         cardInstance.destroy();
       }

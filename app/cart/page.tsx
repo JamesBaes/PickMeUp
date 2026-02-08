@@ -246,10 +246,10 @@ const Cart = () => {
           <span className="font-bold">${total.toFixed(2)}</span>
         </div>
         
-        {/* link to square here */}
-        <button 
+        <button
           className="w-full bg-accent text-white font-heading font-semibold py-3 hover:cursor-pointer rounded-lg hover:shadow-lg transition-colors disabled:bg-gray-200 disabled:cursor-not-allowed disabled:shadow-none"
           disabled={cartItems.length === 0}
+          onClick={() => router.push('/checkout')}
         >
           Proceed to Checkout
         </button>
