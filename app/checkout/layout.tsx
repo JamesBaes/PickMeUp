@@ -18,7 +18,7 @@ export default function CheckoutLayout({
 
         // Development URL
         src="https://sandbox.web.squarecdn.com/v1/square.js"
-        strategy="beforeInteractive"
+        strategy="afterInteractive"
       />
       {children}
     </>

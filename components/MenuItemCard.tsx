@@ -28,15 +28,17 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
       .join(" "); // group words together again
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIsAdding(true);
 
     addItem(item, 1)
 
-    // buffer to show that added notifcation
+    // buffer to show that added notification
     setTimeout(() => {
       setIsAdding(false)
-    , 1000})
+    }, 1000)
   }
 
   return (
