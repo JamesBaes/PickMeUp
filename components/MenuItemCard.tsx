@@ -31,7 +31,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
           {formattedName()}
         </h2>
         <p className="text-foreground font-heading">${item.price}</p>
-        <p className="hidden lg:line-clamp-4 block text-foreground font-heading ">
+        <p className="hidden  lg:line-clamp-4  text-foreground font-heading ">
           {item.description}
         </p>
         <div className="card-actions justify-end">
