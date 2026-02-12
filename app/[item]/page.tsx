@@ -20,6 +20,7 @@ export default function ItemPage({ params }: ItemPageProps) {
   const [quantity, setQuantity] = useState(1);
   const router = useRouter();
   const { addItem } = useCart();
+  const [showNotification, setShowNotification] = useState(false)
 
   useEffect(() => {
     fetchItem();
@@ -53,6 +54,8 @@ export default function ItemPage({ params }: ItemPageProps) {
   const handleAddToCart = () => {
     if (!item) return;
     addItem(item, quantity);
+    setShowNotification(true);
+    setTimeout(() => setShowNotification(false), 2000)
   };
 
   if (loading) {
@@ -83,6 +86,13 @@ export default function ItemPage({ params }: ItemPageProps) {
 
   return (
     <div className="container mx-auto px-4 py-8">
+
+      {showNotification && (
+        <div className="w-full rounded-lg bg-green-600/75 text-white text-center py-3 font-semibold shadow-md ">
+          Added to cart!
+        </div>
+      )}
+
       <button
         onClick={() => router.back()}
         className="btn btn-ghost mb-4"
@@ -116,20 +126,21 @@ export default function ItemPage({ params }: ItemPageProps) {
             ${item.price.toFixed(2)}
           </div>
 
-          <p className="text-lg">{item.description}</p>
+          <p className="text-lg font-body">{item.description}</p>
 
           {/* Nutritional Info */}
           <div className="divider"></div>
           
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-base-200 p-4 rounded-lg">
-              <p className="text-sm text-base-content/70">Calories</p>
-              <p className="text-xl font-bold">{item.calories}</p>
+            <div className="p-4 border-white border-2 bg-gray-100 rounded-lg">
+              <p className="text-xl font-heading font-medium text-black mb-1">Calories</p>
+              {/* <p className="text-md font-body font-sm capitalize">{item.calories}</p> */}  {/* add this line back after design review LOLLLLLL*/}
+              <p className="text-md font-body font-sm capitalize">450 Cal</p>
             </div>
             
-            <div className="bg-base-200 p-4 rounded-lg">
-              <p className="text-sm text-base-content/70">Category</p>
-              <p className="text-xl font-bold capitalize">
+            <div className="p-4 border-white border-2 bg-gray-100 rounded-lg">
+              <p className="text-xl font-heading font-medium text-black mb-1">Category</p>
+              <p className="text-md font-body font-sm capitalize">
                 {item.category.replace(/_/g, " ")}
               </p>
             </div>
@@ -181,7 +192,7 @@ export default function ItemPage({ params }: ItemPageProps) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="btn btn-circle btn-sm"
+                className="btn shadow-sm border-0 btn-circle btn-sm text-lg text-gray-300 bg-gray-100"
               >
                 -
               </button>
@@ -190,7 +201,7 @@ export default function ItemPage({ params }: ItemPageProps) {
               </span>
               <button
                 onClick={() => setQuantity(quantity + 1)}
-                className="btn btn-circle btn-sm"
+                className="btn shadow-sm border-0 btn-circle btn-sm text-lg text-black bg-gray-400"
               >
                 +
               </button>

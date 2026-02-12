@@ -3,7 +3,6 @@
 // This proxy.ts file is in the upper level directory so that it handles every request before routing the user a page. 
 
 import { type NextRequest, NextResponse } from 'next/server'
-import { type NextRequest } from 'next/server'
 
 import { updateSession } from '@/utils/supabase/proxy'
 import { createServerClient } from '@supabase/ssr'

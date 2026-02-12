@@ -6,7 +6,6 @@ import React, { useState, useEffect } from "react";
 import type { User } from "@supabase/supabase-js";
 import supabase from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-import { signOut } from "@/helpers/authHelpers";
 import { useLocation } from "@/components/LocationContext";
 
 const links1 = [
@@ -103,9 +102,11 @@ const NavBar = () => {
       setSigningOut(false);  
       return;
     }
-
+    setSigningOut(false);
+    
     router.push("/");  
     router.refresh();
+    
   }
 
   //Listen to use Location to change select location into the new locations name in the NavBar

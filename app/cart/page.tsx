@@ -51,7 +51,7 @@ const Cart = () => {
 
   const fetchCartFromSupabase = async () => { 
     const { data, error } = await supabase
-      .from('cart')
+      .from('carts')
       .select('*')
       .eq('user_id', user!.id);
 
@@ -83,7 +83,7 @@ const Cart = () => {
 
     if (user) {
       const { error } = await supabase
-        .from('cart')
+        .from('carts')
         .update({ quantity: newQuantity })
         .eq('id', itemId);
 
@@ -105,7 +105,7 @@ const Cart = () => {
   const handleRemoveItem = async (itemId: string) => {
     if (user) {
       const { error } = await supabase
-        .from('cart')
+        .from('carts')
         .delete()
         .eq('id', itemId);
 
@@ -123,7 +123,7 @@ const Cart = () => {
   const handleClearCart = async () => {
     if (user) {
       const { error } = await supabase
-        .from('cart')
+        .from('carts')
         .delete()
         .eq('user_id', user.id);
 
