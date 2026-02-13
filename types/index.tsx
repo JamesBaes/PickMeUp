@@ -37,9 +37,9 @@ export interface GroupedMenuItems {
 // Dictonary/Record to map the category description to the category.
 export const CategoryDescriptions: Record<MenuCategory, string> = {
   beef_burgers:
-    "You deserve all the freshest ingredients. Our meat 🥩 is 100% Prime quality, never frozen and domestically raised with sustainable farming practices.",
+    "You deserve all the freshest ingredients. Our meat is 100% Prime quality, never frozen and domestically raised with sustainable farming practices.",
   chicken_burgers:
-    "We ❤️ 🐓 chicken. Chicken that's fresh and never frozen and hand breaded in-house, It’s the best whole white meat chicken out there!",
+    "We love chicken. Chicken that's fresh and never frozen and hand breaded in-house; it’s the best whole white meat chicken out there!",
   veggie_burgers:
     "Delicious Veggie options loaded with fresh toppings and home made sauces.",
   steak_sandwiches:

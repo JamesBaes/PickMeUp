@@ -14,24 +14,25 @@ const Login = () => {
   };
 
   return (
-    <div className="pt-20 flex flex-col items-center gap-8 bg-accent flex-1">
+    <div className="min-h-screen pt-12 sm:pt-20 pb-12 px-4 sm:px-0 flex flex-col items-center gap-6 sm:gap-8 bg-accent">
       <Image
         src="/gladiator-logo-circle.png"
         alt="Gladiator Logo"
         priority
         quality={100}
-        width="96"
-        height="96"
+        width="80"
+        height="80"
+        className="sm:w-24 sm:h-24"
       />
-      <h1 className="font-heading text-4xl font-semibold text-white">Login</h1>
+      <h1 className="font-heading text-3xl sm:text-4xl font-semibold text-white">Login</h1>
 
       {/* Login Form Section (Used the jsx from daisyUI) */}
-      <form action={handleLogin} className="flex gap-6 flex-col">
+      <form action={handleLogin} className="flex gap-4 sm:gap-6 flex-col w-full max-w-md px-4 sm:px-0">
         <div className="flex flex-1 gap-2 flex-col">
-          <p className="font-heading text-background font-medium text-2xl">
+          <p className="font-heading text-background font-medium text-lg sm:text-2xl">
             Email
           </p>
-          <label className="input validator flex items-center gap-2 bg-background w-md p-3 border-2 border-gray-50 shadow-xs rounded-lg focus-within:border-gray-50">
+          <label className="input validator flex items-center gap-2 bg-background w-full p-2 sm:p-3 border-2 border-gray-50 shadow-xs rounded-lg focus-within:border-gray-50">
             <svg
               className="h-[1em] opacity-50"
               xmlns="http://www.w3.org/2000/svg"
@@ -53,7 +54,7 @@ const Login = () => {
               name="email"
               placeholder="Email@example.com"
               required
-              className="font-heading py-4 focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
+              className="font-heading text-sm sm:text-base py-2 sm:py-4 w-full focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
             />
           </label>
           <div className="validator-hint hidden font-heading text-background font-bold text-right">
@@ -62,10 +63,10 @@ const Login = () => {
         </div>
 
         <div className="flex flex-col flex-1 gap-2">
-          <p className="font-heading text-background font-medium text-2xl">
+          <p className="font-heading text-background font-medium text-lg sm:text-2xl">
             Password
           </p>
-          <label className="input validator flex items-center gap-2 bg-background w-md p-3 border-2 border-gray-50 shadow-xs rounded-lg focus-within:border-gray-50">
+          <label className="input validator flex items-center gap-2 bg-background w-full p-2 sm:p-3 border-2 border-gray-50 shadow-xs rounded-lg focus-within:border-gray-50">
             <svg
               className="h-[1em] opacity-50"
               xmlns="http://www.w3.org/2000/svg"
@@ -87,7 +88,7 @@ const Login = () => {
               name="password"
               placeholder="Password"
               required
-              className="font-heading py-4 focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
+              className="font-heading text-sm sm:text-base py-2 sm:py-4 w-full focus:outline-none focus:ring-0 placeholder:text-gray-400 focus:placeholder:opacity-0"
             />
           </label>
           <div className="validator-hint hidden font-heading text-background font-bold text-right">
@@ -96,7 +97,7 @@ const Login = () => {
         </div>
 
 
-        <div className="font-heading text-background text-right hover:text-gray-200">
+        <div className="font-heading text-sm sm:text-base text-background text-right hover:text-gray-200">
           <Link
             href={"/forgot-password"}
           >
@@ -106,9 +107,9 @@ const Login = () => {
 
         <button
           type="submit"
-          className="w-md bg-foreground rounded-lg p-3 hover:shadow-xl hover:cursor-pointer"
+          className="w-full bg-foreground rounded-lg p-2 sm:p-3 hover:shadow-xl hover:cursor-pointer mt-4"
         >
-          <p className="font-heading font-medium text-lg text-background">
+          <p className="font-heading font-medium text-base sm:text-lg text-background">
             Login
           </p>
         </button>
