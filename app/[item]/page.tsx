@@ -215,7 +215,12 @@ useEffect(() => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="btn shadow-sm border-0 btn-circle btn-sm text-lg text-gray-300 bg-gray-100"
+                disabled={quantity === 1}
+                className={`btn shadow-sm border-0 btn-circle btn-sm text-lg ${
+                  quantity === 1 
+                    ? 'bg-gray-100 text-gray-300 cursor-not-allowed' 
+                    : 'bg-gray-400 text-black hover:bg-gray-500'
+                }`}
               >
                 -
               </button>
@@ -224,7 +229,7 @@ useEffect(() => {
               </span>
               <button
                 onClick={() => setQuantity(quantity + 1)}
-                className="btn shadow-sm border-0 btn-circle btn-sm text-lg text-black bg-gray-400"
+                className="btn shadow-sm border-0 btn-circle btn-sm text-lg text-black bg-gray-400 hover:bg-gray-500"
               >
                 +
               </button>
