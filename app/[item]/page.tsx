@@ -26,16 +26,12 @@ export default function ItemPage({ params }: ItemPageProps) {
 
 useEffect(() => {
   if (!isHydrated) return;
-  
-  console.log("Effect fired - itemId:", itemId, "isHydrated:", isHydrated);
-  fetchItem();
+    fetchItem();
 }, [itemId, isHydrated, currentLocation?.id]);
 
   const fetchItem = async () => {
   setLoading(true);
   try {
-    console.log("Fetching item:", itemId);
-    console.log("Current location:", currentLocation);
     
     let query = supabase
       .from("menu_items_restaurant_locations")
@@ -46,15 +42,12 @@ useEffect(() => {
     if (currentLocation?.id) {
       const numericId = parseInt(currentLocation.id, 10);
       query = query.eq("restaurant_id", numericId);
-      console.log("Filtering by restaurant_id:", numericId);
     } else {
       console.log("No location selected, fetching any available item");
     }
 
     const { data, error } = await query.single();
 
-    console.log("Fetched data:", data);
-    console.log("Fetch error:", error);
 
     if (error) throw error;
     setItem(data as MenuItem);
@@ -213,15 +206,15 @@ useEffect(() => {
           
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                disabled={quantity === 1}
-                className={`btn shadow-sm border-0 btn-circle btn-sm text-lg ${
-                  quantity === 1 
-                    ? 'bg-gray-100 text-gray-300 cursor-not-allowed' 
-                    : 'bg-gray-400 text-black hover:bg-gray-500'
-                }`}
-              >
+          <button
+            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+            disabled={quantity === 1}
+            className={`btn shadow-sm border-0 btn-circle btn-sm text-lg ${
+              quantity === 1 
+                ? 'bg-gray-100 text-gray-300 cursor-not-allowed' 
+                : 'bg-gray-400 text-black hover:bg-gray-500'
+            }`}
+          >
                 -
               </button>
               <span className="text-2xl font-bold w-12 text-center">
