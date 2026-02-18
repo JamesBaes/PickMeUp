@@ -28,7 +28,12 @@ export type MenuCategory =
   | "crowds_sides"
   | "extra_armour_sides"
   | "beverages"
-  | "combos";
+  | "combos"
+  | "juice"
+  | "milkshakes"
+  | "soda_and_water"
+  | "treats";
+
 
 export interface GroupedMenuItems {
   [key: string]: MenuItem[];
@@ -49,7 +54,16 @@ export const CategoryDescriptions: Record<MenuCategory, string> = {
     "Loaded sides for those who want something extra special.",
   beverages:
     "Enjoy our rich and thick creamy shakes blended to perfection! OR satisfy your thirst from one of our great selection of drinks",
-  combos: "",
+  combos: 
+    "",
+  juice: 
+    "",
+  milkshakes: 
+    "Creamy milkshakes made with real ice cream.",
+  soda_and_water: 
+    "Refreshing sodas and waters to quench your thirst.",
+  treats: 
+    "Sweet treats to satisfy your sweet tooth.",
 };
 
 // Cart Related Types

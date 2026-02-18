@@ -3,7 +3,7 @@ import { DM_Sans, Nunito } from "next/font/google";
 import Footer from "@/components/Footer";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
-import {LocationProvider} from "@/components/LocationContext";
+import {LocationProvider} from "@/context/locationContext";
 import { AuthProvider } from "@/context/authContext";
 import { CartProvider } from "@/context/cartContext";
 

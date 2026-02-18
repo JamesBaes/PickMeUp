@@ -6,7 +6,7 @@ import React, { useState, useEffect } from "react";
 import type { User } from "@supabase/supabase-js";
 import supabase from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-import { useLocation } from "@/components/LocationContext";
+import { useLocation } from "@/context/locationContext";
 
 const links1 = [
   {

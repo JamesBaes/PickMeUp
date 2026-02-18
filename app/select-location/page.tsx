@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { useLocation } from "@/components/LocationContext";
+import { useLocation } from "@/context/locationContext";
 
 const SelectLocation = () => {
   const router = useRouter();

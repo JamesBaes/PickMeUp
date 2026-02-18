@@ -32,6 +32,10 @@ export const categoryOrder: MenuCategory[] = [
     'crowds_sides',
     'extra_armour_sides',
     'beverages',
+    'juice',
+    'milkshakes',
+    'soda_and_water',
+    'treats',
 
 ];
 
@@ -48,6 +52,11 @@ export const formatCategoryName = (category: MenuCategory): string => {
     extra_armour_sides: 'Extra Toppings',
     beverages: 'Beverages',
     combos: 'Combo Meals',
+    juice: 'Juice',
+    milkshakes: 'Milkshakes',
+    soda_and_water: 'Soda & Water',
+    treats: 'Treats',
+
   };
   return categoryMap[category] || category;
 };
@@ -68,3 +77,21 @@ export const sortByPrice = (items: MenuItem[], ascending = true): MenuItem[] => 
     ascending ? a.price - b.price : b.price - a.price
   );
 };
+
+/*
+  * transform menu item data from database to match MenuItem type
+  */
+
+export const transformMenuItemData = (item: any): MenuItem => ({
+  item_id: item.item_id,
+  restaurant_id: item.restaurant_id,
+  name: item.name,
+  description: item.description,
+  price: item.price,
+  category: item.category,
+  calories: item.calories || 0,
+  allergy_information: item.allergy_information || "",
+  image_url: item.image_url || "",
+  popular: item.popular || false,
+  bogo: item.bogo || false,
+});
