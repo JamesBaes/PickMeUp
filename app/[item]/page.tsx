@@ -6,6 +6,7 @@ import supabase from "@/utils/supabase/client";
 import { MenuItem } from "@/types";
 import Image from "next/image";
 import { useCart } from "@/context/cartContext";
+import { useLocation } from "@/context/locationContext";
 
 interface ItemPageProps {
   params: Promise<{
@@ -21,27 +22,42 @@ export default function ItemPage({ params }: ItemPageProps) {
   const router = useRouter();
   const { addItem } = useCart();
   const [showNotification, setShowNotification] = useState(false)
+  const { currentLocation, isHydrated } = useLocation();
 
-  useEffect(() => {
+useEffect(() => {
+  if (!isHydrated) return;
     fetchItem();
-  }, [itemId]);
+}, [itemId, isHydrated, currentLocation?.id]);
 
   const fetchItem = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("menu_items")
-        .select("*")
-        .eq("item_id", itemId)
-        .single();
+  setLoading(true);
+  try {
+    
+    let query = supabase
+      .from("menu_items_restaurant_locations")
+      .select("*")
+      .eq("item_id", itemId);
 
-      if (error) throw error;
-      setItem(data as MenuItem);
-    } catch (error) {
-      console.error("Error fetching item:", error);
-    } finally {
-      setLoading(false);
+    // Only filter by restaurant_id if a location is selected
+    if (currentLocation?.id) {
+      const numericId = parseInt(currentLocation.id, 10);
+      query = query.eq("restaurant_id", numericId);
+    } else {
+      console.log("No location selected, fetching any available item");
     }
-  };
+
+    const { data, error } = await query.single();
+
+
+    if (error) throw error;
+    setItem(data as MenuItem);
+  } catch (error) {
+    console.error("Error fetching item:", error);
+    setItem(null);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const formatName = (name: string): string => {
     return name
@@ -190,10 +206,15 @@ export default function ItemPage({ params }: ItemPageProps) {
           
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="btn shadow-sm border-0 btn-circle btn-sm text-lg text-gray-300 bg-gray-100"
-              >
+          <button
+            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+            disabled={quantity === 1}
+            className={`btn shadow-sm border-0 btn-circle btn-sm text-lg ${
+              quantity === 1 
+                ? 'bg-gray-100 text-gray-300 cursor-not-allowed' 
+                : 'bg-gray-400 text-black hover:bg-gray-500'
+            }`}
+          >
                 -
               </button>
               <span className="text-2xl font-bold w-12 text-center">
@@ -201,7 +222,7 @@ export default function ItemPage({ params }: ItemPageProps) {
               </span>
               <button
                 onClick={() => setQuantity(quantity + 1)}
-                className="btn shadow-sm border-0 btn-circle btn-sm text-lg text-black bg-gray-400"
+                className="btn shadow-sm border-0 btn-circle btn-sm text-lg text-black bg-gray-400 hover:bg-gray-500"
               >
                 +
               </button>
