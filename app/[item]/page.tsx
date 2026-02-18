@@ -6,6 +6,7 @@ import supabase from "@/utils/supabase/client";
 import { MenuItem } from "@/types";
 import Image from "next/image";
 import { useCart } from "@/context/cartContext";
+import { useLocation } from "@/context/locationContext";
 
 interface ItemPageProps {
   params: Promise<{
@@ -21,27 +22,49 @@ export default function ItemPage({ params }: ItemPageProps) {
   const router = useRouter();
   const { addItem } = useCart();
   const [showNotification, setShowNotification] = useState(false)
+  const { currentLocation, isHydrated } = useLocation();
 
-  useEffect(() => {
-    fetchItem();
-  }, [itemId]);
+useEffect(() => {
+  if (!isHydrated) return;
+  
+  console.log("Effect fired - itemId:", itemId, "isHydrated:", isHydrated);
+  fetchItem();
+}, [itemId, isHydrated, currentLocation?.id]);
 
   const fetchItem = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("menu_items")
-        .select("*")
-        .eq("item_id", itemId)
-        .single();
+  setLoading(true);
+  try {
+    console.log("Fetching item:", itemId);
+    console.log("Current location:", currentLocation);
+    
+    let query = supabase
+      .from("menu_items_restaurant_locations")
+      .select("*")
+      .eq("item_id", itemId);
 
-      if (error) throw error;
-      setItem(data as MenuItem);
-    } catch (error) {
-      console.error("Error fetching item:", error);
-    } finally {
-      setLoading(false);
+    // Only filter by restaurant_id if a location is selected
+    if (currentLocation?.id) {
+      const numericId = parseInt(currentLocation.id, 10);
+      query = query.eq("restaurant_id", numericId);
+      console.log("Filtering by restaurant_id:", numericId);
+    } else {
+      console.log("No location selected, fetching any available item");
     }
-  };
+
+    const { data, error } = await query.single();
+
+    console.log("Fetched data:", data);
+    console.log("Fetch error:", error);
+
+    if (error) throw error;
+    setItem(data as MenuItem);
+  } catch (error) {
+    console.error("Error fetching item:", error);
+    setItem(null);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const formatName = (name: string): string => {
     return name

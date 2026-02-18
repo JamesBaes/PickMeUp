@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MenuItem } from "@/types";
+import { MenuItem, MenuItemCardProps } from "@/types";
 import { useState } from "react";
 import { useCart } from "@/context/cartContext";
 import { useAuth } from "@/context/authContext";
@@ -32,7 +32,6 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
     e.preventDefault();
     e.stopPropagation();
     setIsAdding(true);
-
     addItem(item, 1)
 
     // buffer to show that added notification
@@ -43,31 +42,47 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
 
   return (
     <Link href={`/${item.item_id}`}>
-      <div className="card bg-background w-full max-w-xs shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer" >
-      {item.image_url && (
-        <figure>
-          <img src={item.image_url} alt={item.name} />
+      <div className="card bg-background w-full h-full shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer flex flex-col">
+        {/* Image Container */}
+        {item.image_url && (
+        <figure className="flex-shrink-0">
+          {item.image_url ? (
+            <img 
+              src={item.image_url} 
+              alt={item.name} 
+              className="w-full h-48 object-cover"
+            />
+          ) : (
+            <div className="w-full h-48 bg-white"></div>
+          )}
         </figure>
-      )}
-      </div>
-      <div className="card-body shadow-lg">
-        <h2 className="card-title text-foreground font-heading">
-          {formattedName()}
-        </h2>
-        <p className="text-foreground font-heading">${item.price}</p>
-        <p className="hidden lg:line-clamp-4 text-foreground font-heading">
-          {item.description}
-        </p>
-        <div className="card-actions justify-end">
-          <button 
-            onClick={handleAddToCart}
-            disabled={isAdding}
-            className="btn border-0 shadow-none bg-accent hover:bg-secondary active:bg-active disabled:opacity-70"
-          >
-            <p className="font-heading text-white">
-              {isAdding ? 'Added!' : 'Add to Cart'}
-            </p>
-          </button>
+        )}
+
+        {/* Card Body */}
+        <div className="card-body flex flex-col flex-grow">
+          <h2 className="card-title text-foreground font-heading line-clamp-2">
+            {formattedName()}
+          </h2>
+          
+          <p className="text-foreground font-heading font-bold text-lg mb-2">
+            ${item.price.toFixed(2)}
+          </p>
+          
+          <p className="text-foreground font-body text-sm line-clamp-4 flex-grow mb-4">
+            {item.description}
+          </p>
+          
+          <div className="card-actions justify-end mt-auto">
+            <button 
+              onClick={handleAddToCart}
+              disabled={isAdding}
+              className="btn border-0 shadow-none bg-accent hover:bg-secondary active:bg-active disabled:opacity-70 btn-sm sm:btn-md w-full sm:w-auto"
+            >
+              <p className="font-heading text-white text-xs sm:text-base truncate">
+                {isAdding ? 'Added!' : 'Add to Cart'}
+              </p>
+            </button>
+          </div>
         </div>
       </div>
     </Link>
