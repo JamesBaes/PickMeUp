@@ -61,7 +61,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       try {
         const { data, error } = await supabase.from("restaurant_locations").select("*");
-        console.log("Raw data from Supabase:", data);
+        // console.log("Raw data from Supabase:", data);
         console.log("Error:", error);
         
         if (error) throw error;
@@ -70,7 +70,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
             id: loc.restaurant_id.toString(),
             name: toTitleCase(loc.location_name),
           }));
-          console.log("Mapped locations:", mappedLocations);
+          // console.log("Mapped locations:", mappedLocations);
           setLocations((mappedLocations as Location[]) || []);
         }
       } catch (error) {
