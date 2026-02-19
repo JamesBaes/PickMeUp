@@ -30,9 +30,11 @@ const NavBar = () => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // Check user
   useEffect(() => {
+    setIsHydrated(true);
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
@@ -98,7 +100,7 @@ const NavBar = () => {
           <div className="w-px h-5 bg-gray-300"></div>
 
           {/* Auth Links: Login/Sign Up OR Account Links */}
-          {!user ? (
+          {isHydrated && (!user ? (
             links2.map((link, index) => (
               <Link
                 href={link.path}
@@ -126,7 +128,7 @@ const NavBar = () => {
                 sign out
               </button>
             </>
-          )}
+          ))}
         </div>
 
         {/* Hamburger Button - Only on mobile */}
@@ -198,10 +200,10 @@ const NavBar = () => {
           {/* Auth Links */}
           <div className="mb-6">
             <h3 className="text-sm text-gray-500 uppercase mb-3">
-              {user ? 'Account' : 'Login'}
+              {isHydrated && user ? 'Account' : 'Login'}
             </h3>
             <div className="space-y-2">
-              {!user ? (
+              {isHydrated && (!user ? (
                 links2.map((link, index) => (
                   <Link
                     href={link.path}
@@ -224,19 +226,19 @@ const NavBar = () => {
                       {link.name}
                     </Link>
                   ))}
-                  <button
+                    <button
                     onClick={() => { handleSignOut(); setIsMobileMenuOpen(false); }}
                     className="w-full text-left p-3 rounded text-red-600 hover:bg-red-50"
                   >
                     Sign Out
                   </button>
                 </>
-              )}
+              ))}
             </div>
           </div>
 
           {/* User Info */}
-          {user && (
+          {isHydrated && user && (
             <div className="mt-6 pt-6 border-t">
               <p className="text-sm text-gray-600">Logged in as:</p>
               <p className="font-medium truncate">{user.email}</p>

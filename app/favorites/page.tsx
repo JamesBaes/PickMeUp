@@ -4,58 +4,71 @@ import { useState, useEffect } from "react";
 import { MenuItem } from "@/types";
 import MenuItemCard from "@/components/MenuItemCard";
 import EmptyFavorites from "./empty-state";
-
-// Mock favorites data - remove when you have real data
-const MOCK_FAVORITES: MenuItem[] = [
-  {
-    item_id: '1',
-    restaurant_id: 'gladiator',
-    name: 'Chicken_Burger',
-    description: 'Our premium chicken burger with fresh ingredients',
-    price: 19.99,
-    category: 'beef_burgers',
-    calories: 650,
-    allergy_information: 'Contains wheat, dairy',
-    image_url: '/burger1.jpg',
-    list_of_ingredients: ['Chicken patty', 'Lettuce', 'Tomato', 'Special sauce']
-  },
-  {
-    item_id: '2',
-    restaurant_id: 'gladiator',
-    name: 'Double_Cheese_Burger',
-    description: 'Double patty with extra cheese',
-    price: 22.99,
-    category: 'beef_burgers',
-    calories: 850,
-    allergy_information: 'Contains wheat, dairy',
-    image_url: '/double-cheese.jpg',
-    list_of_ingredients: ['Beef patty x2', 'Cheese', 'Lettuce', 'Special sauce']
-  },
-  {
-    item_id: '3',
-    restaurant_id: 'gladiator',
-    name: 'Chickpea_Burger',
-    description: 'Vegetarian option with chickpea patty',
-    price: 19.99,
-    category: 'veggie_burgers',
-    calories: 550,
-    allergy_information: 'Contains gluten',
-    image_url: '/chickpea-burger.jpg',
-    list_of_ingredients: ['Chickpea patty', 'Lettuce', 'Tomato', 'Vegan mayo']
-  }
-];
+import supabase from "@/utils/supabase/client";
+import { removeFromFavorites } from "@/helpers/favoritesHelpers";
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
-      setFavorites(MOCK_FAVORITES); // Use mock data for now
-      setIsLoading(false);
-    }, 500);
+    fetchUserAndFavorites();
   }, []);
+
+  const fetchUserAndFavorites = async () => {
+    try {
+      // Get current user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        setError("Please log in to view your favorites");
+        setIsLoading(false);
+        return;
+      }
+
+      setUserId(user.id);
+
+      // Fetch user's favorites from database
+      const { data, error: fetchError } = await supabase
+        .from("favorites")
+        .select("menu_items(*)")
+        .eq("user_id", user.id);
+
+      if (fetchError) {
+        console.error("Error fetching favorites:", fetchError);
+        setError("Failed to load favorites");
+        setFavorites([]);
+      } else {
+        // Extract menu items from the join result
+        const favoritesData = (data || [])
+          .map((fav: any) => fav.menu_items)
+          .filter((item: MenuItem | null) => item !== null) as MenuItem[];
+        
+        setFavorites(favoritesData);
+      }
+    } catch (err) {
+      console.error("Error in fetchUserAndFavorites:", err);
+      setError("An error occurred while loading favorites");
+      setFavorites([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRemoveFavorite = async (itemId: string) => {
+    if (!userId) return;
+
+    try {
+      const success = await removeFromFavorites(userId, itemId);
+      if (success) {
+        setFavorites(favorites.filter(fav => fav.item_id !== itemId));
+      }
+    } catch (err) {
+      console.error("Error removing favorite:", err);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -63,6 +76,19 @@ export default function FavoritesPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading your favorites...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 text-lg mb-4">{error}</p>
+          <a href="/login" className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition">
+            Go to Login
+          </a>
         </div>
       </div>
     );
@@ -117,10 +143,7 @@ export default function FavoritesPage() {
                     <MenuItemCard item={item} />
                     {/* Remove button */}
                     <button
-                      onClick={() => {
-                        // Remove from favorites
-                        setFavorites(favorites.filter(fav => fav.item_id !== item.item_id));
-                      }}
+                      onClick={() => handleRemoveFavorite(item.item_id)}
                       className="absolute top-3 right-3 text-white p-2 rounded-full shadow-lg hover:bg-red-600 transition"
                       title="Remove from favorites"
                     >
