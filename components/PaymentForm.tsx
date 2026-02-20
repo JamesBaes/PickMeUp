@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 declare global {
   interface Window {
@@ -34,6 +34,13 @@ export default function PaymentForm({
   // tracking if the payment is being processed or not
   const [loading, setLoading] = useState(false);
 
+  // Use ref to store onError callback to prevent unnecessary re-initialization
+  const onErrorRef = useRef(onError);
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
+
   // Initialize Square (retries while the SDK script loads via afterInteractive)
   useEffect(() => {
     let cardInstance: any = null;
@@ -46,7 +53,7 @@ export default function PaymentForm({
       if (!window.Square) {
         attempts++;
         if (attempts >= MAX_ATTEMPTS) {
-          onError("Payment system failed to load");
+          onErrorRef.current("Payment system failed to load");
           return;
         }
         // Script may still be loading, retry shortly
@@ -70,7 +77,7 @@ export default function PaymentForm({
         setCard(cardInstance);
       } catch (e) {
         console.error("Square initialization error:", e);
-        onError("Failed to initialize payment form");
+        onErrorRef.current("Failed to initialize payment form");
       }
     };
 
@@ -83,7 +90,7 @@ export default function PaymentForm({
         cardInstance.destroy();
       }
     };
-  }, [onError]);
+  }, []); // Empty dependency array - only initialize once on mount
 
   // Payment Handler
   const handlePayment = async () => {

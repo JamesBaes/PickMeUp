@@ -17,7 +17,7 @@ These changes connect the previously separate cart and checkout systems so that 
 - Added `const { items } = useCart()` to pull items from the cart context
 - Mapped cart items from dollars to cents format for the existing OrderSummary component:
   ```tsx
-  const cartItems = items.map(item => ({
+  const cartItems = items.map((item) => ({
     name: item.name,
     quantity: item.quantity,
     priceCents: Math.round(item.price * 100),
@@ -69,17 +69,19 @@ These changes connect the previously separate cart and checkout systems so that 
 - Fixed `setTimeout` syntax: the `1000` delay was incorrectly placed inside the callback
 
 **Before (broken):**
+
 ```tsx
 setTimeout(() => {
-  setIsAdding(false)
-, 1000})
+  (setIsAdding(false), 1000);
+});
 ```
 
 **After (fixed):**
+
 ```tsx
 setTimeout(() => {
-  setIsAdding(false)
-}, 1000)
+  setIsAdding(false);
+}, 1000);
 ```
 
 **Why:** The button is inside a `<Link>` component. Without stopping propagation, clicking "Add to Cart" would navigate to the item detail page instead of adding to cart. The setTimeout bug meant the "Added!" feedback disappeared instantly.
@@ -94,6 +96,7 @@ setTimeout(() => {
 - Replaced the TODO stub with `addItem(item, quantity)`
 
 **Before:**
+
 ```tsx
 const handleAddToCart = () => {
   // TODO: Implement cart functionality
@@ -102,6 +105,7 @@ const handleAddToCart = () => {
 ```
 
 **After:**
+
 ```tsx
 const handleAddToCart = () => {
   if (!item) return;

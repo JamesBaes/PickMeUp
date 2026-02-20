@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import PaymentForm from "@/components/PaymentForm";
 import OrderSummary from "@/components/OrderSummary";
@@ -43,22 +43,22 @@ export default function CheckoutPage() {
   const totalCents = subtotalCents - discountCents + taxCents;
 
   // Handle promo code application
-  const handleApplyPromo = (code: string) => {
+  const handleApplyPromo = useCallback((code: string) => {
     setAppliedPromo(code);
     setPromoDiscount(5);
-  };
+  }, []);
 
-  const handleRemovePromo = () => {
+  const handleRemovePromo = useCallback(() => {
     setAppliedPromo("");
     setPromoDiscount(0);
-  };
+  }, []);
 
-  const handlePromoError = (message: string) => {
+  const handlePromoError = useCallback((message: string) => {
     setError(message);
     if (message) {
       setTimeout(() => setError(null), 3000);
     }
-  };
+  }, []);
 
   // Calculate pickup time (30 mins from now)
   const getPickupTime = () => {
@@ -83,13 +83,13 @@ export default function CheckoutPage() {
   };
 
   // if the payment is successful => bring to confirmation page: /app/order-confirmation/[orderId]/page.tsx
-  const handleSuccess = (orderId: string) => {
+  const handleSuccess = useCallback((orderId: string) => {
     router.push(`/order-confirmation/${orderId}`);
-  };
+  }, [router]);
 
-  const handleError = (errorMessage: string) => {
+  const handleError = useCallback((errorMessage: string) => {
     setError(errorMessage);
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
