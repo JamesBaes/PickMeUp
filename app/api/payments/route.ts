@@ -57,10 +57,13 @@ export async function POST(request: NextRequest) {
     .from("orders")
     .insert({
         customer_name: orderDetails.customerName,
+        customer_email: orderDetails.customerEmail,
         customer_phone: orderDetails.customerPhone,
+        billing_address: orderDetails.billingAddress,
+        billing_country: orderDetails.billingCountry,
         items: orderDetails.items,
         total_cents: orderDetails.totalCents,
-        square_payment_id: payment.id,  // Changed from result.payment.id
+        square_payment_id: payment.id,
         status: "paid",
         pickup_time: orderDetails.pickupTime || new Date(Date.now() + 30 * 60000).toISOString(),
     })

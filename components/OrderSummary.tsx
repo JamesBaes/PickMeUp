@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import PromoCodeInput from "@/components/PromoCodeInput";
 import { formatCurrency } from "@/helpers/checkoutHelpers";
 
@@ -39,21 +40,37 @@ export default function OrderSummary({
     <div className="bg-white rounded-lg p-8 h-fit">
       {/* Logo */}
       <div className="mb-8">
-        <div className="w-16 h-16 bg-red-600 rounded-lg flex items-center justify-center">
-          <span className="text-white text-2xl font-bold">P</span>
-        </div>
+        <Image
+          src="/gladiator-logo.png"
+          alt="Gladiator Logo"
+          width={64}
+          height={64}
+          className="rounded-lg"
+        />
       </div>
 
       {/* Cart Items */}
       <div className="space-y-6 mb-6">
         {cartItems.map((item, i) => (
           <div key={i} className="flex items-start gap-4">
-            <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0"></div>
+            <div className="w-16 h-16 rounded-lg flex-shrink-0 relative overflow-hidden bg-gray-100">
+              {item.image ? (
+                <Image
+                  src={item.image}
+                  alt={item.name}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-200"></div>
+              )}
+            </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-gray-900 font-medium">{item.name}</h3>
+              <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
             </div>
             <div className="text-gray-900 font-medium">
-              {formatCurrency(item.priceCents)}
+              {formatCurrency(item.priceCents * item.quantity)}
             </div>
           </div>
         ))}
