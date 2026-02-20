@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import PaymentForm from "@/components/PaymentForm";
+import PaymentForm, { PaymentFormHandle } from "@/components/PaymentForm";
 import OrderSummary from "@/components/OrderSummary";
 import ContactDetailsForm from "@/components/ContactDetailsForm";
 import CardholderForm from "@/components/CardholderForm";
@@ -14,6 +14,9 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items } = useCart();
   const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isPaymentReady, setIsPaymentReady] = useState(false);
+  const paymentFormRef = useRef<PaymentFormHandle>(null);
 
   // Customer information state
   const [customerEmail, setCustomerEmail] = useState("");
@@ -89,7 +92,22 @@ export default function CheckoutPage() {
 
   const handleError = useCallback((errorMessage: string) => {
     setError(errorMessage);
+    setIsProcessing(false);
   }, []);
+
+  const handlePayButtonClick = async () => {
+    if (!paymentFormRef.current) return;
+
+    setError(null);
+    setIsProcessing(true);
+
+    try {
+      await paymentFormRef.current.processPayment();
+    } catch (err) {
+      // Error handling is done in PaymentForm's handlePayment
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -148,9 +166,11 @@ export default function CheckoutPage() {
               {/* Square Payment Form will be inserted here */}
               <div className="mb-4">
                 <PaymentForm
+                  ref={paymentFormRef}
                   orderDetails={orderDetails}
                   onSuccess={handleSuccess}
                   onError={handleError}
+                  onReadyChange={setIsPaymentReady}
                 />
               </div>
             </div>
@@ -190,6 +210,19 @@ export default function CheckoutPage() {
                 </div>
               </label>
             </div>
+
+            {/* Pay Button - Moved to bottom */}
+            <button
+              onClick={handlePayButtonClick}
+              disabled={isProcessing || !isPaymentReady}
+              className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg
+                         hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed
+                         transition-colors mb-6"
+            >
+              {isProcessing
+                ? "Processing..."
+                : `Pay $${(totalCents / 100).toFixed(2)}`}
+            </button>
 
             {/* Footer */}
             <div className="mt-8 pt-6 border-t border-gray-200">
