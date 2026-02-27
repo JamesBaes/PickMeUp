@@ -6,6 +6,7 @@ import NavBar from "@/components/NavBar";
 import {LocationProvider} from "@/context/locationContext";
 import { AuthProvider } from "@/context/authContext";
 import { CartProvider } from "@/context/cartContext";
+import { FavoritesProvider } from "@/context/favoritesContext";
 
 const headingText = DM_Sans({
   variable: "--font-heading",
@@ -35,9 +36,11 @@ export default function RootLayout({
         <LocationProvider>
             <CartProvider>
               <AuthProvider>
-                <NavBar />
-                <main className="flex flex-col grow">{children}</main>
-                <Footer />
+                <FavoritesProvider>
+                  <NavBar />
+                  <main className="flex flex-col grow">{children}</main>
+                  <Footer />
+                </FavoritesProvider>
               </AuthProvider>
             </CartProvider>
         </LocationProvider>
