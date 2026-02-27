@@ -85,9 +85,10 @@ export default function CheckoutPage() {
     pickupTime: getPickupTime(),
   };
 
-  // if the payment is successful => bring to confirmation page: /app/order-confirmation/[orderId]/page.tsx
-  const handleSuccess = useCallback((orderId: string) => {
-    router.push(`/order-confirmation/${orderId}`);
+  // Store receipt token in sessionStorage (not in the URL) then navigate to the static confirmation page
+  const handleSuccess = useCallback((receiptToken: string) => {
+    sessionStorage.setItem("pendingReceiptToken", receiptToken);
+    router.push("/order-confirmation");
   }, [router]);
 
   const handleError = useCallback((errorMessage: string) => {

@@ -26,7 +26,7 @@ interface OrderDetails {
 
 interface PaymentFormProps {
   orderDetails: OrderDetails;
-  onSuccess: (orderId: string) => void;
+  onSuccess: (receiptToken: string) => void;
   onError: (error: string) => void;
   onReadyChange?: (isReady: boolean) => void;
 }
@@ -178,7 +178,7 @@ const PaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
         const data = await response.json();
 
         if (data.success) {
-          onSuccessRef.current(data.orderId);
+          onSuccessRef.current(data.receiptToken);
         } else {
           throw new Error(data.error);
         }
