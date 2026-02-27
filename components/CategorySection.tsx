@@ -7,6 +7,9 @@ import { CategorySectionProps, CategoryDescriptions } from '@/types';
 export default function CategorySection({
   category,
   items,
+  favoriteItemIds,
+  onToggleFavorite,
+  userId,
 }: CategorySectionProps) {
   return (
     <section className="mb-12">
@@ -21,7 +24,13 @@ export default function CategorySection({
       {/* FIX COLS TO ALIGN FOR SMALLER SCREENS/MOBILE SCREENS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
         {items.map((item) => (
-          <MenuItemCard key={item.item_id || item.name} item={item} />
+          <MenuItemCard
+            key={item.item_id || item.name}
+            item={item}
+            isFavorited={favoriteItemIds?.has(item.item_id) ?? false}
+            onToggleFavorite={onToggleFavorite}
+            userId={userId}
+          />
         ))}
       </div>
     </section>

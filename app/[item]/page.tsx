@@ -4,7 +4,9 @@ import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import supabase from "@/utils/supabase/client";
 import { MenuItem } from "@/types";
-import Image from "next/image";
+import { getUserFavoriteIds, addFavorite, removeFavorite } from "@/helpers/favoritesHelpers";
+import { Heart } from "lucide-react";
+import type { User } from "@supabase/supabase-js";
 
 interface ItemPageProps {
   params: Promise<{
@@ -17,10 +19,14 @@ export default function ItemPage({ params }: ItemPageProps) {
   const [item, setItem] = useState<MenuItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [user, setUser] = useState<User | null>(null);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     fetchItem();
+    fetchUserAndFavorite();
   }, [itemId]);
 
   const fetchItem = async () => {
@@ -46,6 +52,40 @@ export default function ItemPage({ params }: ItemPageProps) {
       .split(" ")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(" ");
+  };
+
+  const fetchUserAndFavorite = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    setUser(user);
+
+    if (user) {
+      const ids = await getUserFavoriteIds(user.id);
+      setIsFavorited(ids.has(itemId));
+    }
+  };
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 2500);
+  };
+
+  const handleToggleFavorite = async () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    if (isFavorited) {
+      setIsFavorited(false);
+      showToast("Removed from favorites");
+      await removeFavorite(user.id, itemId);
+    } else {
+      setIsFavorited(true);
+      showToast("Added to favorites ❤️");
+      await addFavorite(user.id, itemId);
+    }
   };
 
   const handleAddToCart = () => {
@@ -81,6 +121,13 @@ export default function ItemPage({ params }: ItemPageProps) {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 whitespace-nowrap bg-foreground text-white text-sm font-heading font-medium px-4 py-2 rounded-full shadow-lg animate-fade-in">
+          {toast}
+        </div>
+      )}
+
       <button
         onClick={() => router.back()}
         className="btn btn-ghost mb-4"
@@ -106,9 +153,21 @@ export default function ItemPage({ params }: ItemPageProps) {
 
         {/* Details Section */}
         <div className="flex flex-col gap-4">
-          <h1 className="text-4xl font-heading font-bold">
-            {formatName(item.name)}
-          </h1>
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-4xl font-heading font-bold">
+              {formatName(item.name)}
+            </h1>
+            <button
+              onClick={handleToggleFavorite}
+              aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+              className="p-2 rounded-full border border-gray-200 hover:border-accent transition-all duration-200 hover:scale-110 shrink-0"
+            >
+              <Heart
+                size={24}
+                className={isFavorited ? "fill-accent text-accent" : "text-gray-400"}
+              />
+            </button>
+          </div>
 
           <div className="text-3xl font-bold text-accent">
             ${item.price.toFixed(2)}

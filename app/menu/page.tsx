@@ -4,14 +4,19 @@ import { useEffect, useState } from "react";
 import supabase from "@/utils/supabase/client";
 import { MenuItem } from "@/types/";
 import { groupByCategory, categoryOrder } from "@/helpers/menuHelpers";
+import { getUserFavoriteIds, addFavorite, removeFavorite } from "@/helpers/favoritesHelpers";
 import CategorySection from "@/components/CategorySection";
+import type { User } from "@supabase/supabase-js";
 
 export default function MenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [favoriteItemIds, setFavoriteItemIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchMenuItems();
+    fetchUserAndFavorites();
   }, []);
 
   const fetchMenuItems = async () => {
@@ -34,6 +39,42 @@ export default function MenuPage() {
     }
   };
 
+  const fetchUserAndFavorites = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    setUser(user);
+
+    if (user) {
+      const ids = await getUserFavoriteIds(user.id);
+      setFavoriteItemIds(ids);
+    }
+  };
+
+  const handleToggleFavorite = async (itemId: string) => {
+    if (!user) return;
+
+    const isCurrentlyFavorited = favoriteItemIds.has(itemId);
+
+    // Optimistic UI update
+    setFavoriteItemIds((prev) => {
+      const updated = new Set(prev);
+      if (isCurrentlyFavorited) {
+        updated.delete(itemId);
+      } else {
+        updated.add(itemId);
+      }
+      return updated;
+    });
+
+    // Persist to Supabase
+    if (isCurrentlyFavorited) {
+      await removeFavorite(user.id, itemId);
+    } else {
+      await addFavorite(user.id, itemId);
+    }
+  };
+
   const groupedItems = groupByCategory(menuItems);
   const categories = categoryOrder.filter((category) => groupedItems[category]);
 
@@ -50,7 +91,7 @@ export default function MenuPage() {
 
   return (
     <div>
-      {/* GLADIATOR HEADER - ADD THIS */}
+      {/* GLADIATOR HEADER */}
       <div className="text-center py-8 px-4">
         <h1 className="text-5xl md:text-6xl font-bold tracking-wider mb-4">
           GLADIATOR
@@ -72,6 +113,9 @@ export default function MenuPage() {
               key={category}
               category={category}
               items={groupedItems[category]}
+              favoriteItemIds={favoriteItemIds}
+              onToggleFavorite={handleToggleFavorite}
+              userId={user?.id ?? null}
             />
           ))
         )}

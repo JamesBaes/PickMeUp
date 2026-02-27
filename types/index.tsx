@@ -11,13 +11,25 @@ export interface MenuItem {
   list_of_ingredients: string[]; // List of ingredients used in the menu item
 }
 
+export interface Favorite {
+  favorite_item_id: string; // The menu item ID being favorited
+  customer_id: string;      // The user's ID
+  created_at?: string;
+}
+
 export interface MenuItemCardProps {
-  item: MenuItem; // The menu item object from database
+  item: MenuItem;                                    // The menu item object from database
+  isFavorited?: boolean;                             // Whether this item is in user's favorites
+  onToggleFavorite?: (itemId: string) => void;       // Callback to toggle favorite
+  userId?: string | null;                            // Current user ID (null if not logged in)
 }
 
 export interface CategorySectionProps {
-  category: string; // The category name
-  items: MenuItem[]; // Array of menu items in this category
+  category: string;                                  // The category name
+  items: MenuItem[];                                 // Array of menu items in this category
+  favoriteItemIds?: Set<string>;                     // Set of favorited item IDs
+  onToggleFavorite?: (itemId: string) => void;       // Callback to toggle favorite
+  userId?: string | null;                            // Current user ID
 }
 
 export type MenuCategory =
