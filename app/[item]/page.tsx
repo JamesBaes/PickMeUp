@@ -9,6 +9,7 @@ import { useCart } from "@/context/cartContext";
 import { useLocation } from "@/context/locationContext";
 import { useFavorites } from "@/context/favoritesContext";
 import { useAuth } from "@/context/authContext";
+import { usePostHog } from "posthog-js/react";
 
 interface ItemPageProps {
   params: Promise<{
@@ -27,6 +28,7 @@ export default function ItemPage({ params }: ItemPageProps) {
   const { currentLocation, isHydrated } = useLocation();
   const { isFavorite, toggleFavorite } = useFavorites();
   const { user } = useAuth();
+  const posthog = usePostHog();
 
 useEffect(() => {
   if (!isHydrated) return;
@@ -74,6 +76,14 @@ useEffect(() => {
   const handleAddToCart = () => {
     if (!item) return;
     addItem(item, quantity);
+    posthog.capture("add_to_cart", {
+      item_id: item.item_id,
+      item_name: item.name,
+      item_price: item.price,
+      item_category: item.category,
+      quantity,
+      source: "item_page",
+    });
     setShowNotification(true);
     setTimeout(() => setShowNotification(false), 2000)
   };

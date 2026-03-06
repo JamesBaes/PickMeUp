@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { usePostHog } from "posthog-js/react";
 import PaymentForm, { PaymentFormHandle } from "@/components/PaymentForm";
 import OrderSummary from "@/components/OrderSummary";
 import ContactDetailsForm from "@/components/ContactDetailsForm";
@@ -12,6 +13,7 @@ import { useCart } from "@/context/cartContext";
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const posthog = usePostHog();
   const { items } = useCart();
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -87,9 +89,13 @@ export default function CheckoutPage() {
 
   // Store receipt token in sessionStorage (not in the URL) then navigate to the static confirmation page
   const handleSuccess = useCallback((receiptToken: string) => {
+    posthog.capture("payment_success", {
+      total_cents: totalCents,
+      items_count: cartItems.length,
+    });
     sessionStorage.setItem("pendingReceiptToken", receiptToken);
     router.push("/order-confirmation");
-  }, [router]);
+  }, [router, posthog, totalCents, cartItems.length]);
 
   const handleError = useCallback((errorMessage: string) => {
     setError(errorMessage);
