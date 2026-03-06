@@ -14,16 +14,9 @@ export default function EmptyFavorites() {
       <div className="space-y-4">
         <Link
           href="/"
-          className="block w-full py-3 px-6 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition"
+          className="block w-full py-3 px-6 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition"
         >
           Browse Menu
-        </Link>
-        
-        <Link
-          href="/combos"
-          className="block w-full py-3 px-6 border-2 border-orange-500 text-orange-500 font-semibold rounded-lg hover:bg-orange-50 transition"
-        >
-          Check Popular Combos
         </Link>
       </div>
 
