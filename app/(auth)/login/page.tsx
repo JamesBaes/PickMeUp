@@ -165,10 +165,7 @@ const Login = () => {
         <p className="text-center font-heading text-sm text-gray-500 mt-2 pb-20">
           New to Gladiator Burger?
           <br />
-          <Link
-            href="/signup"
-            className="text-blue-500 hover:text-blue-700 pb-500"
-          >
+          <Link href="/signup" className="text-blue-500 hover:text-blue-700">
             Create your account.
           </Link>
         </p>
