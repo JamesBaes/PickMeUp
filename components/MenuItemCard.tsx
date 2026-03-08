@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useCart } from "@/context/cartContext";
 import { useAuth } from "@/context/authContext";
 import { useFavorites } from "@/context/favoritesContext";
+import { usePostHog } from "posthog-js/react";
 
 interface MenuItemCardProps {
   item: MenuItem;
@@ -14,6 +15,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
   const { addItem } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
 
+  const posthog = usePostHog();
   const [isAdding, setIsAdding] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -32,6 +34,14 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
     e.stopPropagation();
     setIsAdding(true);
     addItem(item, 1);
+    posthog.capture("add_to_cart", {
+      item_id: item.item_id,
+      item_name: item.name,
+      item_price: item.price,
+      item_category: item.category,
+      quantity: 1,
+      source: "menu_page",
+    });
 
     // buffer to show that added notification
     setTimeout(() => {

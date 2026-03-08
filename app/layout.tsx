@@ -7,6 +7,7 @@ import {LocationProvider} from "@/context/locationContext";
 import { AuthProvider } from "@/context/authContext";
 import { CartProvider } from "@/context/cartContext";
 import { FavoritesProvider } from "@/context/favoritesContext";
+import { PostHogProvider } from "@/components/PostHogProvider";
 
 const headingText = DM_Sans({
   variable: "--font-heading",
@@ -33,6 +34,7 @@ export default function RootLayout({
       <body
         className={`${headingText.variable} ${bodyText.variable} flex flex-col min-h-screen antialiased`}
       >
+        <PostHogProvider>
         <LocationProvider>
             <CartProvider>
               <AuthProvider>
@@ -44,6 +46,7 @@ export default function RootLayout({
               </AuthProvider>
             </CartProvider>
         </LocationProvider>
+        </PostHogProvider>
       </body>
     </html>
   );
