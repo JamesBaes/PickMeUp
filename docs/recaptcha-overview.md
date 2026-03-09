@@ -2,6 +2,7 @@
 
 **Date:** 2026-03-08
 **Files Changed:**
+
 - `app/(auth)/sign-up/page.tsx`
 - `app/(auth)/sign-up/actions.ts`
 - `.env.local`
@@ -13,17 +14,18 @@
 reCAPTCHA is a free security service made by Google. Its job is to tell the difference between a real human visiting your website and a **bot** (an automated program written to abuse your site).
 
 Without it, a bot could:
+
 - Create thousands of fake accounts in seconds
 - Flood your sign-up form with spam traffic
 - Try to brute-force passwords at scale
 
 We added **reCAPTCHA v3** specifically — the invisible version. Unlike the classic "I'm not a robot" checkbox (v2), v3 works silently in the background. The user never has to click or solve a puzzle. Instead, Google watches how the user interacts with the page (mouse movements, typing speed, navigation) and gives them a **score from 0.0 to 1.0**:
 
-| Score | Meaning |
-|-------|---------|
-| 1.0 | Almost certainly a real human |
-| 0.5 | Uncertain |
-| 0.0 | Almost certainly a bot |
+| Score | Meaning                       |
+| ----- | ----------------------------- |
+| 1.0   | Almost certainly a real human |
+| 0.5   | Uncertain                     |
+| 0.0   | Almost certainly a bot        |
 
 We reject any submission with a score below **0.5**.
 
@@ -33,10 +35,10 @@ We reject any submission with a score below **0.5**.
 
 reCAPTCHA always has two sides working together:
 
-| Side | Where it runs | What it does |
-|------|--------------|-------------|
-| **Client (browser)** | `page.tsx` | Loads Google's script, silently analyses the user, produces a one-time token |
-| **Server** | `actions.ts` | Sends that token to Google's API to get the score, then decides whether to allow the sign-up |
+| Side                 | Where it runs | What it does                                                                                 |
+| -------------------- | ------------- | -------------------------------------------------------------------------------------------- |
+| **Client (browser)** | `page.tsx`    | Loads Google's script, silently analyses the user, produces a one-time token                 |
+| **Server**           | `actions.ts`  | Sends that token to Google's API to get the score, then decides whether to allow the sign-up |
 
 The token is the key piece — it is a short-lived code that proves "Google assessed this specific submission." The server **must** verify it because a bot could fake a form submission without ever loading the page.
 
@@ -65,10 +67,15 @@ These come from registering the app on [google.com/recaptcha](https://www.google
 ### 1. The provider wrapper
 
 ```tsx
-import { GoogleReCaptchaProvider, useGoogleReCaptcha } from "react-google-recaptcha-v3";
+import {
+  GoogleReCaptchaProvider,
+  useGoogleReCaptcha,
+} from "react-google-recaptcha-v3";
 
 const SignUp = () => (
-  <GoogleReCaptchaProvider reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}>
+  <GoogleReCaptchaProvider
+    reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
+  >
     <SignUpForm />
   </GoogleReCaptchaProvider>
 );
@@ -79,6 +86,7 @@ const SignUp = () => (
 The `!` at the end of `process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!` is TypeScript's **non-null assertion** — it tells TypeScript "I promise this value will exist at runtime, don't warn me that it might be undefined." Without it, TypeScript would complain because environment variables are technically `string | undefined`.
 
 Because `GoogleReCaptchaProvider` needs to wrap the form component, we split the page into two components:
+
 - `SignUpForm` — the actual form with all the logic (needs access to reCAPTCHA)
 - `SignUp` — a thin wrapper that provides the reCAPTCHA context and renders `SignUpForm` inside it
 
@@ -143,11 +151,14 @@ if (!recaptchaToken) {
   return { error: "reCAPTCHA verification required." };
 }
 
-const verifyResponse = await fetch("https://www.google.com/recaptcha/api/siteverify", {
-  method: "POST",
-  headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  body: `secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}`,
-});
+const verifyResponse = await fetch(
+  "https://www.google.com/recaptcha/api/siteverify",
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}`,
+  },
+);
 
 const verifyData = await verifyResponse.json();
 if (!verifyData.success || verifyData.score < 0.5) {
