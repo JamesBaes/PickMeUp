@@ -5,6 +5,7 @@ import supabase from "@/utils/supabase/client";
 import { MenuItem } from "@/types/";
 import { groupByCategory, categoryOrder } from "@/helpers/menuHelpers";
 import { getUserFavoriteIds, addFavorite, removeFavorite } from "@/helpers/favoritesHelpers";
+import { getSelectedLocation, LOCATION_CHANGE_EVENT, LOCATION_STORAGE_KEY } from "@/helpers/locationHelpers";
 import CategorySection from "@/components/CategorySection";
 import type { User } from "@supabase/supabase-js";
 
@@ -13,19 +14,50 @@ export default function MenuPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [favoriteItemIds, setFavoriteItemIds] = useState<Set<string>>(new Set());
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchMenuItems();
+    const initialLocation = getSelectedLocation();
+    setSelectedLocation(initialLocation);
+    fetchMenuItems(initialLocation);
     fetchUserAndFavorites();
+
+    const handleLocationChange = () => {
+      const nextLocation = getSelectedLocation();
+      setSelectedLocation(nextLocation);
+      fetchMenuItems(nextLocation);
+    };
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === LOCATION_STORAGE_KEY) {
+        handleLocationChange();
+      }
+    };
+
+    window.addEventListener(LOCATION_CHANGE_EVENT, handleLocationChange);
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener(LOCATION_CHANGE_EVENT, handleLocationChange);
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
-  const fetchMenuItems = async () => {
+  const fetchMenuItems = async (locationId: string | null) => {
+    setLoading(true);
+
     try {
-      const { data, error: fetchError } = await supabase
+      let query = supabase
         .from("menu_items")
         .select("*")
         .order("category", { ascending: true })
         .order("name", { ascending: true });
+
+      if (locationId) {
+        query = query.eq("restaurant_id", locationId);
+      }
+
+      const { data, error: fetchError } = await query;
 
       if (fetchError) {
         console.error("Supabase error:", fetchError);
@@ -102,7 +134,11 @@ export default function MenuPage() {
       <div className="container mx-auto px-4 py-8">
         {categories.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-gray-600">No menu items found.</p>
+            <p className="text-gray-600">
+              {selectedLocation
+                ? `No menu items found for location: ${selectedLocation}.`
+                : "No menu items found."}
+            </p>
             <p className="text-sm text-gray-500 mt-2">
               Check if your Supabase 'menu_items' table has data.
             </p>

@@ -7,10 +7,14 @@ import type { User } from "@supabase/supabase-js";
 import supabase from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { signOut } from "@/helpers/authHelpers";
+import {
+  getSelectedLocation,
+  setSelectedLocation,
+  LOCATION_CHANGE_EVENT,
+} from "@/helpers/locationHelpers";
 
 const links1 = [
   { name: "menu", path: "/" },
-  { name: "select location", path: "/select-location" },
   { name: "cart", path: "/cart" },
 ];
 
@@ -21,8 +25,6 @@ const links2 = [
 
 const authenticatedLinks = [
   { name: "account", path: "/account" },
-  { name: "order history", path: "/order-history" },
-  { name: "favorites", path: "/favorites" },
 ];
 
 const NavBar = () => {
@@ -31,27 +33,100 @@ const NavBar = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [availableLocations, setAvailableLocations] = useState<string[]>([]);
+  const [isLocationsLoading, setIsLocationsLoading] = useState(true);
+  const [selectedLocation, setSelectedLocationState] = useState<string>("");
+
+  const isActive = (path: string) => pathname === path;
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   // Check user
   useEffect(() => {
     setIsHydrated(true);
+    const storedLocation = getSelectedLocation();
+    setSelectedLocationState(storedLocation ?? "");
+
+    const handleLocationChange = () => {
+      const currentLocation = getSelectedLocation();
+      setSelectedLocationState(currentLocation ?? "");
+    };
+
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
     };
+
+    const fetchLocations = async () => {
+      setIsLocationsLoading(true);
+
+      const { data, error } = await supabase
+        .from("menu_items")
+        .select("restaurant_id")
+        .not("restaurant_id", "is", null)
+        .order("restaurant_id", { ascending: true });
+
+      if (error) {
+        console.error("Error fetching locations:", error);
+        setAvailableLocations([]);
+        setIsLocationsLoading(false);
+        return;
+      }
+
+      const uniqueLocations = Array.from(
+        new Set(
+          (data || [])
+            .map((item) => item.restaurant_id)
+            .filter((id): id is string => typeof id === "string" && id.trim().length > 0)
+        )
+      );
+
+      if (storedLocation && !uniqueLocations.includes(storedLocation)) {
+        setSelectedLocationState("");
+        setSelectedLocation(null);
+      }
+
+      setAvailableLocations(uniqueLocations);
+      setIsLocationsLoading(false);
+    };
+
     checkUser();
+    fetchLocations();
+    window.addEventListener(LOCATION_CHANGE_EVENT, handleLocationChange);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener(LOCATION_CHANGE_EVENT, handleLocationChange);
+    };
   }, []);
 
   // Close menu on route change
   useEffect(() => {
-    setIsMobileMenuOpen(false);
+    closeMobileMenu();
   }, [pathname]);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) {
+      return;
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeMobileMenu();
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [isMobileMenuOpen]);
 
   const handleSignOut = async () => {
     const result = await signOut();
@@ -63,10 +138,21 @@ const NavBar = () => {
     }
   };
 
+  const handleLocationSelect = (location: string) => {
+    setSelectedLocationState(location);
+    setSelectedLocation(location || null);
+
+    if (pathname !== "/") {
+      router.push("/");
+    }
+
+    router.refresh();
+  };
+
   return (
     <>
       {/* Main Navbar */}
-      <nav className="sticky top-0 z-50 flex justify-between items-center w-full px-4 md:px-8 lg:px-20 py-3 md:py-4 border-b border-gray-100 bg-gray-50 shadow-lg">
+      <nav className="sticky top-0 z-50 flex justify-between items-center w-full px-4 md:px-8 lg:px-20 py-3 md:py-4 border-b border-gray-100 bg-gray-50/95 backdrop-blur shadow-lg">
         
         {/* Logo */}
         <Link href={"/"} className="flex gap-2 md:gap-4 items-center">
@@ -84,46 +170,79 @@ const NavBar = () => {
         </Link>
 
         {/* Desktop Navigation - Combined with better spacing */}
-        <div className="hidden md:flex items-center gap-6">
-          {/* Main Links: Menu, Select Location, Cart */}
-          {links1.map((link, index) => (
-            <Link
-              href={link.path}
-              key={index}
-              className={`${link.path === pathname && "text-accent"} text-lg capitalize font-heading font-semibold hover:text-accent transition-all`}
-            >
-              {link.name}
-            </Link>
-          ))}
+        <div className="hidden md:flex items-center gap-5 lg:gap-6">
+          {isHydrated && user && (
+            <>
+              {/* Main Links: Menu, Select Location, Cart */}
+              {links1.map((link) => (
+                <Link
+                  href={link.path}
+                  key={link.path}
+                  aria-current={isActive(link.path) ? "page" : undefined}
+                  className={`${isActive(link.path) ? "text-accent" : "text-foreground"} text-lg capitalize font-heading font-semibold hover:text-accent transition-colors`}
+                >
+                  {link.name}
+                </Link>
+              ))}
 
-          {/* Separator between main links and auth links */}
-          <div className="w-px h-5 bg-gray-300"></div>
+              <label className="flex items-center gap-2.5 pl-1">
+                <span className="text-lg capitalize font-heading font-semibold text-foreground">
+                  Location
+                </span>
+                <select
+                  className="select select-sm h-9 min-h-9 border-gray-300 bg-white text-foreground focus:outline-none focus:border-accent font-heading"
+                  value={selectedLocation}
+                  onChange={(event) => handleLocationSelect(event.target.value)}
+                  disabled={isLocationsLoading || availableLocations.length === 0}
+                  aria-label="Select location"
+                >
+                  <option value="">
+                    {isLocationsLoading
+                      ? "Loading locations..."
+                      : availableLocations.length === 0
+                        ? "No locations available"
+                        : "All locations"}
+                  </option>
+                  {availableLocations.map((locationId) => (
+                    <option key={locationId} value={locationId}>
+                      {locationId}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              {/* Separator between main links and auth links */}
+              <div className="w-px h-6 bg-gray-300"></div>
+            </>
+          )}
 
           {/* Auth Links: Login/Sign Up OR Account Links */}
           {isHydrated && (!user ? (
-            links2.map((link, index) => (
+            links2.map((link) => (
               <Link
                 href={link.path}
-                key={index}
-                className={`${link.path === pathname && "text-accent"} text-lg capitalize font-heading font-semibold hover:text-accent transition-all`}
+                key={link.path}
+                aria-current={isActive(link.path) ? "page" : undefined}
+                className={`${isActive(link.path) ? "text-accent" : "text-foreground"} text-lg capitalize font-heading font-semibold hover:text-accent transition-colors`}
               >
                 {link.name}
               </Link>
             ))
           ) : (
             <>
-              {authenticatedLinks.map((link, index) => (
+              {authenticatedLinks.map((link) => (
                 <Link
                   href={link.path}
-                  key={index}
-                  className={`${link.path === pathname && "text-accent"} text-lg capitalize font-heading font-semibold hover:text-accent transition-all`}
+                  key={link.path}
+                  aria-current={isActive(link.path) ? "page" : undefined}
+                  className={`${isActive(link.path) ? "text-accent" : "text-foreground"} text-lg capitalize font-heading font-semibold hover:text-accent transition-colors`}
                 >
                   {link.name}
                 </Link>
               ))}
               <button
                 onClick={handleSignOut}
-                className="text-lg capitalize font-heading font-semibold hover:text-accent cursor-pointer transition-all"
+                className="text-lg capitalize font-heading font-semibold text-foreground hover:text-accent cursor-pointer transition-colors"
               >
                 sign out
               </button>
@@ -136,6 +255,8 @@ const NavBar = () => {
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="md:hidden p-2 rounded-lg hover:bg-gray-200 transition-colors"
           aria-label="Toggle menu"
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="mobile-menu"
         >
           {isMobileMenuOpen ? (
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -156,12 +277,18 @@ const NavBar = () => {
       {isMobileMenuOpen && (
         <div 
           className="md:hidden fixed inset-0 z-40 bg-black bg-opacity-30" 
-          onClick={() => setIsMobileMenuOpen(false)}
+          onClick={closeMobileMenu}
         />
       )}
 
       {/* Mobile Menu Sidebar */}
-      <div className={`md:hidden fixed top-0 right-0 z-50 h-full w-64 bg-white shadow-xl transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div
+        id="mobile-menu"
+        className={`md:hidden fixed top-0 right-0 z-50 h-full w-72 bg-white shadow-xl transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Mobile navigation menu"
+      >
         
         {/* Menu Header */}
         <div className="p-4 border-b">
@@ -180,22 +307,48 @@ const NavBar = () => {
         {/* Menu Content */}
         <div className="p-4 overflow-y-auto h-full">
           
-          {/* Main Links */}
-          <div className="mb-6">
-            <h3 className="text-sm text-gray-500 uppercase mb-3">Navigation</h3>
-            <div className="space-y-2">
-              {links1.map((link, index) => (
-                <Link
-                  href={link.path}
-                  key={index}
-                  className={`block p-3 rounded ${link.path === pathname ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
+          {isHydrated && user && (
+            <div className="mb-6">
+              <h3 className="text-sm text-gray-500 uppercase mb-3">Navigation</h3>
+              <div className="space-y-2">
+                {links1.map((link) => (
+                  <Link
+                    href={link.path}
+                    key={link.path}
+                    aria-current={isActive(link.path) ? "page" : undefined}
+                    className={`block p-3 rounded-lg font-medium capitalize ${isActive(link.path) ? 'bg-red-50 text-accent' : 'text-foreground hover:bg-gray-50'}`}
+                    onClick={closeMobileMenu}
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+              </div>
+
+              <div className="mt-4">
+                <label className="block text-sm text-gray-500 uppercase mb-3">Location</label>
+                <select
+                  className="select w-full border-gray-300 bg-white text-foreground focus:outline-none focus:border-accent font-heading"
+                  value={selectedLocation}
+                  onChange={(event) => handleLocationSelect(event.target.value)}
+                  disabled={isLocationsLoading || availableLocations.length === 0}
+                  aria-label="Select location"
                 >
-                  {link.name}
-                </Link>
-              ))}
+                  <option value="">
+                    {isLocationsLoading
+                      ? "Loading locations..."
+                      : availableLocations.length === 0
+                        ? "No locations available"
+                        : "All locations"}
+                  </option>
+                  {availableLocations.map((locationId) => (
+                    <option key={locationId} value={locationId}>
+                      {locationId}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Auth Links */}
           <div className="mb-6">
@@ -204,31 +357,33 @@ const NavBar = () => {
             </h3>
             <div className="space-y-2">
               {isHydrated && (!user ? (
-                links2.map((link, index) => (
+                links2.map((link) => (
                   <Link
                     href={link.path}
-                    key={index}
-                    className={`block p-3 rounded ${link.path === pathname ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'}`}
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    key={link.path}
+                    aria-current={isActive(link.path) ? "page" : undefined}
+                    className={`block p-3 rounded-lg font-medium capitalize ${isActive(link.path) ? 'bg-red-50 text-accent' : 'text-foreground hover:bg-gray-50'}`}
+                    onClick={closeMobileMenu}
                   >
                     {link.name}
                   </Link>
                 ))
               ) : (
                 <>
-                  {authenticatedLinks.map((link, index) => (
+                  {authenticatedLinks.map((link) => (
                     <Link
                       href={link.path}
-                      key={index}
-                      className={`block p-3 rounded ${link.path === pathname ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'}`}
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      key={link.path}
+                      aria-current={isActive(link.path) ? "page" : undefined}
+                      className={`block p-3 rounded-lg font-medium capitalize ${isActive(link.path) ? 'bg-red-50 text-accent' : 'text-foreground hover:bg-gray-50'}`}
+                      onClick={closeMobileMenu}
                     >
                       {link.name}
                     </Link>
                   ))}
                   <button
-                    onClick={() => { handleSignOut(); setIsMobileMenuOpen(false); }}
-                    className="w-full text-left p-3 rounded text-red-600 hover:bg-red-50"
+                    onClick={() => { handleSignOut(); closeMobileMenu(); }}
+                    className="w-full text-left p-3 rounded-lg font-medium text-red-600 hover:bg-red-50"
                   >
                     Sign Out
                   </button>
