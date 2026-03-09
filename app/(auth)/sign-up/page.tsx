@@ -1,21 +1,35 @@
 "use client";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { GoogleReCaptchaProvider, useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { signUp } from "./actions";
 import PasswordRequirements from "@/components/PasswordRequirements";
 
-const SignUp = () => {
+const SignUpForm = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
-  const handleSignUp = async (formData: FormData) => {
+  const handleSignUp = useCallback(async (formData: FormData) => {
+    if (!executeRecaptcha) {
+      setError("reCAPTCHA is not ready yet. Please try again.");
+      return;
+    }
+
+    const token = await executeRecaptcha("sign_up");
+    if (!token) {
+      setError("reCAPTCHA verification failed. Please try again.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
+    formData.append("recaptchaToken", token);
     const result = await signUp(formData);
 
     // Only runs if signup failed (success redirects)
@@ -23,7 +37,7 @@ const SignUp = () => {
       setError(result.error);
       setLoading(false);
     }
-  };
+  }, [executeRecaptcha]);
 
   return (
     <div className="pt-12 flex flex-col items-center gap-6 flex-1 px-4">
@@ -193,5 +207,11 @@ const SignUp = () => {
     </div>
   );
 };
+
+const SignUp = () => (
+  <GoogleReCaptchaProvider reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}>
+    <SignUpForm />
+  </GoogleReCaptchaProvider>
+);
 
 export default SignUp;
