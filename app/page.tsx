@@ -113,7 +113,7 @@ const fetchLocationMenuItems = async (restaurantId: string) => {
     <div>
       {categories.length > 0 && (
         <nav className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
-          <div className="container mx-auto px-4 flex gap-1 overflow-x-auto py-3 scrollbar-none justify-center">
+          <div className="container mx-auto px-4 flex flex-wrap gap-1 py-3 justify-center">
             {categories.map((category) => (
               <button
                 key={category}
