@@ -172,9 +172,11 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
               <button
                 onClick={handleAddToCart}
                 disabled={isAdding}
-                className="btn btn-s border-0 shadow-none bg-accent hover:bg-secondary active:bg-active disabled:opacity-70"
+                className="btn btn-medium border-0 shadow-none bg-accent hover:bg-secondary active:bg-active disabled:opacity-70"
               >
-                <p className="font-heading text-white">Add to Cart</p>
+                <p className="font-heading text-white text-large">
+                  Add to Cart
+                </p>
               </button>
             )}
           </div>
