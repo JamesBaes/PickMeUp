@@ -33,20 +33,34 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
     e.preventDefault();
     e.stopPropagation();
     setIsAdding(true);
-    addItem(item, 1);
+    addItem(item, quantity);
     posthog.capture("add_to_cart", {
       item_id: item.item_id,
       item_name: item.name,
       item_price: item.price,
       item_category: item.category,
-      quantity: 1,
+      quantity,
       source: "menu_page",
     });
 
-    // buffer to show that added notification
+    setShowSuccess(true);
     setTimeout(() => {
       setIsAdding(false);
-    }, 1000);
+      setShowSuccess(false);
+      setQuantity(1);
+    }, 1500);
+  };
+
+  const handleDecrement = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setQuantity((q) => Math.max(1, q - 1));
+  };
+
+  const handleIncrement = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setQuantity((q) => q + 1);
   };
 
   return (
@@ -123,16 +137,48 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
             {item.description}
           </p>
 
-          <div className="card-actions justify-end mt-auto">
-            <button
-              onClick={handleAddToCart}
-              disabled={isAdding}
-              className="btn border-0 shadow-none bg-accent hover:bg-secondary active:bg-active disabled:opacity-70 btn-sm sm:btn-md w-full sm:w-auto"
-            >
-              <p className="font-heading text-white text-xs sm:text-base truncate">
-                {isAdding ? "Added!" : "Add to Cart"}
-              </p>
-            </button>
+          <div className="card-actions justify-between items-center mt-auto">
+            {/* Quantity controls */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleDecrement}
+                disabled={quantity === 1 || isAdding}
+                className={`btn btn-circle btn-xs border-0 shadow-none text-base ${
+                  quantity === 1 || isAdding
+                    ? "bg-gray-100 text-gray-300 cursor-not-allowed"
+                    : "bg-gray-300 text-black hover:bg-gray-400"
+                }`}
+              >
+                -
+              </button>
+              <span className="text-sm font-bold w-5 text-center">
+                {quantity}
+              </span>
+              <button
+                onClick={handleIncrement}
+                disabled={isAdding}
+                className="btn btn-circle btn-xs border-0 shadow-none text-base bg-gray-300 text-black hover:bg-gray-400"
+              >
+                +
+              </button>
+            </div>
+
+            {/* Add to cart / success feedback */}
+            {showSuccess ? (
+              <div className="btn btn-medium border-0 shadow-none bg-green-600 pointer-events-none">
+                <p className="font-heading text-white text-medium">Added!</p>
+              </div>
+            ) : (
+              <button
+                onClick={handleAddToCart}
+                disabled={isAdding}
+                className="btn btn-medium border-0 shadow-none bg-accent hover:bg-secondary active:bg-active disabled:opacity-70"
+              >
+                <p className="font-heading text-white text-medium">
+                  Add to Cart
+                </p>
+              </button>
+            )}
           </div>
         </div>
       </div>

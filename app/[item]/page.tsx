@@ -117,11 +117,6 @@ useEffect(() => {
   return (
     <div className="container mx-auto px-4 py-8">
 
-      {showNotification && (
-        <div className="w-full rounded-lg bg-green-600/75 text-white text-center py-3 font-semibold shadow-md ">
-          Added to cart!
-        </div>
-      )}
 
       <button
         onClick={() => router.back()}
@@ -262,14 +257,20 @@ useEffect(() => {
               </button>
             </div>
 
-            <button
-              onClick={handleAddToCart}
-              className="btn btn-lg flex-1 bg-accent hover:bg-secondary border-0"
-            >
-              <p className="font-heading text-white">
-                Add to Cart - ${(item.price * quantity).toFixed(2)}
-              </p>
-            </button>
+            {showNotification ? (
+              <div className="btn btn-lg flex-1 bg-green-600 border-0 pointer-events-none">
+                <p className="font-heading text-white">Added to cart!</p>
+              </div>
+            ) : (
+              <button
+                onClick={handleAddToCart}
+                className="btn btn-lg flex-1 bg-accent hover:bg-secondary border-0"
+              >
+                <p className="font-heading text-white">
+                  Add to Cart - ${(item.price * quantity).toFixed(2)}
+                </p>
+              </button>
+            )}
           </div>
         </div>
       </div>
