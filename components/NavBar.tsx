@@ -7,6 +7,7 @@ import type { User } from "@supabase/supabase-js";
 import supabase from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { signOut } from "@/helpers/authHelpers";
+import { User as UserIcon, ShoppingCart, LogOut } from "lucide-react";
 import {
   getSelectedLocation,
   setSelectedLocation,
@@ -15,7 +16,6 @@ import {
 
 const links1 = [
   { name: "menu", path: "/" },
-  { name: "cart", path: "/cart" },
 ];
 
 const links2 = [
@@ -25,6 +25,7 @@ const links2 = [
 
 const authenticatedLinks = [
   { name: "account", path: "/account" },
+  { name: "cart", path: "/cart" },
 ];
 
 const NavBar = () => {
@@ -54,9 +55,16 @@ const NavBar = () => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+
+      if (user) {
+        await fetchLocations(storedLocation);
+      } else {
+        setAvailableLocations([]);
+        setIsLocationsLoading(false);
+      }
     };
 
-    const fetchLocations = async () => {
+    const fetchLocations = async (currentStoredLocation?: string | null) => {
       setIsLocationsLoading(true);
 
       const { data, error } = await supabase
@@ -66,7 +74,12 @@ const NavBar = () => {
         .order("restaurant_id", { ascending: true });
 
       if (error) {
-        console.error("Error fetching locations:", error);
+        console.warn("Unable to fetch locations", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
         setAvailableLocations([]);
         setIsLocationsLoading(false);
         return;
@@ -80,7 +93,7 @@ const NavBar = () => {
         )
       );
 
-      if (storedLocation && !uniqueLocations.includes(storedLocation)) {
+      if (currentStoredLocation && !uniqueLocations.includes(currentStoredLocation)) {
         setSelectedLocationState("");
         setSelectedLocation(null);
       }
@@ -90,11 +103,21 @@ const NavBar = () => {
     };
 
     checkUser();
-    fetchLocations();
     window.addEventListener(LOCATION_CHANGE_EVENT, handleLocationChange);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      const nextUser = session?.user ?? null;
+      setUser(nextUser);
+
+      if (nextUser) {
+        const currentLocation = getSelectedLocation() ?? "";
+        fetchLocations(currentLocation);
+      } else {
+        setAvailableLocations([]);
+        setSelectedLocationState("");
+        setSelectedLocation(null);
+        setIsLocationsLoading(false);
+      }
     });
 
     return () => {
@@ -149,6 +172,18 @@ const NavBar = () => {
     router.refresh();
   };
 
+  const getAuthIcon = (name: string) => {
+    if (name === "account") {
+      return <UserIcon size={18} />;
+    }
+
+    if (name === "cart") {
+      return <ShoppingCart size={18} />;
+    }
+
+    return null;
+  };
+
   return (
     <>
       {/* Main Navbar */}
@@ -173,7 +208,7 @@ const NavBar = () => {
         <div className="hidden md:flex items-center gap-5 lg:gap-6">
           {isHydrated && user && (
             <>
-              {/* Main Links: Menu, Select Location, Cart */}
+              {/* Main Links: Menu, Select Location */}
               {links1.map((link) => (
                 <Link
                   href={link.path}
@@ -235,15 +270,17 @@ const NavBar = () => {
                   href={link.path}
                   key={link.path}
                   aria-current={isActive(link.path) ? "page" : undefined}
-                  className={`${isActive(link.path) ? "text-accent" : "text-foreground"} text-lg capitalize font-heading font-semibold hover:text-accent transition-colors`}
+                  className={`${isActive(link.path) ? "text-accent" : "text-foreground"} text-lg capitalize font-heading font-semibold hover:text-accent transition-colors inline-flex items-center gap-1.5`}
                 >
+                  {getAuthIcon(link.name)}
                   {link.name}
                 </Link>
               ))}
               <button
                 onClick={handleSignOut}
-                className="text-lg capitalize font-heading font-semibold text-foreground hover:text-accent cursor-pointer transition-colors"
+                className="text-lg capitalize font-heading font-semibold text-foreground hover:text-accent cursor-pointer transition-colors inline-flex items-center gap-1.5"
               >
+                <LogOut size={18} />
                 sign out
               </button>
             </>
@@ -375,16 +412,18 @@ const NavBar = () => {
                       href={link.path}
                       key={link.path}
                       aria-current={isActive(link.path) ? "page" : undefined}
-                      className={`block p-3 rounded-lg font-medium capitalize ${isActive(link.path) ? 'bg-red-50 text-accent' : 'text-foreground hover:bg-gray-50'}`}
+                      className={`p-3 rounded-lg font-medium capitalize ${isActive(link.path) ? 'bg-red-50 text-accent' : 'text-foreground hover:bg-gray-50'} flex items-center gap-2`}
                       onClick={closeMobileMenu}
                     >
+                      {getAuthIcon(link.name)}
                       {link.name}
                     </Link>
                   ))}
                   <button
                     onClick={() => { handleSignOut(); closeMobileMenu(); }}
-                    className="w-full text-left p-3 rounded-lg font-medium text-red-600 hover:bg-red-50"
+                    className="w-full text-left p-3 rounded-lg font-medium text-red-600 hover:bg-red-50 inline-flex items-center gap-2"
                   >
+                    <LogOut size={18} />
                     Sign Out
                   </button>
                 </>

@@ -37,9 +37,9 @@ export async function login(email: string, password: string) {
     redirect('/error')
   }
 
-  // does a "refresh" and redirects to a temporary success page. Will change this once I create the has an account navbar so it just refreshes with the new navbar.
+  // does a "refresh" and redirects to the authenticated account page.
   revalidatePath('/', 'layout')
-  redirect('/success')
+  redirect('/account')
 }
 
 export async function signOut() {
