@@ -91,7 +91,12 @@ export default function FavoritesPage() {
         .eq("user_id", user.id);
 
       if (fetchError) {
-        console.error("Error fetching favorites:", fetchError);
+        console.warn("Unable to fetch favorites", {
+          message: fetchError.message,
+          details: fetchError.details,
+          hint: fetchError.hint,
+          code: fetchError.code,
+        });
         setFavorites(DUMMY_FAVORITES);
         setIsDummyData(true);
         setError(null);
@@ -110,7 +115,7 @@ export default function FavoritesPage() {
         }
       }
     } catch (err) {
-      console.error("Error in fetchUserAndFavorites:", err);
+      console.warn("Unexpected error in fetchUserAndFavorites", err);
       setFavorites(DUMMY_FAVORITES);
       setIsDummyData(true);
       setError(null);
