@@ -9,7 +9,7 @@ export default function CategorySection({
   items,
 }: CategorySectionProps) {
   return (
-    <section className="mb-12">
+    <section id={category} className="mb-12 scroll-mt-16">
       <div className="flex flex-col">
         <h2 className="text-4xl font-heading font-bold mb-4 inline-block">
           {formatCategoryName(category as MenuCategory)}

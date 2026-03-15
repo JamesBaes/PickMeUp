@@ -28,7 +28,12 @@ export type MenuCategory =
   | "crowds_sides"
   | "extra_armour_sides"
   | "beverages"
-  | "combos";
+  | "combos"
+  | "juice"
+  | "milkshakes"
+  | "soda_and_water"
+  | "treats";
+
 
 export interface GroupedMenuItems {
   [key: string]: MenuItem[];
@@ -39,7 +44,7 @@ export const CategoryDescriptions: Record<MenuCategory, string> = {
   beef_burgers:
     "You deserve all the freshest ingredients. Our meat 🥩 is 100% Prime quality, never frozen and domestically raised with sustainable farming practices.",
   chicken_burgers:
-    "We ❤️ 🐓 chicken. Chicken that's fresh and never frozen and hand breaded in-house, It’s the best whole white meat chicken out there!",
+    "We ❤️ 🐓 chicken. Chicken that's fresh and never frozen and hand breaded in-house, It's the best whole white meat chicken out there!",
   veggie_burgers:
     "Delicious Veggie options loaded with fresh toppings and home made sauces.",
   steak_sandwiches:
@@ -49,5 +54,89 @@ export const CategoryDescriptions: Record<MenuCategory, string> = {
     "Loaded sides for those who want something extra special.",
   beverages:
     "Enjoy our rich and thick creamy shakes blended to perfection! OR satisfy your thirst from one of our great selection of drinks",
-  combos: "",
+  combos: 
+    "",
+  juice: 
+    "",
+  milkshakes: 
+    "Creamy milkshakes made with real ice cream.",
+  soda_and_water: 
+    "Refreshing sodas and waters to quench your thirst.",
+  treats: 
+    "Sweet treats to satisfy your sweet tooth.",
 };
+
+// Cart Related Types
+export interface CartItem extends MenuItem {
+  quantity: number;
+}
+
+export interface CartContextType {
+  items: CartItem[];
+  addItem: (item: MenuItem, quantity?: number) => void;
+  removeItem: (itemId: string) => void;
+  clearCart: () => void;
+  updateQuantity: (itemId: string, quantity: number) => void;
+  getItemCount: () => number;
+  getTotal: () => number;
+}
+
+export interface CartProvideProps {
+  children: React.ReactNode;
+}
+
+// Checkout types
+// export interface CartItem {
+//   name: string;
+//   quantity: number;
+//   priceCents: number;
+//   image: string;
+// }
+
+export interface PromoCodeInputProps {
+  value: string;
+  appliedPromo: string;
+  onApply: () => void;
+  onRemove: () => void;
+  onError: (message: string) => void;
+}
+
+export interface OrderSummaryProps {
+  cartItems: CartItem[];
+  subtotalCents: number;
+  discountCents: number;
+  taxCents: number;
+  totalCents: number;
+  appliedPromo: string;
+  promoDiscount: number;
+  onPromoApply: () => void;
+  onPromoRemove: () => void;
+  onPromoError: (message: string) => void;
+}
+
+export interface ContactDetailsFormProps {
+  email: string;
+  phone: string;
+  onEmailChange: (email: string) => void;
+  onPhoneChange: (phone: string) => void;
+  errors: {
+    email?: string;
+    phone?: string;
+  };
+}
+
+export interface CardholderFormProps {
+  name: string;
+  onNameChange: (name: string) => void;
+  error?: string;
+}
+
+export interface BillingAddressFormProps {
+  country: string;
+  address: string;
+  onCountryChange: (country: string) => void;
+  onAddressChange: (address: string) => void;
+  errors: {
+    address?: string;
+  };
+}

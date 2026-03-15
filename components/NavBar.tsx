@@ -6,245 +6,208 @@ import React, { useState, useEffect } from "react";
 import type { User } from "@supabase/supabase-js";
 import supabase from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-import { signOut } from "@/helpers/authHelpers";
-
-const links1 = [
-  { name: "menu", path: "/" },
-  { name: "select location", path: "/select-location" },
-  { name: "cart", path: "/cart" },
-];
-
-const links2 = [
-  { name: "login", path: "/login" },
-  { name: "sign up", path: "/sign-up" },
-];
-
-const authenticatedLinks = [
-  { name: "account", path: "/account" },
-  { name: "order history", path: "/order-history" },
-  { name: "favorites", path: "/favorites" },
-];
+import { useLocation } from "@/context/locationContext";
+import { useCart } from "@/context/cartContext";
 
 const NavBar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const { getItemCount } = useCart();
+  const itemCount = getItemCount();
 
-  // Check user
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setUser(user);
     };
+
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // Close menu on route change
   useEffect(() => {
-    setIsMobileMenuOpen(false);
+    const checkUserOnRouteChange = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+    };
+
+    checkUserOnRouteChange();
   }, [pathname]);
 
   const handleSignOut = async () => {
-    const result = await signOut();
-    if (result.success) {
-      router.push('/logout');
-      router.refresh();
-    } else {
-      router.push('/error');
+    setSigningOut(true);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Sign out error:", error.message);
+      setSigningOut(false);
+      return;
     }
+    setSigningOut(false);
+    router.push("/");
+    router.refresh();
   };
 
+  const { currentLocation, isHydrated } = useLocation();
+
+  const navLinkClass = (path: string) =>
+    `font-heading font-semibold text-lg capitalize hover:text-accent transition-all ${
+      pathname === path ? "text-accent" : ""
+    }`;
+
   return (
-    <>
-      {/* Main Navbar */}
-      <nav className="sticky top-0 z-50 flex justify-between items-center w-full px-4 md:px-8 lg:px-20 py-3 md:py-4 border-b border-gray-100 bg-gray-50 shadow-lg">
-        
-        {/* Logo */}
-        <Link href={"/"} className="flex gap-2 md:gap-4 items-center">
+    <div className="navbar bg-gray-50 border-b border-gray-100 shadow-lg px-6 md:px-12">
+      {/* Left: Logo */}
+      <div className="navbar-start">
+        <Link href="/" className="flex items-center gap-3">
           <Image
             src="/gladiator-logo.png"
             alt="Gladiator Logo"
             title="Gladiator Logo"
-            width="48"
-            height="48"
-            className="w-10 h-10 md:w-12 md:h-12"
+            width={40}
+            height={40}
           />
-          <h1 className="font-heading font-extrabold text-accent text-2xl md:text-3xl lg:text-4xl">
+          <span className="font-heading font-extrabold text-accent text-3xl">
             Gladiator
-          </h1>
+          </span>
+        </Link>
+      </div>
+
+      {/* Center: Main nav links */}
+      <div className="navbar-center hidden md:flex gap-10">
+        <Link href="/" className={navLinkClass("/")}>
+          menu
+        </Link>
+        <Link
+          href="/select-location"
+          className={navLinkClass("/select-location")}
+        >
+          {isHydrated
+            ? currentLocation
+              ? currentLocation.name
+              : "select location"
+            : "select location"}
+        </Link>
+      </div>
+
+      {/* Right: Cart + Profile/Auth */}
+      <div className="navbar-end flex items-center gap-2">
+        {/* Cart icon with badge */}
+        <Link href="/cart" className="btn btn-ghost btn-circle relative">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+            />
+          </svg>
+          {itemCount > 0 && (
+            <span className="badge badge-sm absolute -top-1 -right-1 bg-accent text-white border-none">
+              {itemCount}
+            </span>
+          )}
         </Link>
 
-        {/* Desktop Navigation - Combined with better spacing */}
-        <div className="hidden md:flex items-center gap-6">
-          {/* Main Links: Menu, Select Location, Cart */}
-          {links1.map((link, index) => (
-            <Link
-              href={link.path}
-              key={index}
-              className={`${link.path === pathname && "text-accent"} text-lg capitalize font-heading font-semibold hover:text-accent transition-all`}
+        {/* Authenticated: profile dropdown */}
+        {user ? (
+          <div className="dropdown dropdown-end">
+            <div
+              tabIndex={0}
+              role="button"
+              className="btn btn-ghost btn-circle"
             >
-              {link.name}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zM21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <ul
+              tabIndex={0}
+              className="menu menu-sm dropdown-content bg-base-100 rounded-box shadow-lg mt-3 w-52 p-2 z-50 border border-gray-100"
+            >
+              <li>
+                <Link
+                  href="/account"
+                  className={`font-heading font-semibold capitalize ${pathname === "/account" ? "text-accent" : ""}`}
+                >
+                  account
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/order-history"
+                  className={`font-heading font-semibold capitalize ${pathname === "/order-history" ? "text-accent" : ""}`}
+                >
+                  order history
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/favorites"
+                  className={`font-heading font-semibold capitalize ${pathname === "/favorites" ? "text-accent" : ""}`}
+                >
+                  favorites
+                </Link>
+              </li>
+              <li>
+                <button
+                  onClick={handleSignOut}
+                  disabled={signingOut}
+                  className="font-heading font-semibold capitalize disabled:opacity-50"
+                >
+                  {signingOut ? "signing out..." : "sign out"}
+                </button>
+              </li>
+            </ul>
+          </div>
+        ) : (
+          /* Unauthenticated: login + signup */
+          <div className="flex items-center gap-4 ml-4">
+            <Link
+              href="/login"
+              className="btn btn-medium font-heading font-semibold capitalize text-white border-none bg-black hover:bg-gray-800"
+            >
+              login
             </Link>
-          ))}
-
-          {/* Separator between main links and auth links */}
-          <div className="w-px h-5 bg-gray-300"></div>
-
-          {/* Auth Links: Login/Sign Up OR Account Links */}
-          {!user ? (
-            links2.map((link, index) => (
-              <Link
-                href={link.path}
-                key={index}
-                className={`${link.path === pathname && "text-accent"} text-lg capitalize font-heading font-semibold hover:text-accent transition-all`}
-              >
-                {link.name}
-              </Link>
-            ))
-          ) : (
-            <>
-              {authenticatedLinks.map((link, index) => (
-                <Link
-                  href={link.path}
-                  key={index}
-                  className={`${link.path === pathname && "text-accent"} text-lg capitalize font-heading font-semibold hover:text-accent transition-all`}
-                >
-                  {link.name}
-                </Link>
-              ))}
-              <button
-                onClick={handleSignOut}
-                className="text-lg capitalize font-heading font-semibold hover:text-accent cursor-pointer transition-all"
-              >
-                sign out
-              </button>
-            </>
-          )}
-        </div>
-
-        {/* Hamburger Button - Only on mobile */}
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="md:hidden p-2 rounded-lg hover:bg-gray-200 transition-colors"
-          aria-label="Toggle menu"
-        >
-          {isMobileMenuOpen ? (
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-          )}
-        </button>
-      </nav>
-
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div 
-          className="md:hidden fixed inset-0 z-40 bg-black bg-opacity-30" 
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Mobile Menu Sidebar */}
-      <div className={`md:hidden fixed top-0 right-0 z-50 h-full w-64 bg-white shadow-xl transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        
-        {/* Menu Header */}
-        <div className="p-4 border-b">
-          <div className="flex items-center gap-3">
-            <Image
-              src="/gladiator-logo.png"
-              alt="Logo"
-              width="32"
-              height="32"
-              className="w-8 h-8"
-            />
-            <span className="font-bold text-lg">Menu</span>
+            <Link
+              href="/sign-up"
+              className="btn btn-medium font-heading font-semibold capitalize text-white border-none bg-blue-600 hover:bg-blue-700"
+            >
+              sign up
+            </Link>
           </div>
-        </div>
-
-        {/* Menu Content */}
-        <div className="p-4 overflow-y-auto h-full">
-          
-          {/* Main Links */}
-          <div className="mb-6">
-            <h3 className="text-sm text-gray-500 uppercase mb-3">Navigation</h3>
-            <div className="space-y-2">
-              {links1.map((link, index) => (
-                <Link
-                  href={link.path}
-                  key={index}
-                  className={`block p-3 rounded ${link.path === pathname ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {link.name}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Auth Links */}
-          <div className="mb-6">
-            <h3 className="text-sm text-gray-500 uppercase mb-3">
-              {user ? 'Account' : 'Login'}
-            </h3>
-            <div className="space-y-2">
-              {!user ? (
-                links2.map((link, index) => (
-                  <Link
-                    href={link.path}
-                    key={index}
-                    className={`block p-3 rounded ${link.path === pathname ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'}`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {link.name}
-                  </Link>
-                ))
-              ) : (
-                <>
-                  {authenticatedLinks.map((link, index) => (
-                    <Link
-                      href={link.path}
-                      key={index}
-                      className={`block p-3 rounded ${link.path === pathname ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'}`}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {link.name}
-                    </Link>
-                  ))}
-                  <button
-                    onClick={() => { handleSignOut(); setIsMobileMenuOpen(false); }}
-                    className="w-full text-left p-3 rounded text-red-600 hover:bg-red-50"
-                  >
-                    Sign Out
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* User Info */}
-          {user && (
-            <div className="mt-6 pt-6 border-t">
-              <p className="text-sm text-gray-600">Logged in as:</p>
-              <p className="font-medium truncate">{user.email}</p>
-            </div>
-          )}
-        </div>
+        )}
       </div>
-    </>
+    </div>
   );
 };
 

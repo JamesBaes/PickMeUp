@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import supabase from "@/utils/supabase/client";
 import { MenuItem } from "@/types";
 import Image from "next/image";
+import { useCart } from "@/context/cartContext";
+import { useLocation } from "@/context/locationContext";
+import { useFavorites } from "@/context/favoritesContext";
+import { useAuth } from "@/context/authContext";
+import { usePostHog } from "posthog-js/react";
 
 interface ItemPageProps {
   params: Promise<{
@@ -18,27 +23,47 @@ export default function ItemPage({ params }: ItemPageProps) {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const router = useRouter();
+  const { addItem } = useCart();
+  const [showNotification, setShowNotification] = useState(false)
+  const { currentLocation, isHydrated } = useLocation();
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const { user } = useAuth();
+  const posthog = usePostHog();
 
-  useEffect(() => {
+useEffect(() => {
+  if (!isHydrated) return;
     fetchItem();
-  }, [itemId]);
+}, [itemId, isHydrated, currentLocation?.id]);
 
   const fetchItem = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("menu_items")
-        .select("*")
-        .eq("item_id", itemId)
-        .single();
+  setLoading(true);
+  try {
+    
+    let query = supabase
+      .from("menu_items_restaurant_locations")
+      .select("*")
+      .eq("item_id", itemId);
 
-      if (error) throw error;
-      setItem(data as MenuItem);
-    } catch (error) {
-      console.error("Error fetching item:", error);
-    } finally {
-      setLoading(false);
+    // Only filter by restaurant_id if a location is selected
+    if (currentLocation?.id) {
+      const numericId = parseInt(currentLocation.id, 10);
+      query = query.eq("restaurant_id", numericId);
+    } else {
+      console.log("No location selected, fetching any available item");
     }
-  };
+
+    const { data, error } = await query.single();
+
+
+    if (error) throw error;
+    setItem(data as MenuItem);
+  } catch (error) {
+    console.error("Error fetching item:", error);
+    setItem(null);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const formatName = (name: string): string => {
     return name
@@ -49,8 +74,18 @@ export default function ItemPage({ params }: ItemPageProps) {
   };
 
   const handleAddToCart = () => {
-    // TODO: Implement cart functionality
-    console.log(`Adding ${quantity} of ${item?.name} to cart`);
+    if (!item) return;
+    addItem(item, quantity);
+    posthog.capture("add_to_cart", {
+      item_id: item.item_id,
+      item_name: item.name,
+      item_price: item.price,
+      item_category: item.category,
+      quantity,
+      source: "item_page",
+    });
+    setShowNotification(true);
+    setTimeout(() => setShowNotification(false), 2000)
   };
 
   if (loading) {
@@ -81,6 +116,8 @@ export default function ItemPage({ params }: ItemPageProps) {
 
   return (
     <div className="container mx-auto px-4 py-8">
+
+
       <button
         onClick={() => router.back()}
         className="btn btn-ghost mb-4"
@@ -106,28 +143,49 @@ export default function ItemPage({ params }: ItemPageProps) {
 
         {/* Details Section */}
         <div className="flex flex-col gap-4">
-          <h1 className="text-4xl font-heading font-bold">
-            {formatName(item.name)}
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-4xl font-heading font-bold flex-1">
+              {formatName(item.name)}
+            </h1>
+            {/* Favourite button — only for signed-in users */}
+            {user && (
+              <button
+                onClick={() => toggleFavorite(item)}
+                className="p-2 rounded-full hover:bg-base-200 transition-colors shrink-0"
+                aria-label={isFavorite(item.item_id) ? "Remove from favourites" : "Add to favourites"}
+              >
+                {isFavorite(item.item_id) ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 text-accent">
+                    <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7 text-gray-400">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                  </svg>
+                )}
+              </button>
+            )}
+          </div>
 
           <div className="text-3xl font-bold text-accent">
             ${item.price.toFixed(2)}
           </div>
 
-          <p className="text-lg">{item.description}</p>
+          <p className="text-lg font-body">{item.description}</p>
 
           {/* Nutritional Info */}
           <div className="divider"></div>
           
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-base-200 p-4 rounded-lg">
-              <p className="text-sm text-base-content/70">Calories</p>
-              <p className="text-xl font-bold">{item.calories}</p>
+            <div className="p-4 border-white border-2 bg-gray-100 rounded-lg">
+              <p className="text-xl font-heading font-medium text-black mb-1">Calories</p>
+              {/* <p className="text-md font-body font-sm capitalize">{item.calories}</p> */}  {/* add this line back after design review LOLLLLLL*/}
+              <p className="text-md font-body font-sm capitalize">450 Cal</p>
             </div>
             
-            <div className="bg-base-200 p-4 rounded-lg">
-              <p className="text-sm text-base-content/70">Category</p>
-              <p className="text-xl font-bold capitalize">
+            <div className="p-4 border-white border-2 bg-gray-100 rounded-lg">
+              <p className="text-xl font-heading font-medium text-black mb-1">Category</p>
+              <p className="text-md font-body font-sm capitalize">
                 {item.category.replace(/_/g, " ")}
               </p>
             </div>
@@ -177,10 +235,15 @@ export default function ItemPage({ params }: ItemPageProps) {
           
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="btn btn-circle btn-sm"
-              >
+          <button
+            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+            disabled={quantity === 1}
+            className={`btn shadow-sm border-0 btn-circle btn-sm text-lg ${
+              quantity === 1 
+                ? 'bg-gray-100 text-gray-300 cursor-not-allowed' 
+                : 'bg-gray-400 text-black hover:bg-gray-500'
+            }`}
+          >
                 -
               </button>
               <span className="text-2xl font-bold w-12 text-center">
@@ -188,20 +251,26 @@ export default function ItemPage({ params }: ItemPageProps) {
               </span>
               <button
                 onClick={() => setQuantity(quantity + 1)}
-                className="btn btn-circle btn-sm"
+                className="btn shadow-sm border-0 btn-circle btn-sm text-lg text-black bg-gray-400 hover:bg-gray-500"
               >
                 +
               </button>
             </div>
 
-            <button
-              onClick={handleAddToCart}
-              className="btn btn-lg flex-1 bg-accent hover:bg-secondary border-0"
-            >
-              <p className="font-heading text-white">
-                Add to Cart - ${(item.price * quantity).toFixed(2)}
-              </p>
-            </button>
+            {showNotification ? (
+              <div className="btn btn-lg flex-1 bg-green-600 border-0 pointer-events-none">
+                <p className="font-heading text-white">Added to cart!</p>
+              </div>
+            ) : (
+              <button
+                onClick={handleAddToCart}
+                className="btn btn-lg flex-1 bg-accent hover:bg-secondary border-0"
+              >
+                <p className="font-heading text-white">
+                  Add to Cart - ${(item.price * quantity).toFixed(2)}
+                </p>
+              </button>
+            )}
           </div>
         </div>
       </div>
