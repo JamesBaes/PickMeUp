@@ -81,6 +81,10 @@ export interface CartContextType {
   updateQuantity: (itemId: string, quantity: number) => void;
   getItemCount: () => number;
   getTotal: () => number;
+  // Timestamp updates when this tab receives cart changes from another tab/browser.
+  lastCartSyncAt: number | null;
+  // Indicates whether cross-browser realtime sync can be used for this session.
+  isRealtimeSyncEnabled: boolean;
   // Replaces mismatched-location cart items with equivalent items from a new location.
   swapItemsToNewLocation: (swaps: Array<{ oldItemId: string; newItem: MenuItem }>) => void;
 }
