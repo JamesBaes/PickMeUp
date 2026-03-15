@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 interface OrderItem {
@@ -24,12 +24,11 @@ interface OrderData {
   subtotal: number;
   tax: number;
   total: number;
+  pickupTime: string;
 }
 
 export default function OrderConfirmationPage() {
-  const params = useParams();
   const router = useRouter();
-  const orderId = params.orderId as string;
 
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,14 +37,24 @@ export default function OrderConfirmationPage() {
   const [emailSent, setEmailSent] = useState(false);
 
   useEffect(() => {
+    const receiptToken = sessionStorage.getItem("pendingReceiptToken");
+
+    if (!receiptToken) {
+      // No active checkout session — redirect home instead of showing a broken page
+      router.replace("/");
+      return;
+    }
+
     const fetchOrderData = async () => {
       try {
-        const response = await fetch(`/api/orders/${orderId}`);
+        const response = await fetch(`/api/orders/receipt/${receiptToken}`);
         if (!response.ok) {
           throw new Error("Failed to fetch order");
         }
         const data = await response.json();
         setOrderData(data);
+        // Clear the token after a successful fetch so the page cannot be replayed on refresh
+        sessionStorage.removeItem("pendingReceiptToken");
       } catch (err) {
         console.error("Error fetching order:", err);
         setError("Failed to load order details");
@@ -54,10 +63,8 @@ export default function OrderConfirmationPage() {
       }
     };
 
-    if (orderId) {
-      fetchOrderData();
-    }
-  }, [orderId]);
+    fetchOrderData();
+  }, [router]);
 
   const handleEmailReceipt = async () => {
     setSendingEmail(true);
@@ -67,10 +74,7 @@ export default function OrderConfirmationPage() {
       const response = await fetch("/api/send-receipt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId,
-          orderData,
-        }),
+        body: JSON.stringify({ orderData }),
       });
 
       const data = await response.json();
@@ -80,10 +84,11 @@ export default function OrderConfirmationPage() {
       }
 
       setEmailSent(true);
-      setTimeout(() => setEmailSent(false), 5000); // Reset after 5 seconds
-    } catch (err: any) {
+      setTimeout(() => setEmailSent(false), 5000);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to send receipt";
       console.error("Error sending receipt:", err);
-      setError(err.message || "Failed to send receipt");
+      setError(message);
     } finally {
       setSendingEmail(false);
     }
@@ -110,9 +115,7 @@ export default function OrderConfirmationPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="font-body text-red-600 mb-4">
-            {error || "Order not found"}
-          </p>
+          <p className="font-body text-red-600 mb-4">{error || "Order not found"}</p>
           <button
             onClick={() => router.push("/")}
             className="text-accent hover:underline font-body"
@@ -144,9 +147,7 @@ export default function OrderConfirmationPage() {
               {/* Pickup Time */}
               <div className="font-heading text-3xl text-gray-900">
                 <span className="font-semibold">Pick Up Time:</span>{" "}
-                <span className="font-bold">
-                  {formatPickupTime(orderData.pickupTime)}
-                </span>
+                <span className="font-bold">{formatPickupTime(orderData.pickupTime)}</span>
               </div>
             </div>
 
@@ -188,11 +189,7 @@ export default function OrderConfirmationPage() {
                   disabled={sendingEmail || emailSent}
                   className="bg-accent text-white font-heading font-semibold py-3 px-8 rounded-lg hover:shadow-lg transition-all disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                  {sendingEmail
-                    ? "Sending..."
-                    : emailSent
-                      ? "Email Sent!"
-                      : "Email Receipt"}
+                  {sendingEmail ? "Sending..." : emailSent ? "Email Sent!" : "Email Receipt"}
                 </button>
                 {emailSent && (
                   <p className="mt-2 text-sm text-green-600 font-body">
@@ -265,15 +262,11 @@ export default function OrderConfirmationPage() {
             <div className="space-y-3 font-body mb-6">
               <div className="flex justify-between">
                 <span className="text-gray-600">Subtotal</span>
-                <span className="text-gray-900">
-                  ${orderData.subtotal.toFixed(2)}
-                </span>
+                <span className="text-gray-900">${orderData.subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Tax</span>
-                <span className="text-gray-900">
-                  ${orderData.tax.toFixed(2)}
-                </span>
+                <span className="text-gray-900">${orderData.tax.toFixed(2)}</span>
               </div>
             </div>
 

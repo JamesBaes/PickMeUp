@@ -6,6 +6,8 @@ import NavBar from "@/components/NavBar";
 import {LocationProvider} from "@/context/locationContext";
 import { AuthProvider } from "@/context/authContext";
 import { CartProvider } from "@/context/cartContext";
+import { FavoritesProvider } from "@/context/favoritesContext";
+import { PostHogProvider } from "@/components/PostHogProvider";
 
 const headingText = DM_Sans({
   variable: "--font-heading",
@@ -32,15 +34,19 @@ export default function RootLayout({
       <body
         className={`${headingText.variable} ${bodyText.variable} flex flex-col min-h-screen antialiased`}
       >
-        <LocationProvider>
-              <AuthProvider>
-            <CartProvider>
-                <NavBar />
-                <main className="flex flex-col grow">{children}</main>
-                <Footer />
-            </CartProvider>
-              </AuthProvider>
-        </LocationProvider>
+        <PostHogProvider>
+          <LocationProvider>
+              <CartProvider>
+                <AuthProvider>
+                  <FavoritesProvider>
+                    <NavBar />
+                    <main className="flex flex-col grow">{children}</main>
+                    <Footer />
+                  </FavoritesProvider>
+                </AuthProvider>
+              </CartProvider>
+          </LocationProvider>
+        </PostHogProvider>
       </body>
     </html>
   );

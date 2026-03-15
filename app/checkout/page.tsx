@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { usePostHog } from "posthog-js/react";
 import PaymentForm, { PaymentFormHandle } from "@/components/PaymentForm";
 import OrderSummary from "@/components/OrderSummary";
 import ContactDetailsForm from "@/components/ContactDetailsForm";
@@ -90,10 +91,15 @@ export default function CheckoutPage() {
     pickupTime: getPickupTime(),
   };
 
-  // if the payment is successful => bring to confirmation page: /app/order-confirmation/[orderId]/page.tsx
-  const handleSuccess = useCallback((orderId: string) => {
-    router.push(`/order-confirmation/${orderId}`);
-  }, [router]);
+  // Store receipt token in sessionStorage (not in the URL) then navigate to the static confirmation page
+  const handleSuccess = useCallback((receiptToken: string) => {
+    posthog.capture("payment_success", {
+      total_cents: totalCents,
+      items_count: cartItems.length,
+    });
+    sessionStorage.setItem("pendingReceiptToken", receiptToken);
+    router.push("/order-confirmation");
+  }, [router, posthog, totalCents, cartItems.length]);
 
   const handleError = useCallback((errorMessage: string) => {
     setError(errorMessage);

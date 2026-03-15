@@ -52,6 +52,10 @@ export async function POST(request: NextRequest) {
     );
     }
 
+    // Generate a receipt token — separate from the DB primary key so the real
+    // order UUID never needs to leave the server.
+    const receiptToken = randomUUID();
+
     // Save order to Supabase
     const { data: order, error: dbError } = await supabase
     .from("orders")
@@ -66,6 +70,7 @@ export async function POST(request: NextRequest) {
         square_payment_id: payment.id,
         status: "paid",
         pickup_time: orderDetails.pickupTime || new Date(Date.now() + 30 * 60000).toISOString(),
+        receipt_token: receiptToken,
     })
     .select()
     .single();
@@ -81,7 +86,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
     success: true,
     orderId: order.id,
-    paymentId: payment.id,  // Changed from result.payment.id
+    receiptToken: receiptToken,
+    paymentId: payment.id,
     });
 
   } catch (error: any) {

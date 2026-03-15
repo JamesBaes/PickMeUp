@@ -9,7 +9,6 @@ import { useLocation } from '@/context/locationContext'
 const TAX_RATE = 0.13;
 
 const Cart = () => {
-
   const router = useRouter();
 
   // cart context - cart operations
@@ -40,12 +39,15 @@ const Cart = () => {
 
   // function to calculate the total after tax
   const calculateTotal = () => {
-    const newSubtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const newSubtotal = cartItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
     const newTax = newSubtotal * TAX_RATE;
     setSubtotal(newSubtotal);
     setTax(newTax);
     setTotal(newSubtotal + newTax);
-  }
+  };
 
 
   // recalculates the totals when the cart changes
@@ -136,8 +138,8 @@ const Cart = () => {
       <div className="flex justify-center items-center min-h-screen">
         <p className="font-body text-gray-600">Loading cart...</p>
       </div>
-    )
-  };
+    );
+  }
 
   return (
     <div className="flex flex-row">
@@ -145,14 +147,18 @@ const Cart = () => {
       <section className="flex flex-col w-3/5 my-12 mx-20">
         <header className="flex justify-between items-end pb-4">
           <h2 className="font-heading font-bold text-3xl">Shopping Cart</h2>
-          <h2 className="font-body text-gray-600 text-md">{cartItems.length} items</h2>
+          <h2 className="font-body text-gray-600 text-md">
+            {cartItems.length} items
+          </h2>
         </header>
-        
+
         <hr className="border-gray-300" />
-        
+
         {cartItems.length === 0 ? (
           <div className="py-12 text-center">
-            <p className="font-body text-gray-500 text-lg">Your cart is empty</p>
+            <p className="font-body text-gray-500 text-lg">
+              Your cart is empty
+            </p>
           </div>
         ) : (
           <div className="flex flex-col gap-6 py-4">
@@ -185,14 +191,14 @@ const Cart = () => {
         <hr className="border-gray-300" />
 
         <div className="flex justify-between pt-4">
-          <button 
-            className="font-body text-md text-gray-600 hover:text-gray-700 hover:cursor-pointer" 
+          <button
+            className="font-body text-md text-gray-600 hover:text-gray-700 hover:cursor-pointer"
             onClick={() => router.push("/")}
           >
             Back to Menu
           </button>
           {cartItems.length > 0 && (
-            <button 
+            <button
               className="font-body text-md text-red-500 hover:text-red-600 hover:cursor-pointer"
               onClick={handleClearCart}
             >
@@ -206,9 +212,11 @@ const Cart = () => {
       <section className="flex flex-col w-2/5 my-12 mr-20 bg-gray-50 shadow-md p-12 rounded-2xl">
         <header className="flex justify-between items-end pb-4">
           <h2 className="font-heading font-bold text-3xl">Order Summary</h2>
-          <h2 className="font-body text-gray-600 text-md">{cartItems.length} items</h2>
+          <h2 className="font-body text-gray-600 text-md">
+            {cartItems.length} items
+          </h2>
         </header>
-        
+
         <hr className="border-gray-300" />
         
         <div className="py-4">
@@ -223,10 +231,10 @@ const Cart = () => {
               <option key={location.id} value={location.id}>{location.name}</option>
             ))}
           </select>
-        </div>
+        </div> */}
 
         <hr className="border-gray-300" />
-        
+
         <div className="flex flex-col py-4 gap-3">
           <div className="flex justify-between font-body">
             <span className="text-gray-600">Subtotal</span>
@@ -239,12 +247,12 @@ const Cart = () => {
         </div>
 
         <hr className="border-gray-300" />
-        
+
         <div className="flex justify-between font-heading text-xl pt-4 pb-6">
           <span className="font-bold">Total</span>
           <span className="font-bold">${total.toFixed(2)}</span>
         </div>
-        
+
         <button
           className="w-full bg-accent text-white font-heading font-semibold py-3 hover:cursor-pointer rounded-lg hover:shadow-lg transition-colors disabled:bg-gray-200 disabled:cursor-not-allowed disabled:shadow-none"
           disabled={cartItems.length === 0}
@@ -353,7 +361,7 @@ const Cart = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Cart
+export default Cart;
