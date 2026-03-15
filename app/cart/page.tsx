@@ -71,6 +71,12 @@ const Cart = () => {
     calculateTotal();
   }, [cartItems]);
 
+
+  // recalculates the totals when the cart changes
+  useEffect(() => {
+    calculateTotal();
+  }, [cartItems]);
+
   // all functions for updating, removing, or clearing cart handle both use and guest!
 
   // function updates the quantity of an item
