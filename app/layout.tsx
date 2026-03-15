@@ -35,17 +35,17 @@ export default function RootLayout({
         className={`${headingText.variable} ${bodyText.variable} flex flex-col min-h-screen antialiased`}
       >
         <PostHogProvider>
-        <LocationProvider>
-            <CartProvider>
-              <AuthProvider>
+          <LocationProvider>
+            <AuthProvider>
+              <CartProvider>
                 <FavoritesProvider>
                   <NavBar />
                   <main className="flex flex-col grow">{children}</main>
                   <Footer />
                 </FavoritesProvider>
-              </AuthProvider>
-            </CartProvider>
-        </LocationProvider>
+              </CartProvider>
+            </AuthProvider>
+          </LocationProvider>
         </PostHogProvider>
       </body>
     </html>
