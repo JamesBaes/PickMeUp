@@ -24,6 +24,8 @@ export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const categoryNavRef = useRef<HTMLDivElement | null>(null);
   const categoryButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  // Incrementing request id protects UI from race conditions when users
+  // change location quickly and multiple fetches complete out of order.
   const fetchRequestIdRef = useRef(0);
 
   // Incorporates the location for each menu item, so that we can filter items based on the user's selected location in the future (if needed)
@@ -33,6 +35,7 @@ export default function MenuPage() {
   const itemCount = getItemCount();
 
   useEffect(() => {
+    // Wait for browser-only location hydration before first fetch.
     if (!isHydrated) return;
 
     const requestId = ++fetchRequestIdRef.current;
@@ -69,6 +72,7 @@ export default function MenuPage() {
   }, [currentLocation, isHydrated]);
 
   useEffect(() => {
+    // Drive floating "scroll to top" and compact merged header visibility.
     const onScroll = () => {
       setShowScrollTop(window.scrollY > 300);
       setIsMergedHeaderVisible(window.scrollY > 88);
@@ -78,7 +82,8 @@ export default function MenuPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-    const fetchDefaultMenuItems = async (): Promise<MenuItem[]> => {
+  // Fetch default/global menu when no location is selected.
+  const fetchDefaultMenuItems = async (): Promise<MenuItem[]> => {
     try {
       const { data, error } = await supabase
         .from("menu_items")
@@ -94,6 +99,7 @@ export default function MenuPage() {
     }
   };
 
+// Fetch location-specific menu variant.
 const fetchLocationMenuItems = async (restaurantId: string): Promise<MenuItem[]> => {
   try {
     
@@ -120,7 +126,7 @@ const fetchLocationMenuItems = async (restaurantId: string): Promise<MenuItem[]>
     return [];
   }
 };
-  // sort category by a specific order, and not alphabetical
+  // Keep menu category order consistent with business UX, not alphabetic sorting.
   const groupedItems = groupByCategory(menuItems);
   const categories = categoryOrder.filter((category) => groupedItems[category]);
 
@@ -129,6 +135,7 @@ const fetchLocationMenuItems = async (restaurantId: string): Promise<MenuItem[]>
       return;
     }
 
+    // Scrollspy: mark the category currently nearest the top viewport anchor.
     const updateActiveCategory = () => {
       const scrollOffset = 180;
       const currentScrollPosition = window.scrollY + scrollOffset;
@@ -167,6 +174,7 @@ const fetchLocationMenuItems = async (restaurantId: string): Promise<MenuItem[]>
   }, [categories]);
 
   useEffect(() => {
+    // Auto-scroll active category chip into horizontal view when needed.
     if (!activeCategory) {
       return;
     }
@@ -196,6 +204,7 @@ const fetchLocationMenuItems = async (restaurantId: string): Promise<MenuItem[]>
   };
 
   const handleLocationChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    // Changing location triggers menu refetch through currentLocation effect.
     const selectedId = event.target.value;
     const selectedLocation = locations.find((location) => location.id === selectedId) || null;
     setCurrentLocation(selectedLocation);

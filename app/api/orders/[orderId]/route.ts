@@ -11,6 +11,7 @@ export async function GET(
   context: { params: Promise<{ orderId: string }> }
 ) {
   try {
+    // In App Router route handlers, dynamic params are resolved asynchronously.
     const { orderId } = await context.params;
 
     if (!orderId) {
@@ -20,7 +21,7 @@ export async function GET(
       );
     }
 
-    // Fetch order from Supabase
+    // Fetch canonical order record.
     const { data: order, error } = await supabase
       .from("orders")
       .select("*")
@@ -42,13 +43,13 @@ export async function GET(
       );
     }
 
-    // Calculate subtotal and tax from total
+    // Derive subtotal/tax display values from stored total.
     const totalDollars = order.total_cents / 100;
     const TAX_RATE = 0.13; // 13% Ontario tax
     const subtotal = totalDollars / (1 + TAX_RATE);
     const tax = totalDollars - subtotal;
 
-    // Format the order data for the frontend
+    // Normalize API response to a frontend-friendly shape.
     const formattedOrder = {
       id: order.id,
       orderNumber: `ORD-${order.id.toString().padStart(8, "0")}`,

@@ -43,12 +43,12 @@ const PaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
     // tracking if the payment is being processed or not
     const [loading, setLoading] = useState(false);
 
-    // Use ref to store callbacks to prevent unnecessary re-initialization
+    // Refs keep callback identities current without forcing Square re-init.
     const onErrorRef = useRef(onError);
     const onSuccessRef = useRef(onSuccess);
     const onReadyChangeRef = useRef(onReadyChange);
 
-    // Use ref to store card instance for proper cleanup
+    // Card instance lives outside render cycle for attach/destroy lifecycle.
     const cardInstanceRef = useRef<any>(null);
 
     useEffect(() => {
@@ -75,7 +75,7 @@ const PaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
       isReady: card !== null && !loading,
     }));
 
-    // Initialize Square (retries while the SDK script loads via afterInteractive)
+    // Initialize Square card element (retry while SDK script hydrates).
     useEffect(() => {
       let retryTimeout: ReturnType<typeof setTimeout>;
       let attempts = 0;
@@ -92,7 +92,7 @@ const PaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
             }
             return;
           }
-          // Script may still be loading, retry shortly
+          // Script may still be loading via Next.js strategy; retry shortly.
           retryTimeout = setTimeout(initializeSquare, 500);
           return;
         }
@@ -113,8 +113,8 @@ const PaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
             return;
           }
 
-          // Attach to the DOM. Tells square to render the card.
-          // The card info DOES NOT GO INTO THE PAGE/CODE. Only into Square's iframe
+          // Attach Square iframe into our container.
+          // Raw card data stays inside Square-hosted iframe (PCI-safe path).
           await newCardInstance.attach("#card-container");
 
           // Store in ref and state
@@ -149,7 +149,7 @@ const PaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
       };
     }, []); // Empty dependency array - only initialize once on mount
 
-    // Payment Handler
+    // Payment execution flow: tokenize -> send token + order details -> handle receipt token.
     const handlePayment = async () => {
       // the 'guard' clause. if Square is not initialized, then don't do anything
       if (!card) return;
@@ -165,7 +165,7 @@ const PaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
           throw new Error(tokenResult.errors?.[0]?.message || "Card error");
         }
 
-        // Send to your API
+        // Send tokenized card source + order payload to server route.
         const response = await fetch("/api/payments", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

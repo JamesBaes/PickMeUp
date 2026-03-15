@@ -46,6 +46,7 @@ export const validateAddress = (address: string): string | undefined => {
 };
 
 export const formatPhoneNumber = (value: string): string => {
+  // Format as North American style while user types.
   const digitsOnly = value.replace(/\D/g, "");
   if (digitsOnly.length <= 3) {
     return digitsOnly;
@@ -57,5 +58,6 @@ export const formatPhoneNumber = (value: string): string => {
 };
 
 export const validatePromoCode = (code: string): boolean => {
+  // Current promo implementation is intentionally simple and explicit.
   return code.toUpperCase() === "SAVE5";
 };

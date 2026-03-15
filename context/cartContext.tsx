@@ -39,14 +39,14 @@ const toCartItem = (row: CartItemRow): CartItem => ({
 
 const toUnitPriceCents = (price: number) => Math.round(price * 100);
 
-// create cart context
+// Central cart state used by menu, cart, and checkout flows.
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-// provider component for the cart context
+// Provider owns the cart lifecycle for this browser session.
 export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
 
   const { user, loading } = useAuth();
-  const { currentLocation, isHydrated } = useLocation();
+//   const { currentLocation, isHydrated } = useLocation();    // Temp comment just not sure if this function was created from a branch ahead of behind main so uncomment if necessary.
   const [ items, setItems ] = useState<CartItem[]>([])
 
   const applyLocationFilter = <T extends { eq: (column: string, value: string) => T; is: (column: string, value: null) => T }>(query: T) => {
@@ -156,6 +156,7 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
   };
 
   useEffect(() => {
+    // Rehydrate cart on first render from localStorage.
     const loadCart = async () => {
       if (!isHydrated || loading) {
         return;
@@ -212,7 +213,7 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
     void syncLocation();
   }, [user, currentLocation?.id, loading]);
 
-  // save card to localStorage whenever an item changes
+  // Persist cart after every mutation to keep page refreshes non-destructive.
   useEffect(() => {
     if (user) {
       return;
@@ -228,7 +229,7 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
     void saveCart()
   }, [items, user])
 
-  // function for adding item to the cart
+  // Add a new item, or increment quantity when it already exists.
   const addItem = (menuItem: MenuItem, quantity: number = 1) => {
     if (user) {
       const existingItem = items.find((item) => item.item_id === menuItem.item_id)
@@ -317,7 +318,7 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
     })
   }
   
-  // function to remove an item from the cart by item_id 
+  // Remove one line item entirely from cart.
   const removeItem = (itemId: string) => {
       if (user) {
         setItems((prevItems) => prevItems.filter(item => item.item_id !== itemId))
@@ -345,7 +346,7 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
       setItems((prevItems) => prevItems.filter(item => item.item_id !== itemId))
   }
 
-  // function to update the quantity of an item
+  // Update quantity and auto-remove when quantity reaches zero.
   const updateQuantity = (itemId: string, quantity: number) => {
       if(quantity <= 0) {
           removeItem(itemId)
@@ -386,7 +387,7 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
       )
   }
 
-  // function for clearing cart
+    // Remove all cart contents at once.
   const clearCart = () => {
       if (user) {
         setItems([])
@@ -413,11 +414,12 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
       setItems([]);
   }
 
-  // function to get the total number of items in the cart
+    // Helper used by navbar badge.
   const getItemCount = () => {
       return items.reduce((total, item) => total + item.quantity, 0)
   }
 
+    // Helper used by order summary and checkout.
   const getTotal = () => {
       return items.reduce(
           (total, item) => total + item.price * item.quantity, 0

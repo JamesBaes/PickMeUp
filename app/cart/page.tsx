@@ -25,10 +25,13 @@ const Cart = () => {
   const [subtotal, setSubtotal] = useState(0);
   const [tax, setTax] = useState(0);
   const [total, setTotal] = useState(0);
+  // Modal used to prevent invalid checkout when location/cart mismatch exists.
   const [showCheckoutGuardModal, setShowCheckoutGuardModal] = useState(false);
 
+  // IDs come from mixed sources (string/number), so normalize before compare.
   const normalizeRestaurantId = (id: unknown) => String(id ?? '').trim();
 
+  // Group cart lines by restaurant so users can see mixed-location carts clearly.
   const groupedItems = cartItems.reduce<Record<string, typeof cartItems>>((acc, item) => {
     const restaurantKey = normalizeRestaurantId(item.restaurant_id) || 'Unassigned';
     if (!acc[restaurantKey]) {
@@ -115,8 +118,10 @@ const Cart = () => {
     return acc;
   }, {});
 
+  // True when selected pickup location does not match all items in cart.
   const hasLocationMismatch = Boolean(currentLocation?.id) && mismatchedRestaurantIds.length > 0;
 
+  // Prevent checkout until user resolves pickup location conflicts.
   const handleProceedToCheckout = () => {
     if (!currentLocation) {
       setShowCheckoutGuardModal(true);
@@ -132,6 +137,7 @@ const Cart = () => {
   };
 
   useEffect(() => {
+    // Auto-close guard modal when conflicts are resolved.
     if (showCheckoutGuardModal && currentLocation && mismatchedRestaurantIds.length === 0) {
       setShowCheckoutGuardModal(false);
     }

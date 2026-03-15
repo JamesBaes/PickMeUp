@@ -19,7 +19,7 @@ export default function CheckoutPage() {
   const [isPaymentReady, setIsPaymentReady] = useState(false);
   const paymentFormRef = useRef<PaymentFormHandle>(null);
 
-  // Customer information state
+  // Checkout state is intentionally local to keep the page self-contained.
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -30,7 +30,7 @@ export default function CheckoutPage() {
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [pickupTime, setPickupTime] = useState("");
 
-  // Convert cart context items (dollars) to checkout format (cents)
+  // Convert cart context items (dollars) into API payload format (cents).
   const cartItems = items.map((item) => ({
     itemId: item.item_id,
     name: item.name,
@@ -39,9 +39,11 @@ export default function CheckoutPage() {
     image: item.image_url,
   }));
 
-  const handleQuantityChange = useCallback((itemId: string, quantity: number) => {
-    updateQuantity(itemId, quantity);
-  }, [updateQuantity]);
+  
+  // Temp comment just not sure if this function was created from a branch ahead of behind main so uncomment if necessary.
+//   const handleQuantityChange = useCallback((itemId: string, quantity: number) => {
+//     updateQuantity(itemId, quantity);
+//   }, [updateQuantity]);
 
   const subtotalCents = cartItems.reduce(
     (sum, item) => sum + item.priceCents * item.quantity,
@@ -51,7 +53,7 @@ export default function CheckoutPage() {
   const taxCents = 0; // Tax calculation pending address
   const totalCents = subtotalCents - discountCents + taxCents;
 
-  // Handle promo code application
+  // Promo handling is currently local/simple (single code flow).
   const handleApplyPromo = useCallback((code: string) => {
     setAppliedPromo(code);
     setPromoDiscount(5);
@@ -69,7 +71,7 @@ export default function CheckoutPage() {
     }
   }, []);
 
-  // Calculate pickup time (30 mins from now)
+  // Pickup time defaults to 30 minutes from checkout start.
   const getPickupTime = () => {
     if (!pickupTime) {
       const time = generatePickupTime();
@@ -79,7 +81,7 @@ export default function CheckoutPage() {
     return pickupTime;
   };
 
-  // Order details with customer info
+  // One canonical object passed into PaymentForm and then to /api/payments.
   const orderDetails = {
     customerName,
     customerEmail,
@@ -91,7 +93,7 @@ export default function CheckoutPage() {
     pickupTime: getPickupTime(),
   };
 
-  // Store receipt token in sessionStorage (not in the URL) then navigate to the static confirmation page
+  // Keep receipt token out of URL and hand it to confirmation page via sessionStorage.
   const handleSuccess = useCallback((receiptToken: string) => {
     posthog.capture("payment_success", {
       total_cents: totalCents,
@@ -107,6 +109,7 @@ export default function CheckoutPage() {
   }, []);
 
   const handlePayButtonClick = async () => {
+    // Parent triggers PaymentForm imperatively after validating visual readiness.
     if (!paymentFormRef.current) return;
 
     setError(null);
