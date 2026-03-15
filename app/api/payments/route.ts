@@ -10,6 +10,8 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
+    // `sourceId` is the Square tokenized card payload from the client.
+    // `orderDetails` contains customer + order metadata used for DB persistence.
     const { sourceId, orderDetails } = await request.json();
 
     if (!sourceId) {
@@ -26,10 +28,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get Square client (initialized on demand)
+    // Initialize Square client lazily in server runtime.
     const { payments } = getSquareClient();
 
-        // Create payment with Square
+    // Charge the card token with an idempotency key to prevent accidental double-charges.
     const response = await payments.create({
     sourceId: sourceId,
     idempotencyKey: randomUUID(),
@@ -42,7 +44,7 @@ export async function POST(request: NextRequest) {
     // Debug: log the response structure
     console.log("Square response:", JSON.stringify(response, (_, v) => typeof v === 'bigint' ? v.toString() : v, 2));
 
-    // In v44, the response might be the payment directly
+    // SDK versions can shape responses differently, normalize to `payment`.
     const payment = response.payment || response;
 
     if (!payment?.id) {
@@ -52,11 +54,11 @@ export async function POST(request: NextRequest) {
     );
     }
 
-    // Generate a receipt token — separate from the DB primary key so the real
-    // order UUID never needs to leave the server.
+    // Generate a public-safe receipt token. This avoids exposing internal order IDs
+    // in client-facing routes or URLs.
     const receiptToken = randomUUID();
 
-    // Save order to Supabase
+    // Persist paid order for post-checkout pages, order history, and receipts.
     const { data: order, error: dbError } = await supabase
     .from("orders")
     .insert({
@@ -92,7 +94,8 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error("Payment error:", error);
-    
+
+    // Square SDK errors come back as structured `errors[]` in many cases.
     if (error.errors) {
       return NextResponse.json(
         { success: false, error: error.errors[0]?.detail || "Square payment failed" },

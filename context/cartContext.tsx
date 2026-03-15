@@ -3,16 +3,18 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { MenuItem, CartItem, CartContextType, CartProvideProps } from '@/types'
 import { useAuth } from './authContext';
 
-// create cart context
+// Central cart state used by menu, cart, and checkout flows.
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-// provider component for the cart context
+// Provider owns the cart lifecycle for this browser session.
 export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
 
+  // Auth state is available for future behavior branching (guest vs logged-in).
   const { user, isGuest } = useAuth();
   const [ items, setItems ] = useState<CartItem[]>([])
 
   useEffect(() => {
+    // Rehydrate cart on first render from localStorage.
     const loadCart = async () => {
       try {
         const savedCart = localStorage.getItem('cart');
@@ -26,7 +28,7 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
     loadCart();
   }, []);
 
-  // save card to localStorage whenever an item changes
+  // Persist cart after every mutation to keep page refreshes non-destructive.
   useEffect(() => {
     const saveCart = async() => {
       try {
@@ -38,7 +40,7 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
     saveCart()
   }, [items])
 
-  // function for adding item to the cart
+  // Add a new item, or increment quantity when it already exists.
   const addItem = (menuItem: MenuItem, quantity: number = 1) => {
     setItems((prevItems) => {
       const existingItem = prevItems.find(item => item.item_id === menuItem.item_id)
@@ -59,12 +61,12 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
     })
   }
   
-  // function to remove an item from the cart by item_id 
+  // Remove one line item entirely from cart.
   const removeItem = (itemId: string) => {
       setItems((prevItems) => prevItems.filter(item => item.item_id !== itemId))
   }
 
-  // function to update the quantity of an item
+  // Update quantity and auto-remove when quantity reaches zero.
   const updateQuantity = (itemId: string, quantity: number) => {
       if(quantity <= 0) {
           removeItem(itemId)
@@ -77,16 +79,17 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
       )
   }
 
-  // function for clearing cart
+    // Remove all cart contents at once.
   const clearCart = () => {
       setItems([]);
   }
 
-  // function to get the total number of items in the cart
+    // Helper used by navbar badge.
   const getItemCount = () => {
       return items.reduce((total, item) => total + item.quantity, 0)
   }
 
+    // Helper used by order summary and checkout.
   const getTotal = () => {
       return items.reduce(
           (total, item) => total + item.price * item.quantity, 0

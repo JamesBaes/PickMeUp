@@ -35,6 +35,12 @@ export default function RootLayout({
         className={`${headingText.variable} ${bodyText.variable} flex flex-col min-h-screen antialiased`}
       >
         <PostHogProvider>
+          {/*
+            Provider dependency order matters:
+            - Location is needed by menu/cart experiences.
+            - Auth must wrap Cart because CartProvider reads useAuth().
+            - Favorites/Nav/Footer consume the providers above.
+          */}
           <LocationProvider>
             <AuthProvider>
               <CartProvider>

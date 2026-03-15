@@ -36,6 +36,7 @@ export default function OrderSummary({
   onPromoRemove,
   onPromoError,
 }: OrderSummaryProps) {
+  // Presentation component only: receives fully calculated values from checkout page.
   return (
     <div className="bg-white rounded-lg p-8 h-fit">
       {/* Logo */}

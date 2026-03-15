@@ -4,6 +4,9 @@ import { User } from '@supabase/supabase-js'
 import supabase from '../utils/supabase/client'
 import { CartItem, MenuItem } from '@/types'
 
+// AuthContext is responsible for:
+// 1) exposing authenticated user state, and
+// 2) maintaining a guest cart that survives refreshes before login.
 interface AuthContextType {
   user: User | null
   isGuest: boolean
@@ -16,6 +19,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType>({
+  // Safe defaults prevent undefined access before provider hydration.
   user: null,
   isGuest: true,
   loading: true,
@@ -32,7 +36,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [guestCart, setGuestCart] = useState<CartItem[]>([])
 
 
-  // Load guest cart from localStorage on mount
+  // Load guest cart from localStorage on mount so guest users can continue
+  // where they left off if they refresh or reopen the browser.
   useEffect(() => {
     const stored = localStorage.getItem('guestCart')
     if (stored) {
@@ -45,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
   
-  // Whenever a change occurs the guest cart will be saved to local storage
+  // Keep guest cart persisted whenever items change.
   useEffect(() => {
     if (guestCart.length > 0) {
       localStorage.setItem('guestCart', JSON.stringify(guestCart))
@@ -54,7 +59,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [guestCart])
 
-  // Merge guest cart into user's Supabase cart on login
+  // When a guest logs in, move guest cart items into the authenticated cart.
+  // This avoids cart loss across guest -> authenticated transitions.
   const mergeGuestCartToUser = async (userId: string) => {
     try {
       for (const item of guestCart) {
@@ -126,17 +132,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    // Initial auth hydration from any existing browser session.
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       setLoading(false)
     })
 
+    // Subscribe to auth transitions (login/logout/session refresh).
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const newUser = session?.user ?? null
       setUser(newUser)
       setLoading(false)
       
-      // Merge guest cart when user logs in
+      // Merge guest cart only when a user has just become authenticated.
       if (newUser && guestCart.length > 0) {
         await mergeGuestCartToUser(newUser.id)
       }
