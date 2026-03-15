@@ -87,6 +87,8 @@ const SignUpForm = () => {
             type="email"
             name="email"
             placeholder="Email@example.com"
+            aria-label="Email address"
+            autoComplete="email"
             required
             disabled={loading}
             className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
@@ -115,6 +117,8 @@ const SignUpForm = () => {
             type={showPassword ? "text" : "password"}
             name="password"
             placeholder="Password"
+            aria-label="Password"
+            autoComplete="new-password"
             required
             disabled={loading}
             value={password}
@@ -165,6 +169,8 @@ const SignUpForm = () => {
             type={showConfirmPassword ? "text" : "password"}
             name="confirmPassword"
             placeholder="Confirm Password"
+            aria-label="Confirm password"
+            autoComplete="new-password"
             required
             disabled={loading}
             className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
@@ -173,7 +179,7 @@ const SignUpForm = () => {
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             className="opacity-40 hover:opacity-80 transition-opacity shrink-0"
-            aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+            aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
           >
             {showConfirmPassword ? (
               <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

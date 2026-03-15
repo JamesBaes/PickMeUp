@@ -64,22 +64,25 @@ const CartItemCard = ({
         <button 
           onClick={handleDecrease}
           disabled={item.quantity <= 1}
+          aria-label={`Decrease quantity of ${formattedName}`}
           className="w-8 h-8 rounded-full border border-gray-300 hover:bg-gray-100 hover:cursor-pointer flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
         >
-          -
+          <span aria-hidden="true">-</span>
         </button>
-        <span className="font-body text-lg w-8 text-center">{item.quantity}</span>
+        <span className="font-body text-lg w-8 text-center" aria-live="polite" aria-atomic="true">{item.quantity}</span>
         <button 
           onClick={handleIncrease}
+          aria-label={`Increase quantity of ${formattedName}`}
           className="w-8 h-8 rounded-full border border-gray-300 hover:bg-gray-100 hover:cursor-pointer flex items-center justify-center"
         >
-          +
+          <span aria-hidden="true">+</span>
         </button>
       </div>
 
       {/* remove button */}
       <button 
         onClick={onRemove}
+        aria-label={`Remove ${formattedName} from cart`}
         className="text-red-500 hover:text-red-600 hover:cursor-pointer p-2"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

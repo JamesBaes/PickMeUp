@@ -26,18 +26,13 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Pages (The 3 Pages that any customer can access) */}
+          {/* Pages (Public pages customers can access) */}
           <div>
             <h3 className="font-heading font-bold text-lg mb-4">Pages</h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/" className="text-gray-600 hover:text-accent transition-all">
                   Menu
-                </Link>
-              </li>
-              <li>
-                <Link href="/select-location" className="text-gray-600 hover:text-accent transition-all">
-                  Select Location
                 </Link>
               </li>
               <li>

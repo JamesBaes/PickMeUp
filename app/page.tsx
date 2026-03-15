@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter, usePathname } from "next/navigation";
 import supabase from "@/utils/supabase/client";
 import { MenuItem } from "@/types/";
 import { groupByCategory, categoryOrder, transformMenuItemData, formatCategoryName } from "@/helpers/menuHelpers";
@@ -17,6 +18,7 @@ export default function MenuPage() {
 
   // SHOULD ADD A LOADING STATE PROBABLY (LIKE HOW WE DID IN MOBILE DEV CPRG-303)
   const [loading, setLoading] = useState(true);
+    const [signingOut, setSigningOut] = useState(false);
   const [isRefreshingMenu, setIsRefreshingMenu] = useState(false);
   const [hasFetchedMenu, setHasFetchedMenu] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -33,6 +35,22 @@ export default function MenuPage() {
   const { getItemCount } = useCart();
   const { user } = useAuth();
   const itemCount = getItemCount();
+
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Sign out error:", error.message);
+      setSigningOut(false);
+      return;
+    }
+    setSigningOut(false);
+    router.push("/");
+    router.refresh();
+  };
 
   useEffect(() => {
     // Wait for browser-only location hydration before first fetch.
@@ -222,7 +240,7 @@ const fetchLocationMenuItems = async (restaurantId: string): Promise<MenuItem[]>
   return (
     <div className="relative">
       {categories.length > 0 && (
-        <nav className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
+        <nav className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
           <div className="container mx-auto px-4 py-3 flex items-center gap-3">
             {isMergedHeaderVisible && (
               <Link href="/" className="flex items-center gap-2 shrink-0 pr-1">
@@ -299,26 +317,92 @@ const fetchLocationMenuItems = async (restaurantId: string): Promise<MenuItem[]>
                   )}
                 </Link>
 
-                <Link
-                  href={user ? "/account" : "/login"}
-                  className="btn btn-ghost btn-circle"
-                  aria-label={user ? "Account" : "Login"}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                {user ? (
+                  <div className="dropdown dropdown-end">
+                    <div
+                      tabIndex={0}
+                      role="button"
+                      aria-label="Account menu"
+                      aria-haspopup="true"
+                      className="btn btn-ghost btn-circle"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6"
+                        aria-hidden="true"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zM21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <ul
+                      tabIndex={0}
+                      className="menu menu-sm dropdown-content bg-base-100 rounded-box shadow-lg mt-3 w-52 p-2 z-50 border border-gray-100"
+                    >
+                      <li>
+                        <Link
+                          href="/account"
+                          className={`font-heading font-semibold capitalize ${pathname === "/account" ? "text-accent" : ""}`}
+                        >
+                          account
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/order-history"
+                          className={`font-heading font-semibold capitalize ${pathname === "/order-history" ? "text-accent" : ""}`}
+                        >
+                          order history
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/favorites"
+                          className={`font-heading font-semibold capitalize ${pathname === "/favorites" ? "text-accent" : ""}`}
+                        >
+                          favorites
+                        </Link>
+                      </li>
+                      <li>
+                        <button
+                          onClick={handleSignOut}
+                          disabled={signingOut}
+                          className="font-heading font-semibold capitalize disabled:opacity-50"
+                        >
+                          {signingOut ? "signing out..." : "sign out"}
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="btn btn-ghost btn-circle"
+                    aria-label="Login"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zM21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </Link>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zM21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </Link>
+                )}
               </div>
             )}
           </div>

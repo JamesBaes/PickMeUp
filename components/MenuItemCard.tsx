@@ -72,12 +72,14 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
 
     setTimeout(() => {
       setIsHeartAnimating(false);
-    }, 220);
+    }, 1000);
   };
 
   return (
-    <Link href={`/${item.item_id}`}>
-      <div className="group card bg-background w-full h-full shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer flex flex-col">
+    // Outer div is NOT a link — avoids nested interactive controls (WCAG 4.1.3).
+    // The title carries a "stretched link" (after:absolute after:inset-0) that
+    // makes the whole card visually clickable. Buttons sit above it via z-10.
+    <div className="group card bg-background w-full h-full shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer flex flex-col relative">
         {/* Image Container */}
         {item.image_url && (
           <figure className="flex-shrink-0 relative">
@@ -90,12 +92,12 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
             ) : (
               <div className="w-full h-48 bg-white"></div>
             )}
-            {/* Favourite button — only for signed-in users */}
+            {/* Favourite button — z-10 so it sits above the stretched link */}
             {user && (
               <button
                 onClick={handleFavoriteClick}
-                className={`absolute top-2 right-2 p-1.5 rounded-full bg-transparent group-hover:bg-white/45 shadow transition-all duration-300 ${
-                  isHeartAnimating ? "scale-125" : "scale-100"
+                className={`absolute top-2 right-2 z-10 p-1.5 rounded-full bg-transparent group-hover:bg-white/45 shadow transition-all duration-300 ${
+                  isHeartAnimating ? "animate-heartbeat" : ""
                 }`}
                 aria-label={
                   isFavorite(item.item_id)
@@ -108,9 +110,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
                     fill="currentColor"
-                    className={`w-5 h-5 text-[#ec4899] opacity-95 group-hover:opacity-80 transition-all duration-300 ${
-                      isHeartAnimating ? "scale-110" : "scale-100"
-                    }`}
+                    className="w-5 h-5 text-red-500 opacity-95 group-hover:opacity-80 transition-all duration-300"
                   >
                     <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
                   </svg>
@@ -137,8 +137,15 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
 
         {/* Card Body */}
         <div className="card-body flex flex-col flex-grow">
+          {/* Stretched link on title: after:absolute after:inset-0 covers the full
+              card area so it's still fully clickable, with no nested <a> elements. */}
           <h2 className="card-title text-foreground font-heading line-clamp-2">
-            {formattedName()}
+            <Link
+              href={`/${item.item_id}`}
+              className="after:absolute after:inset-0 after:z-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded"
+            >
+              {formattedName()}
+            </Link>
           </h2>
 
           <p className="text-foreground font-heading font-bold text-lg mb-2">
@@ -149,29 +156,32 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
             {item.description}
           </p>
 
-          <div className="card-actions justify-between items-center mt-auto">
+          {/* relative z-10 lifts controls above the stretched link pseudo-element */}
+          <div className="card-actions justify-between items-center mt-auto relative z-10">
             {/* Quantity controls */}
             <div className="flex items-center gap-1">
               <button
                 onClick={handleDecrement}
                 disabled={quantity === 1 || isAdding}
+                aria-label={`Decrease quantity of ${formattedName()}`}
                 className={`btn btn-circle btn-xs border-0 shadow-none text-base ${
                   quantity === 1 || isAdding
                     ? "bg-gray-100 text-gray-300 cursor-not-allowed"
                     : "bg-gray-300 text-black hover:bg-gray-400"
                 }`}
               >
-                -
+                <span aria-hidden="true">-</span>
               </button>
-              <span className="text-sm font-bold w-5 text-center">
+              <span className="text-sm font-bold w-5 text-center" aria-live="polite" aria-atomic="true">
                 {quantity}
               </span>
               <button
                 onClick={handleIncrement}
                 disabled={isAdding}
+                aria-label={`Increase quantity of ${formattedName()}`}
                 className="btn btn-circle btn-xs border-0 shadow-none text-base bg-gray-300 text-black hover:bg-gray-400"
               >
-                +
+                <span aria-hidden="true">+</span>
               </button>
             </div>
 
@@ -193,7 +203,6 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
             )}
           </div>
         </div>
-      </div>
-    </Link>
+    </div>
   );
 }

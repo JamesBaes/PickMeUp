@@ -212,8 +212,8 @@ export default function CheckoutPage() {
                   <p className="text-sm text-gray-900">
                     Save my information for faster checkout
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Pay securely at Gladiator Burger and everywhere Stripe is
+                  <p className="text-xs text-gray-600 mt-1">
+                    Pay securely at Gladiator Burger and everywhere Square is
                     accepted.
                   </p>
                 </div>
@@ -235,7 +235,7 @@ export default function CheckoutPage() {
 
             {/* Footer */}
             <div className="mt-8 pt-6 border-t border-gray-200">
-              <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+              <div className="flex items-center justify-center gap-4 text-xs text-gray-600">
                 <span>
                   Power by <span className="font-semibold">stripe</span>
                 </span>
