@@ -36,15 +36,15 @@ export default function RootLayout({
       >
         <PostHogProvider>
           <LocationProvider>
+            <AuthProvider>
               <CartProvider>
-                <AuthProvider>
-                  <FavoritesProvider>
-                    <NavBar />
-                    <main className="flex flex-col grow">{children}</main>
-                    <Footer />
-                  </FavoritesProvider>
-                </AuthProvider>
+                <FavoritesProvider>
+                  <NavBar />
+                  <main className="flex flex-col grow">{children}</main>
+                  <Footer />
+                </FavoritesProvider>
               </CartProvider>
+            </AuthProvider>
           </LocationProvider>
         </PostHogProvider>
       </body>
