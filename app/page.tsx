@@ -118,7 +118,7 @@ const fetchLocationMenuItems = async (restaurantId: string) => {
               <button
                 key={category}
                 onClick={() => scrollToCategory(category)}
-                className="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-body font-medium text-gray-700 hover:bg-gray-100 transition-colors shrink-0"
+                className="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-body font-medium text-gray-700 bg-transparent hover:bg-base-200 hover:text-accent active:bg-base-200 active:text-accent focus-visible:bg-base-200 focus-visible:text-accent focus-visible:outline-none transition-colors duration-150 shrink-0 cursor-pointer"
               >
                 {formatCategoryName(category)}
               </button>

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 
+const ORDER_DETAILS_SNAPSHOT_PREFIX = "order-details:";
+
 interface OrderItem {
   name: string;
   quantity: number;
@@ -24,6 +26,7 @@ interface OrderData {
   subtotal: number;
   tax: number;
   total: number;
+  pickupTime?: string | null;
 }
 
 export default function OrderConfirmationPage() {
@@ -37,17 +40,39 @@ export default function OrderConfirmationPage() {
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
+  const getSnapshotOrder = (): OrderData | null => {
+    try {
+      const raw = sessionStorage.getItem(`${ORDER_DETAILS_SNAPSHOT_PREFIX}${orderId}`);
+      if (!raw) return null;
+      return JSON.parse(raw) as OrderData;
+    } catch {
+      return null;
+    }
+  };
+
   useEffect(() => {
     const fetchOrderData = async () => {
       try {
         const response = await fetch(`/api/orders/${orderId}`);
         if (!response.ok) {
+          const snapshot = getSnapshotOrder();
+          if (snapshot) {
+            setOrderData(snapshot);
+            setError(null);
+            return;
+          }
           throw new Error("Failed to fetch order");
         }
         const data = await response.json();
         setOrderData(data);
       } catch (err) {
         console.error("Error fetching order:", err);
+        const snapshot = getSnapshotOrder();
+        if (snapshot) {
+          setOrderData(snapshot);
+          setError(null);
+          return;
+        }
         setError("Failed to load order details");
       } finally {
         setLoading(false);
@@ -89,7 +114,8 @@ export default function OrderConfirmationPage() {
     }
   };
 
-  const formatPickupTime = (isoString: string) => {
+  const formatPickupTime = (isoString?: string | null) => {
+    if (!isoString) return "TBD";
     const date = new Date(isoString);
     return date.toLocaleTimeString("en-US", {
       hour: "numeric",
@@ -231,7 +257,7 @@ export default function OrderConfirmationPage() {
             <div className="space-y-4 mb-6">
               {orderData.items.map((item, index) => (
                 <div key={index} className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 bg-gray-100">
+                  <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 bg-gray-100">
                     {item.image_url ? (
                       <Image
                         src={item.image_url}

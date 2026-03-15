@@ -3,14 +3,16 @@ import { MenuItem, MenuItemCardProps } from "@/types";
 import { useState } from "react";
 import { useCart } from "@/context/cartContext";
 import { useAuth } from "@/context/authContext";
-import { useFavorites } from "@/context/favoritesContext";
+import { USE_MOCK_FAVORITES, useFavorites } from "@/context/favoritesContext";
 import { usePostHog } from "posthog-js/react";
+import { useRouter } from "next/navigation";
 
 interface MenuItemCardProps {
   item: MenuItem;
 }
 
 export default function MenuItemCard({ item }: MenuItemCardProps) {
+  const router = useRouter();
   const { user } = useAuth();
   const { addItem } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -19,6 +21,9 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [favoriteMessage, setFavoriteMessage] = useState<string | null>(null);
+  const [isFavoriteUpdating, setIsFavoriteUpdating] = useState(false);
+  const favorited = isFavorite(item.item_id);
 
   // Just a function to capitalize plus replace _ with spaces.
   const formattedName = (): string => {
@@ -63,68 +68,87 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
     setQuantity((q) => q + 1);
   };
 
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!user && !USE_MOCK_FAVORITES) {
+      router.push("/login");
+      return;
+    }
+
+    const wasFavorite = favorited;
+    setIsFavoriteUpdating(true);
+
+    await toggleFavorite(item);
+
+    setFavoriteMessage(wasFavorite ? "Removed from favorites" : "Added to favorites");
+    setTimeout(() => {
+      setFavoriteMessage(null);
+      setIsFavoriteUpdating(false);
+    }, 1200);
+  };
+
   return (
     <Link href={`/${item.item_id}`}>
       <div className="card bg-background w-full h-full shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer flex flex-col">
         {/* Image Container */}
-        {item.image_url && (
-          <figure className="flex-shrink-0 relative">
-            {item.image_url ? (
-              <img
-                src={item.image_url}
-                alt={item.name}
-                className="w-full h-48 object-cover"
-              />
-            ) : (
-              <div className="w-full h-48 bg-white"></div>
-            )}
-            {/* Favourite button — only for signed-in users */}
-            {user && (
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  toggleFavorite(item);
-                }}
-                className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-white shadow transition-colors"
-                aria-label={
-                  isFavorite(item.item_id)
-                    ? "Remove from favourites"
-                    : "Add to favourites"
-                }
+        <figure className="shrink-0 relative">
+          {item.image_url ? (
+            <img
+              src={item.image_url}
+              alt={item.name}
+              className="w-full h-48 object-cover"
+            />
+          ) : (
+            <div className="w-full h-48 bg-white"></div>
+          )}
+          {/* Favourite button */}
+          <button
+            onClick={handleFavoriteClick}
+            className={`absolute top-2 right-2 p-1.5 rounded-full shadow transition-all ${favorited ? "bg-red-50" : "bg-white/80 hover:bg-white"} ${isFavoriteUpdating ? "scale-110" : "scale-100"}`}
+            aria-label={
+              favorited
+                ? "Remove from favourites"
+                : "Add to favourites"
+            }
+          >
+            {favorited ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-5 h-5 text-red-600"
               >
-                {isFavorite(item.item_id) ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="w-5 h-5 text-accent"
-                  >
-                    <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-5 h-5 text-gray-500"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-                    />
-                  </svg>
-                )}
-              </button>
+                <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 text-gray-500"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+                />
+              </svg>
             )}
-          </figure>
-        )}
+          </button>
+
+          {favoriteMessage && (
+            <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md">
+              {favoriteMessage}
+            </div>
+          )}
+        </figure>
 
         {/* Card Body */}
-        <div className="card-body flex flex-col flex-grow">
+        <div className="card-body flex flex-col grow">
           <h2 className="card-title text-foreground font-heading line-clamp-2">
             {formattedName()}
           </h2>
@@ -133,7 +157,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
             ${item.price.toFixed(2)}
           </p>
 
-          <p className="text-foreground font-body text-sm line-clamp-4 flex-grow mb-4">
+          <p className="text-foreground font-body text-sm line-clamp-4 grow mb-4">
             {item.description}
           </p>
 
