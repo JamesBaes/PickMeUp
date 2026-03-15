@@ -1,21 +1,36 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocation } from "@/context/locationContext";
 
 const SelectLocation = () => {
   const router = useRouter();
   const { locations, currentLocation, setCurrentLocation, loading } = useLocation();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = e.target.value;
-    console.log("Selected ID:", selectedId);
-    const selectedLocation = locations.find(loc => loc.id === selectedId);
-    console.log("Selected Location:", selectedLocation);
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("touchstart", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
+    };
+  }, []);
+
+  const handleLocationSelect = (selectedId: string) => {
+    const selectedLocation = locations.find((location) => String(location.id) === selectedId);
     if (selectedLocation) {
       setCurrentLocation(selectedLocation);
-      console.log("Location set, routing to /");
+      setIsDropdownOpen(false);
       router.push("/");
     }
   };
@@ -31,7 +46,7 @@ const SelectLocation = () => {
   return (
     <div className="min-h-screen bg-[#e51c2a] flex flex-col">
       {/* Main Content */}
-      <div className="flex flex-1 flex-col items-center justify-center">
+      <div className="flex flex-1 flex-col items-center justify-center px-4">
         <div className="flex flex-col items-center">
           <div className="flex items-center justify-center bg-white rounded-full p-4 mb-2 shadow">
             <img
@@ -48,20 +63,41 @@ const SelectLocation = () => {
         >
           Please select a location
         </div>
-        <select
-          className="w-80 p-2 rounded border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#e51c2a] text-gray-700"
-          value={currentLocation?.id || ""}
-          onChange={handleLocationChange}
-        >
-          <option value="" disabled>
-            Select Location
-          </option>
-          {locations.map((loc) => (
-            <option key={loc.id} value={loc.id}>
-              {loc.name}
-            </option>
-          ))}
-        </select>
+
+        <div ref={dropdownRef} className="relative w-full max-w-sm">
+          <button
+            type="button"
+            onClick={() => setIsDropdownOpen((open) => !open)}
+            className="w-full p-3 rounded border border-gray-300 bg-white text-gray-700 text-left focus:outline-none focus:ring-2 focus:ring-[#e51c2a] flex items-center justify-between"
+            aria-haspopup="listbox"
+            aria-expanded={isDropdownOpen}
+          >
+            <span className="truncate">{currentLocation?.name ?? "Select Location"}</span>
+            <span className="ml-3 text-gray-500">▾</span>
+          </button>
+
+          {isDropdownOpen && (
+            <div className="absolute left-0 right-0 mt-2 bg-white rounded border border-gray-300 shadow-lg z-30 max-h-64 overflow-y-auto">
+              <button
+                type="button"
+                onClick={() => setIsDropdownOpen(false)}
+                className="w-full text-left px-4 py-3 text-gray-500 border-b border-gray-200"
+              >
+                Select Location
+              </button>
+              {locations.map((location) => (
+                <button
+                  type="button"
+                  key={location.id}
+                  onClick={() => handleLocationSelect(String(location.id))}
+                  className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-100 transition-colors"
+                >
+                  {location.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

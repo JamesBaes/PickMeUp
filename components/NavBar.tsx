@@ -152,12 +152,12 @@ const NavBar = () => {
             </div>
             <ul
               tabIndex={0}
-              className="menu menu-sm dropdown-content bg-base-100 rounded-box shadow-lg mt-3 w-52 p-2 z-50 border border-gray-100"
+              className="menu menu-sm dropdown-content bg-white rounded-box shadow-lg mt-3 w-52 p-2 z-50 border border-gray-200 text-slate-800"
             >
               <li>
                 <Link
                   href="/account"
-                  className={`font-heading font-semibold capitalize ${pathname === "/account" ? "text-accent" : ""}`}
+                  className={`font-heading font-semibold capitalize transition-colors hover:bg-gray-100 hover:text-accent focus-visible:bg-gray-100 focus-visible:text-accent ${pathname === "/account" ? "text-accent" : "text-slate-800"}`}
                 >
                   account
                 </Link>
@@ -165,7 +165,7 @@ const NavBar = () => {
               <li>
                 <Link
                   href="/order-history"
-                  className={`font-heading font-semibold capitalize ${pathname === "/order-history" ? "text-accent" : ""}`}
+                  className={`font-heading font-semibold capitalize transition-colors hover:bg-gray-100 hover:text-accent focus-visible:bg-gray-100 focus-visible:text-accent ${pathname === "/order-history" ? "text-accent" : "text-slate-800"}`}
                 >
                   order history
                 </Link>
@@ -173,7 +173,7 @@ const NavBar = () => {
               <li>
                 <Link
                   href="/favorites"
-                  className={`font-heading font-semibold capitalize ${pathname === "/favorites" ? "text-accent" : ""}`}
+                  className={`font-heading font-semibold capitalize transition-colors hover:bg-gray-100 hover:text-accent focus-visible:bg-gray-100 focus-visible:text-accent ${pathname === "/favorites" ? "text-accent" : "text-slate-800"}`}
                 >
                   favorites
                 </Link>
@@ -182,7 +182,7 @@ const NavBar = () => {
                 <button
                   onClick={handleSignOut}
                   disabled={signingOut}
-                  className="font-heading font-semibold capitalize disabled:opacity-50"
+                  className="font-heading font-semibold capitalize text-slate-800 transition-colors hover:bg-gray-100 hover:text-accent focus-visible:bg-gray-100 focus-visible:text-accent disabled:opacity-50"
                 >
                   {signingOut ? "signing out..." : "sign out"}
                 </button>
