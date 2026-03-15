@@ -22,27 +22,28 @@ const Cart = () => {
     removeItem: removeGuestItem,
     updateQuantity: updateGuestQuantity,
     clearCart: clearGuest,
-    getTotal: getGuestTotal,
   } = useCart();
 
-  const [selectedLocation, setSelectedLocation] = useState("Brampton");
+  const useContextCart = guestCartItems.length > 0;
+
   const [cartItems, setCartItems] = useState<
     (CartItem & { cart_id?: string })[]
   >([]);
   const [subtotal, setSubtotal] = useState(0);
   const [tax, setTax] = useState(0);
   const [total, setTotal] = useState(0);
+  const [isSupabaseCartAvailable, setIsSupabaseCartAvailable] = useState(true);
 
   // this loads the cart based on the auth state (user or guest)
   useEffect(() => {
     if (!loading) {
-      if (user) {
+      if (user && !useContextCart && isSupabaseCartAvailable) {
         fetchCartFromSupabase();
       } else {
         setCartItems(guestCartItems);
       }
     }
-  }, [user, loading, guestCartItems]);
+  }, [user, loading, guestCartItems, useContextCart, isSupabaseCartAvailable]);
 
   // recalculates the totals when the cart changes
   useEffect(() => {
@@ -56,10 +57,20 @@ const Cart = () => {
       .eq("user_id", user!.id);
 
     if (error) {
+      const isMissingTable = error.message?.toLowerCase().includes("could not find the table");
+
+      if (isMissingTable) {
+        setIsSupabaseCartAvailable(false);
+        setCartItems(guestCartItems);
+        return;
+      }
+
       console.error("Error fetching cart:", error.message);
-      setCartItems([]);
+      setCartItems(guestCartItems);
       return;
     }
+
+    setIsSupabaseCartAvailable(true);
     setCartItems(data || []);
   };
 
@@ -84,7 +95,7 @@ const Cart = () => {
       return;
     }
 
-    if (user) {
+    if (user && !useContextCart && isSupabaseCartAvailable) {
       const { error } = await supabase
         .from("carts")
         .update({ quantity: newQuantity })
@@ -107,7 +118,7 @@ const Cart = () => {
   };
 
   const handleRemoveItem = async (itemId: string) => {
-    if (user) {
+    if (user && !useContextCart && isSupabaseCartAvailable) {
       const { error } = await supabase.from("carts").delete().eq("id", itemId);
 
       if (error) {
@@ -122,7 +133,7 @@ const Cart = () => {
   };
 
   const handleClearCart = async () => {
-    if (user) {
+    if (user && !useContextCart && isSupabaseCartAvailable) {
       const { error } = await supabase
         .from("carts")
         .delete()
@@ -139,15 +150,6 @@ const Cart = () => {
     }
   };
 
-  const locations = [
-    "Brampton",
-    "Mississauga West",
-    "Mississauga East",
-    "Oakville",
-    "Scarborough",
-    "Waterloo",
-  ];
-
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -157,12 +159,13 @@ const Cart = () => {
   }
 
   return (
-    <div className="flex flex-row">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
       {/* Left section */}
-      <section className="flex flex-col w-3/5 my-12 mx-20">
+      <section className="flex flex-col w-full lg:w-3/5">
         <header className="flex justify-between items-end pb-4">
-          <h2 className="font-heading font-bold text-3xl">Shopping Cart</h2>
-          <h2 className="font-body text-gray-600 text-md">
+          <h2 className="font-heading font-bold text-2xl sm:text-3xl">Shopping Cart</h2>
+          <h2 className="font-body text-gray-600 text-sm sm:text-base">
             {cartItems.length} items
           </h2>
         </header>
@@ -193,7 +196,7 @@ const Cart = () => {
 
         <hr className="border-gray-300" />
 
-        <div className="flex justify-between pt-4">
+        <div className="flex justify-between pt-4 text-sm sm:text-base">
           <button
             className="font-body text-md text-gray-600 hover:text-gray-700 hover:cursor-pointer"
             onClick={() => router.push("/")}
@@ -212,10 +215,10 @@ const Cart = () => {
       </section>
 
       {/* Right section */}
-      <section className="flex flex-col w-2/5 my-12 mr-20 bg-gray-50 shadow-md p-12 rounded-2xl">
+      <section className="flex flex-col w-full lg:w-2/5 bg-gray-50 shadow-md p-5 sm:p-8 lg:p-10 rounded-2xl h-fit">
         <header className="flex justify-between items-end pb-4">
-          <h2 className="font-heading font-bold text-3xl">Order Summary</h2>
-          <h2 className="font-body text-gray-600 text-md">
+          <h2 className="font-heading font-bold text-2xl sm:text-3xl">Order Summary</h2>
+          <h2 className="font-body text-gray-600 text-sm sm:text-base">
             {cartItems.length} items
           </h2>
         </header>
@@ -267,6 +270,7 @@ const Cart = () => {
           Proceed to Checkout
         </button>
       </section>
+      </div>
     </div>
   );
 };

@@ -28,7 +28,7 @@ export default function PromoCodeInput({
   };
 
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-col sm:flex-row gap-2">
       <input
         type="text"
         value={appliedPromo || inputValue}
@@ -40,14 +40,14 @@ export default function PromoCodeInput({
       {!appliedPromo ? (
         <button
           onClick={handleApply}
-          className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+          className="w-full sm:w-auto px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
         >
           Apply
         </button>
       ) : (
         <button
           onClick={onRemove}
-          className="px-6 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+          className="w-full sm:w-auto px-6 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
         >
           Remove
         </button>
