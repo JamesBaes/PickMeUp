@@ -33,6 +33,16 @@ const Account = () => {
   }, []);
 
   const passwordsMatch = newPassword === confirmPassword;
+  const passwordMeetsRequirements =
+    newPassword.length >= 8 &&
+    /[A-Z]/.test(newPassword) &&
+    /[0-9]/.test(newPassword);
+  const canSubmit =
+    passwordMeetsRequirements &&
+    passwordsMatch &&
+    !!newPassword &&
+    !!confirmPassword &&
+    !isLoading;
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -262,10 +272,8 @@ const Account = () => {
 
           <button
             type="submit"
-            disabled={
-              !passwordsMatch || !newPassword || !confirmPassword || isLoading
-            }
-            className="font-body text-sm text-white bg-foreground rounded-lg px-4 py-2 w-fit hover:shadow-md hover:cursor-pointer disabled:opacity-50"
+            disabled={!canSubmit}
+            className={`font-body text-sm text-white bg-foreground rounded-lg px-4 py-2 w-fit hover:shadow-md disabled:opacity-50 ${canSubmit ? "cursor-pointer" : "cursor-not-allowed"}`}
           >
             {isLoading ? "Updating..." : "Change Password"}
           </button>
