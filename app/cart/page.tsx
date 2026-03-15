@@ -222,7 +222,7 @@ const Cart = () => {
 
         <hr className="border-gray-300" />
 
-        <div className="py-4">
+        {/* <div className="py-4">
           <label className="font-body text-gray-600 mb-2 block">
             Pickup Location
           </label>
@@ -237,7 +237,7 @@ const Cart = () => {
               </option>
             ))}
           </select>
-        </div>
+        </div> */}
 
         <hr className="border-gray-300" />
 
