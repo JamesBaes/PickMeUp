@@ -84,6 +84,21 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
       setItems([]);
   }
 
+  // Swap cart items from one location to equivalent items at another location.
+  // Each swap provides the old item_id and the replacement MenuItem from the target location.
+  // Quantity is preserved; only item_id and restaurant_id change.
+  const swapItemsToNewLocation = (swaps: Array<{ oldItemId: string; newItem: MenuItem }>) => {
+    setItems((prevItems) =>
+      prevItems.map((cartItem) => {
+        const swap = swaps.find((s) => s.oldItemId === cartItem.item_id);
+        if (swap) {
+          return { ...swap.newItem, quantity: cartItem.quantity };
+        }
+        return cartItem;
+      })
+    );
+  };
+
     // Helper used by navbar badge.
   const getItemCount = () => {
       return items.reduce((total, item) => total + item.quantity, 0)
@@ -105,7 +120,8 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
         updateQuantity,
         clearCart,
         getItemCount,
-        getTotal
+        getTotal,
+        swapItemsToNewLocation,
       }}
     >
       {children}

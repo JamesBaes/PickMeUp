@@ -4,6 +4,9 @@ import { useRouter } from 'next/navigation'
 import React, { useState, useEffect } from 'react'
 import { useCart } from '@/context/cartContext'
 import { useLocation } from '@/context/locationContext'
+import supabase from '@/utils/supabase/client'
+import { MenuItem } from '@/types'
+import { transformMenuItemData } from '@/helpers/menuHelpers'
 
 // tax rate for ontario
 const TAX_RATE = 0.13;
@@ -18,6 +21,7 @@ const Cart = () => {
     removeItem,
     updateQuantity,
     clearCart,
+    swapItemsToNewLocation,
   } = useCart();
 
   const { locations, currentLocation, setCurrentLocation, loading } = useLocation();
@@ -27,6 +31,15 @@ const Cart = () => {
   const [total, setTotal] = useState(0);
   // Modal used to prevent invalid checkout when location/cart mismatch exists.
   const [showCheckoutGuardModal, setShowCheckoutGuardModal] = useState(false);
+
+  // Suggestion shown when the user changes pickup location and matching items exist at the new location.
+  type LocationSwapSuggestion = {
+    targetLocation: { id: string; name: string };
+    swaps: Array<{ oldItemId: string; newItem: MenuItem }>;
+    unavailableNames: string[];
+  };
+  const [locationSwapSuggestion, setLocationSwapSuggestion] = useState<LocationSwapSuggestion | null>(null);
+  const [isCheckingSwap, setIsCheckingSwap] = useState(false);
 
   // IDs come from mixed sources (string/number), so normalize before compare.
   const normalizeRestaurantId = (id: unknown) => String(id ?? '').trim();
@@ -74,6 +87,78 @@ const Cart = () => {
   const handleLocationChange = (locationId: string) => {
     const selected = locations.find((loc) => loc.id === locationId) || null;
     setCurrentLocation(selected);
+    setLocationSwapSuggestion(null);
+    if (selected) {
+      checkAvailabilityAtLocation(selected.id, selected.name);
+    }
+  };
+
+  // Query the target location's menu and find cart items that are available there by name.
+  // If matches exist, surface a swap suggestion so the user can switch with one tap.
+  const checkAvailabilityAtLocation = async (targetLocationId: string, targetLocationName: string) => {
+    const mismatchedItems = cartItems.filter(
+      (item) => normalizeRestaurantId(item.restaurant_id) !== normalizeRestaurantId(targetLocationId)
+    );
+    if (mismatchedItems.length === 0) {
+      setLocationSwapSuggestion(null);
+      return;
+    }
+
+    setIsCheckingSwap(true);
+    try {
+      const numericId = parseInt(targetLocationId, 10);
+      const { data, error } = await supabase
+        .from('menu_items_restaurant_locations')
+        .select('item_id, restaurant_id, name, price, popular, description, category, bogo, image_url, calories, allergy_information')
+        .eq('restaurant_id', numericId);
+
+      if (error) throw error;
+
+      const targetItems = (data || []).map(transformMenuItemData);
+      const targetByName = new Map(targetItems.map((item) => [item.name.toLowerCase(), item]));
+
+      const swaps: Array<{ oldItemId: string; newItem: MenuItem }> = [];
+      const unavailableNames: string[] = [];
+
+      for (const cartItem of mismatchedItems) {
+        const match = targetByName.get(cartItem.name.toLowerCase());
+        if (match) {
+          swaps.push({ oldItemId: cartItem.item_id, newItem: match });
+        } else {
+          unavailableNames.push(cartItem.name);
+        }
+      }
+
+      setLocationSwapSuggestion({ targetLocation: { id: targetLocationId, name: targetLocationName }, swaps, unavailableNames });
+    } catch (err) {
+      console.error('Error checking location availability:', err);
+    } finally {
+      setIsCheckingSwap(false);
+    }
+  };
+
+  const handleSwapItems = () => {
+    if (!locationSwapSuggestion) return;
+    const activeMismatchedIds = new Set(mismatchedItems.map((item) => item.item_id));
+    const activeSwaps = locationSwapSuggestion.swaps.filter((swap) => activeMismatchedIds.has(swap.oldItemId));
+    if (activeSwaps.length === 0) return;
+
+    swapItemsToNewLocation(activeSwaps);
+    setLocationSwapSuggestion(null);
+  };
+
+  const handleRemoveUnavailableItems = () => {
+    if (!locationSwapSuggestion) return;
+
+    const activeMismatchedIds = new Set(mismatchedItems.map((item) => item.item_id));
+    const swappableOldIds = new Set(
+      locationSwapSuggestion.swaps
+        .filter((swap) => activeMismatchedIds.has(swap.oldItemId))
+        .map((swap) => swap.oldItemId),
+    );
+    mismatchedItems
+      .filter((item) => !swappableOldIds.has(item.item_id))
+      .forEach((item) => removeItem(item.item_id));
   };
 
   const getRestaurantDisplayName = (restaurantId: string) => {
@@ -86,17 +171,15 @@ const Cart = () => {
     return matchedLocation?.name || `Restaurant #${restaurantId}`;
   };
 
+  const mismatchedItems = cartItems.filter((item) => {
+    if (!currentLocation?.id || !item.restaurant_id) {
+      return false;
+    }
+    return normalizeRestaurantId(item.restaurant_id) !== normalizeRestaurantId(currentLocation.id);
+  });
+
   const mismatchedRestaurantIds = Array.from(
-    new Set(
-      cartItems
-        .filter((item) => {
-          if (!currentLocation?.id || !item.restaurant_id) {
-            return false;
-          }
-          return normalizeRestaurantId(item.restaurant_id) !== normalizeRestaurantId(currentLocation.id);
-        })
-        .map((item) => normalizeRestaurantId(item.restaurant_id)),
-    ),
+    new Set(mismatchedItems.map((item) => normalizeRestaurantId(item.restaurant_id))),
   );
 
   const mismatchedRestaurantNames = mismatchedRestaurantIds.map((restaurantId) =>
@@ -114,6 +197,20 @@ const Cart = () => {
 
   // True when selected pickup location does not match all items in cart.
   const hasLocationMismatch = Boolean(currentLocation?.id) && mismatchedRestaurantIds.length > 0;
+
+  const activeMismatchedItemIds = new Set(mismatchedItems.map((item) => item.item_id));
+  const activeSwaps = (locationSwapSuggestion?.swaps || []).filter((swap) =>
+    activeMismatchedItemIds.has(swap.oldItemId),
+  );
+  const activeSwappableIds = new Set(activeSwaps.map((swap) => swap.oldItemId));
+  const unavailableMismatchedItems = mismatchedItems.filter((item) => !activeSwappableIds.has(item.item_id));
+  const unavailableDisplayNames = Array.from(
+    new Set(
+      unavailableMismatchedItems.map((item) =>
+        item.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+      ),
+    ),
+  );
 
   // Prevent checkout until user resolves pickup location conflicts.
   const handleProceedToCheckout = () => {
@@ -135,7 +232,21 @@ const Cart = () => {
     if (showCheckoutGuardModal && currentLocation && mismatchedRestaurantIds.length === 0) {
       setShowCheckoutGuardModal(false);
     }
+
+    if (mismatchedRestaurantIds.length === 0) {
+      setLocationSwapSuggestion(null);
+    }
   }, [showCheckoutGuardModal, currentLocation, mismatchedRestaurantIds.length]);
+
+  useEffect(() => {
+    // When the modal opens, check if mismatched items are available at the current location.
+    if (showCheckoutGuardModal && currentLocation && mismatchedRestaurantIds.length > 0) {
+      if (!locationSwapSuggestion || locationSwapSuggestion.targetLocation.id !== currentLocation.id) {
+        checkAvailabilityAtLocation(currentLocation.id, currentLocation.name);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showCheckoutGuardModal, currentLocation?.id]);
 
   if (loading) {
     return (
@@ -151,7 +262,17 @@ const Cart = () => {
       <section className="flex flex-col w-3/5 my-12 mx-20">
         <header className="flex justify-between items-end pb-4">
           <h2 className="font-heading font-bold text-3xl">Shopping Cart</h2>
-          <h2 className="font-body text-gray-600 text-md">{cartItems.length} items</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="font-body text-gray-600 text-md">{cartItems.length} items</h2>
+            {cartItems.length > 0 && (
+              <button
+                className="font-body text-sm text-red-500 hover:text-red-600 hover:cursor-pointer"
+                onClick={handleClearCart}
+              >
+                Clear Cart
+              </button>
+            )}
+          </div>
         </header>
         
         <hr className="border-gray-300" />
@@ -229,6 +350,73 @@ const Cart = () => {
               <option key={location.id} value={location.id}>{location.name}</option>
             ))}
           </select>
+
+          {/* Location swap suggestion — shown when cart items exist at the newly selected location */}
+          {isCheckingSwap && (
+            <p className="mt-2 font-body text-xs text-gray-400">Checking availability at this location…</p>
+          )}
+          {!isCheckingSwap && locationSwapSuggestion && (
+            <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
+              <p className="font-heading text-sm font-semibold text-blue-800">
+                Switch to {locationSwapSuggestion.targetLocation.name}?
+              </p>
+              <p className="mt-1 font-body text-xs text-blue-700">
+                {locationSwapSuggestion.swaps.length} of your item{locationSwapSuggestion.swaps.length === 1 ? '' : 's'} {locationSwapSuggestion.swaps.length === 1 ? 'is' : 'are'} available at this location.
+              </p>
+              {locationSwapSuggestion.unavailableNames.length > 0 && (
+                <p className="mt-1 font-body text-xs text-amber-700">
+                  Not available here:{' '}
+                  {locationSwapSuggestion.unavailableNames
+                    .map((n) =>
+                      n.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+                    )
+                    .join(', ')}
+                </p>
+              )}
+              <div className="mt-2 flex gap-2">
+                <button
+                  className="rounded-md bg-blue-600 px-3 py-1.5 font-body text-xs text-white hover:bg-blue-700 transition-colors"
+                  onClick={handleSwapItems}
+                >
+                  Switch {locationSwapSuggestion.swaps.length} item{locationSwapSuggestion.swaps.length === 1 ? '' : 's'}
+                </button>
+                <button
+                  className="rounded-md border border-blue-300 px-3 py-1.5 font-body text-xs text-blue-700 hover:bg-blue-100 transition-colors"
+                  onClick={() => setLocationSwapSuggestion(null)}
+                >
+                  Keep as-is
+                </button>
+              </div>
+            </div>
+          )}
+
+          {hasLocationMismatch && currentLocation && (
+            <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3">
+              <p className="font-body text-sm font-semibold text-red-700">Conflicting items:</p>
+              <ul className="mt-2 max-h-40 space-y-2 overflow-y-auto pr-1 font-body text-sm text-red-700">
+                {cartItems
+                  .filter((item) => normalizeRestaurantId(item.restaurant_id) !== normalizeRestaurantId(currentLocation.id))
+                  .map((item) => (
+                    <li key={`summary-${item.item_id}`} className="flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 flex-col">
+                        <span className="truncate font-semibold text-red-800">
+                          {item.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                        </span>
+                        <span className="text-xs text-red-400">
+                          Qty {item.quantity} &middot; {getRestaurantDisplayName(normalizeRestaurantId(item.restaurant_id))}
+                        </span>
+                      </div>
+                      <button
+                        className="shrink-0 rounded-md border border-red-300 px-2 py-1 text-xs text-red-600 transition-colors hover:bg-red-100"
+                        onClick={() => handleRemoveItem(item.item_id)}
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         <hr className="border-gray-300" />
@@ -252,11 +440,11 @@ const Cart = () => {
         </div>
         
         <button
-          className="w-full bg-accent text-white font-heading font-semibold py-3 hover:cursor-pointer rounded-lg hover:shadow-lg transition-colors disabled:bg-gray-200 disabled:cursor-not-allowed disabled:shadow-none"
-          disabled={cartItems.length === 0}
+          className="w-full bg-accent text-white font-heading font-semibold py-3 hover:cursor-pointer rounded-lg hover:shadow-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none"
+          disabled={cartItems.length === 0 || hasLocationMismatch}
           onClick={handleProceedToCheckout}
         >
-          Proceed to Checkout
+          {hasLocationMismatch ? 'Resolve Conflicts to Checkout' : 'Proceed to Checkout'}
         </button>
       </section>
 
@@ -297,7 +485,7 @@ const Cart = () => {
 
       {showCheckoutGuardModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <h3 className="font-heading text-2xl font-bold text-gray-900">Checkout Location Mismatch</h3>
             {!currentLocation ? (
               <p className="mt-3 font-body text-gray-700">
@@ -308,23 +496,68 @@ const Cart = () => {
                 <p className="mt-3 font-body text-gray-700">
                   Your selected location is <span className="font-semibold">{currentLocation.name}</span>, but your cart has items from other locations.
                 </p>
+                <p className="mt-2 font-body text-sm text-gray-600">
+                  You can switch items that exist in {currentLocation.name}, remove unavailable ones, or remove all conflicting items.
+                </p>
                 <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
-                  <p className="font-body text-sm font-semibold text-red-700">Conflicting restaurant locations:</p>
-                  <ul className="mt-2 list-disc space-y-1 pl-5 font-body text-sm text-red-700">
-                    {mismatchedRestaurantNames.map((name, index) => {
-                      const restaurantId = mismatchedRestaurantIds[index];
-                      const itemCount = mismatchedRestaurantItemCounts[restaurantId] || 0;
-                      return (
-                        <li key={`${restaurantId}-${name}`}>
-                          {name} ({itemCount} item{itemCount === 1 ? '' : 's'})
-                        </li>
-                      );
-                    })}
+                  <p className="font-body text-sm font-semibold text-red-700">Conflicting items:</p>
+                  <ul className="mt-2 max-h-52 space-y-2 overflow-y-auto font-body text-sm text-red-700 pr-1">
+                    {mismatchedItems.map((item) => (
+                      <li key={item.item_id} className="flex items-center justify-between gap-3">
+                        <div className="flex min-w-0 flex-col">
+                          <span className="truncate font-semibold text-red-800">
+                            {item.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                          </span>
+                          <span className="text-xs text-red-400">
+                            Qty {item.quantity} &middot; {getRestaurantDisplayName(normalizeRestaurantId(item.restaurant_id))}
+                          </span>
+                        </div>
+                        <button
+                          className="shrink-0 rounded-md border border-red-300 px-2 py-1 text-xs text-red-600 transition-colors hover:bg-red-100"
+                          onClick={() => handleRemoveItem(item.item_id)}
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    ))}
                   </ul>
                 </div>
-                <p className="mt-4 font-body text-sm text-gray-600">
-                  Change the pickup location to match your cart items, or remove mismatched items before checkout.
-                </p>
+                {/* Swap suggestion — shown when items exist at the selected location */}
+                {isCheckingSwap && (
+                  <p className="mt-3 font-body text-xs text-gray-400">Checking availability at {currentLocation.name}...</p>
+                )}
+                {!isCheckingSwap && locationSwapSuggestion && locationSwapSuggestion.targetLocation.id === currentLocation.id && (
+                  <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                    <p className="font-heading text-sm font-semibold text-blue-800">
+                      {activeSwaps.length} of {mismatchedItems.length} conflicting item{mismatchedItems.length === 1 ? '' : 's'} can be switched to {currentLocation.name}
+                    </p>
+                    {unavailableDisplayNames.length > 0 && (
+                      <p className="mt-1 font-body text-xs text-amber-700">
+                        Not available here:{' '}
+                        {unavailableDisplayNames.join(', ')}
+                      </p>
+                    )}
+                    <div className="mt-3 grid gap-2">
+                      {activeSwaps.length > 0 && (
+                        <button
+                          className="w-full rounded-lg bg-blue-600 py-2 font-body text-sm text-white transition-colors hover:bg-blue-700"
+                          onClick={handleSwapItems}
+                        >
+                          Switch Available Items ({activeSwaps.length})
+                        </button>
+                      )}
+                      {unavailableMismatchedItems.length > 0 && (
+                        <button
+                          className="w-full rounded-lg border border-amber-300 bg-amber-50 py-2 font-body text-sm text-amber-700 transition-colors hover:bg-amber-100"
+                          onClick={handleRemoveUnavailableItems}
+                        >
+                          Remove Unavailable Items ({unavailableMismatchedItems.length})
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="mt-4">
                   <label className="mb-2 block font-body text-sm text-gray-700">Change pickup location</label>
                   <select
@@ -342,12 +575,6 @@ const Cart = () => {
             )}
 
             <div className="mt-6 flex justify-end gap-3">
-              <button
-                className="rounded-lg bg-accent px-4 py-2 font-body text-sm text-white hover:opacity-90"
-                onClick={() => router.push('/select-location')}
-              >
-                Go to Select Location
-              </button>
               <button
                 className="rounded-lg border border-gray-300 px-4 py-2 font-body text-sm text-gray-700 hover:bg-gray-100"
                 onClick={() => setShowCheckoutGuardModal(false)}

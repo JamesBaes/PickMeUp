@@ -8,7 +8,9 @@ export interface MenuItem {
   calories: number; // Caloric content of the menu item
   allergy_information: string; // Allergy information for the menu item
   image_url: string; // URL to an image of the menu item
-  list_of_ingredients: string[]; // List of ingredients used in the menu item
+  list_of_ingredients?: string[]; // List of ingredients used in the menu item
+  popular?: boolean; // Whether the item is marked as popular
+  bogo?: boolean; // Whether the item has a buy-one-get-one offer
 }
 
 export interface MenuItemCardProps {
@@ -79,6 +81,8 @@ export interface CartContextType {
   updateQuantity: (itemId: string, quantity: number) => void;
   getItemCount: () => number;
   getTotal: () => number;
+  // Replaces mismatched-location cart items with equivalent items from a new location.
+  swapItemsToNewLocation: (swaps: Array<{ oldItemId: string; newItem: MenuItem }>) => void;
 }
 
 export interface CartProvideProps {
