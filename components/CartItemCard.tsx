@@ -25,6 +25,7 @@ const CartItemCard = ({
   };
 
   const itemTotal = item.price * item.quantity;
+  const unitPrice = item.price;
 
   // same format name function as MenuItemCard, replaces _ with spaces and capitalizes
   const formattedName = item.name
@@ -56,7 +57,8 @@ const CartItemCard = ({
       <div className="grow">
         <p className="text-xs text-gray-500 font-body mb-1">{item.category}</p>
         <h3 className="font-heading font-semibold text-xl mb-2">{formattedName}</h3>
-        <p className="font-body text-lg font-medium text-gray-900">${itemTotal.toFixed(2)}</p>
+        <p className="font-body text-sm text-gray-600">Unit Price: ${unitPrice.toFixed(2)}</p>
+        <p className="font-body text-lg font-medium text-gray-900">Subtotal: ${itemTotal.toFixed(2)}</p>
       </div>
 
       {/* quantity */}

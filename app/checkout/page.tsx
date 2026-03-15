@@ -13,8 +13,7 @@ import { useCart } from "@/context/cartContext";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const posthog = usePostHog();
-  const { items } = useCart();
+  const { items, updateQuantity } = useCart();
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPaymentReady, setIsPaymentReady] = useState(false);
@@ -33,11 +32,16 @@ export default function CheckoutPage() {
 
   // Convert cart context items (dollars) to checkout format (cents)
   const cartItems = items.map((item) => ({
+    itemId: item.item_id,
     name: item.name,
     quantity: item.quantity,
     priceCents: Math.round(item.price * 100),
     image: item.image_url,
   }));
+
+  const handleQuantityChange = useCallback((itemId: string, quantity: number) => {
+    updateQuantity(itemId, quantity);
+  }, [updateQuantity]);
 
   const subtotalCents = cartItems.reduce(
     (sum, item) => sum + item.priceCents * item.quantity,
@@ -132,6 +136,7 @@ export default function CheckoutPage() {
             onPromoApply={handleApplyPromo}
             onPromoRemove={handleRemovePromo}
             onPromoError={handlePromoError}
+            onQuantityChange={handleQuantityChange}
           />
 
           {/* Right Column - Payment Form */}
