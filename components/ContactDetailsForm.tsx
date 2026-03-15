@@ -20,6 +20,9 @@ export default function ContactDetailsForm({
   onPhoneChange,
   errors,
 }: ContactDetailsFormProps) {
+  const emailErrorId = errors.email ? "contact-email-error" : undefined;
+  const phoneErrorId = errors.phone ? "contact-phone-error" : undefined;
+
   const handlePhoneChange = (value: string) => {
     const formatted = formatPhoneNumber(value);
     onPhoneChange(formatted);
@@ -30,27 +33,41 @@ export default function ContactDetailsForm({
       <h3 className="text-gray-900 font-medium mb-4">Contact details</h3>
       <div className="space-y-3">
         <div>
+          <label htmlFor="contact-email" className="block text-sm text-gray-700 mb-1">
+            Email address
+          </label>
           <input
+            id="contact-email"
             type="email"
             placeholder="email@example.com"
             value={email}
             onChange={(e) => onEmailChange(e.target.value)}
+            autoComplete="email"
+            aria-invalid={Boolean(errors.email)}
+            aria-describedby={emailErrorId}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {errors.email && (
-            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+            <p id="contact-email-error" className="mt-1 text-sm text-red-600">{errors.email}</p>
           )}
         </div>
         <div>
+          <label htmlFor="contact-phone" className="block text-sm text-gray-700 mb-1">
+            Phone number
+          </label>
           <input
+            id="contact-phone"
             type="tel"
             placeholder="(123) 456-7890"
             value={phone}
             onChange={(e) => handlePhoneChange(e.target.value)}
+            autoComplete="tel"
+            aria-invalid={Boolean(errors.phone)}
+            aria-describedby={phoneErrorId}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {errors.phone && (
-            <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+            <p id="contact-phone-error" className="mt-1 text-sm text-red-600">{errors.phone}</p>
           )}
         </div>
       </div>

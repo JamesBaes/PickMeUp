@@ -265,9 +265,10 @@ const Cart = () => {
   };
 
   return (
-    <div className="flex flex-row">
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex flex-col gap-8 lg:flex-row">
       {/* Left section */}
-      <section className="flex flex-col w-3/5 my-12 mx-20">
+      <section className="flex flex-col lg:w-3/5">
         <header className="flex justify-between items-end pb-4">
           <h2 className="font-heading font-bold text-3xl">Shopping Cart</h2>
           <div className="flex flex-col items-end gap-1">
@@ -349,7 +350,7 @@ const Cart = () => {
       </section>
 
       {/* Right section */}
-      <section className="flex flex-col w-2/5 my-12 mr-20 bg-gray-50 shadow-md p-12 rounded-2xl">
+      <section className="flex flex-col lg:w-2/5 bg-gray-50 shadow-md p-8 xl:p-12 rounded-2xl h-fit">
         <header className="flex justify-between items-end pb-4">
           <h2 className="font-heading font-bold text-3xl">Order Summary</h2>
           <h2 className="font-body text-gray-600 text-md">{cartItems.length} items</h2>
@@ -604,6 +605,7 @@ const Cart = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

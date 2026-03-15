@@ -74,7 +74,9 @@ const Login = () => {
           <input
             type="email"
             name="email"
-            placeholder="Username"
+            placeholder="Email address"
+            aria-label="Email address"
+            autoComplete="email"
             required
             disabled={loading}
             className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
@@ -103,6 +105,8 @@ const Login = () => {
             type={showPassword ? "text" : "password"}
             name="password"
             placeholder="Password"
+            aria-label="Password"
+            autoComplete="current-password"
             required
             disabled={loading}
             className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
