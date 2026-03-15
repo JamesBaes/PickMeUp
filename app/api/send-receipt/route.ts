@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
 
     // Send email using Resend
     const { data, error: emailError } = await resend.emails.send({
-      from: "Gladiator Burger <onboarding@resend.dev>", // You'll need to update this with your verified domain
+      from: "Gladiator Burger <mail@pickmeup.fit>", 
       to: orderData.customerEmail,
       subject: `Order Confirmation - ${orderData.orderNumber}`,
       html: emailHtml,

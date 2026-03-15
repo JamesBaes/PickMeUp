@@ -6,10 +6,6 @@ import { useAuth } from "@/context/authContext";
 import { useFavorites } from "@/context/favoritesContext";
 import { usePostHog } from "posthog-js/react";
 
-interface MenuItemCardProps {
-  item: MenuItem;
-}
-
 export default function MenuItemCard({ item }: MenuItemCardProps) {
   const { user } = useAuth();
   const { addItem } = useCart();
