@@ -4,17 +4,6 @@ import supabase from '../utils/supabase/client'
 import { useAuth } from './authContext'
 import { MenuItem } from '@/types'
 
-// The favorites table uses uuid for favorite_item_id, but menu items use integers.
-// We convert item_id to a deterministic UUID for storage.
-const itemIdToUuid = (itemId: number | string): string => {
-  const id = typeof itemId === 'string' ? parseInt(itemId, 10) : itemId
-  return `00000000-0000-0000-0000-${id.toString().padStart(12, '0')}`
-}
-
-const uuidToItemId = (uuid: string): number => {
-  return parseInt(uuid.split('-').pop() || '0', 10)
-}
-
 interface FavoritesContextType {
   favoriteIds: Set<number>
   favoriteItems: MenuItem[]
@@ -52,7 +41,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data: favData, error: favError } = await supabase
         .from('favorites')
-        .select('favorite_item_id')
+        .select('item_id')
         .eq('customer_id', user.id)
 
       if (favError) throw favError
@@ -63,7 +52,14 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      const itemIds = favData.map(f => uuidToItemId(f.favorite_item_id))
+      const itemIds = favData
+        .map((f) => {
+          const raw = f.item_id
+          if (typeof raw === 'number') return raw
+          return parseInt(String(raw), 10)
+        })
+        .filter((id) => Number.isFinite(id))
+
       setFavoriteIds(new Set(itemIds))
 
       // Fetch item details from menu_items_restaurant_locations (deduplicated by item_id)
@@ -111,13 +107,13 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const toggleFavorite = async (item: MenuItem) => {
     if (!user) return
     const numericId = parseInt(item.item_id.toString(), 10)
-    const uuidId = itemIdToUuid(numericId)
+    if (!Number.isFinite(numericId)) return
 
     if (favoriteIds.has(numericId)) {
       const { error } = await supabase
         .from('favorites')
         .delete()
-        .eq('favorite_item_id', uuidId)
+        .eq('item_id', numericId)
         .eq('customer_id', user.id)
 
       if (!error) {
@@ -133,7 +129,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     } else {
       const { error } = await supabase
         .from('favorites')
-        .insert({ favorite_item_id: uuidId, customer_id: user.id })
+        .insert({ item_id: numericId, customer_id: user.id })
 
       if (!error) {
         setFavoriteIds(prev => new Set([...prev, numericId]))
