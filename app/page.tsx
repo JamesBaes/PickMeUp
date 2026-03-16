@@ -6,32 +6,44 @@ import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import supabase from "@/utils/supabase/client";
 import { MenuItem } from "@/types/";
-import { groupByCategory, categoryOrder, transformMenuItemData, formatCategoryName } from "@/helpers/menuHelpers";
+import {
+  groupByCategory,
+  categoryOrder,
+  transformMenuItemData,
+  formatCategoryName,
+} from "@/helpers/menuHelpers";
 import CategorySection from "@/components/CategorySection";
 import { useLocation } from "@/context/locationContext";
 import { useCart } from "@/context/cartContext";
 import { useAuth } from "@/context/authContext";
 
 export default function MenuPage() {
-
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
   // SHOULD ADD A LOADING STATE PROBABLY (LIKE HOW WE DID IN MOBILE DEV CPRG-303)
   const [loading, setLoading] = useState(true);
-    const [signingOut, setSigningOut] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const [isRefreshingMenu, setIsRefreshingMenu] = useState(false);
   const [hasFetchedMenu, setHasFetchedMenu] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isMergedHeaderVisible, setIsMergedHeaderVisible] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const categoryNavRef = useRef<HTMLDivElement | null>(null);
-  const categoryButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const categoryButtonRefs = useRef<Record<string, HTMLButtonElement | null>>(
+    {},
+  );
   // Incrementing request id protects UI from race conditions when users
   // change location quickly and multiple fetches complete out of order.
   const fetchRequestIdRef = useRef(0);
 
   // Incorporates the location for each menu item, so that we can filter items based on the user's selected location in the future (if needed)
-  const { currentLocation, isHydrated, locations, setCurrentLocation, loading: locationLoading } = useLocation();
+  const {
+    currentLocation,
+    isHydrated,
+    locations,
+    setCurrentLocation,
+    loading: locationLoading,
+  } = useLocation();
   const { getItemCount } = useCart();
   const { user } = useAuth();
   const itemCount = getItemCount();
@@ -117,33 +129,36 @@ export default function MenuPage() {
     }
   };
 
-// Fetch location-specific menu variant.
-const fetchLocationMenuItems = async (restaurantId: string): Promise<MenuItem[]> => {
-  try {
-    
-    const numericRestaurantId = parseInt(restaurantId, 10);
-    
-    const { data: locationData, error: locationError } = await supabase
-      .from("menu_items_restaurant_locations")
-      .select("item_id, restaurant_id, name, price, popular, description, category, bogo, image_url, calories, allergy_information")
-      .eq("restaurant_id", numericRestaurantId)
-      .order("category", { ascending: true })
-      .order("name", { ascending: true });
-    
-    if (locationError) throw locationError;
+  // Fetch location-specific menu variant.
+  const fetchLocationMenuItems = async (
+    restaurantId: string,
+  ): Promise<MenuItem[]> => {
+    try {
+      const numericRestaurantId = parseInt(restaurantId, 10);
 
-    if (!locationData || locationData.length === 0) {
-      console.warn("⚠️ No menu items found for this location");
+      const { data: locationData, error: locationError } = await supabase
+        .from("menu_items_restaurant_locations")
+        .select(
+          "item_id, restaurant_id, name, price, popular, description, category, bogo, image_url, calories, allergy_information",
+        )
+        .eq("restaurant_id", numericRestaurantId)
+        .order("category", { ascending: true })
+        .order("name", { ascending: true });
+
+      if (locationError) throw locationError;
+
+      if (!locationData || locationData.length === 0) {
+        console.warn("⚠️ No menu items found for this location");
+        return [];
+      }
+
+      const items = locationData.map(transformMenuItemData);
+      return items as MenuItem[];
+    } catch (error) {
+      console.error("Error fetching location menu items:", error);
       return [];
     }
-
-    const items = locationData.map(transformMenuItemData);
-    return items as MenuItem[];
-  } catch (error) {
-    console.error("Error fetching location menu items:", error);
-    return [];
-  }
-};
+  };
   // Keep menu category order consistent with business UX, not alphabetic sorting.
   const groupedItems = groupByCategory(menuItems);
   const categories = categoryOrder.filter((category) => groupedItems[category]);
@@ -177,7 +192,9 @@ const fetchLocationMenuItems = async (restaurantId: string): Promise<MenuItem[]>
         currentCategory = categories[categories.length - 1];
       }
 
-      setActiveCategory((prev) => (prev === currentCategory ? prev : currentCategory));
+      setActiveCategory((prev) =>
+        prev === currentCategory ? prev : currentCategory,
+      );
     };
 
     updateActiveCategory();
@@ -206,10 +223,15 @@ const fetchLocationMenuItems = async (restaurantId: string): Promise<MenuItem[]>
 
     const navRect = navContainer.getBoundingClientRect();
     const buttonRect = activeButton.getBoundingClientRect();
-    const isOutOfView = buttonRect.left < navRect.left || buttonRect.right > navRect.right;
+    const isOutOfView =
+      buttonRect.left < navRect.left || buttonRect.right > navRect.right;
 
     if (isOutOfView) {
-      activeButton.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      activeButton.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
     }
   }, [activeCategory]);
 
@@ -224,7 +246,8 @@ const fetchLocationMenuItems = async (restaurantId: string): Promise<MenuItem[]>
   const handleLocationChange = (event: ChangeEvent<HTMLSelectElement>) => {
     // Changing location triggers menu refetch through currentLocation effect.
     const selectedId = event.target.value;
-    const selectedLocation = locations.find((location) => location.id === selectedId) || null;
+    const selectedLocation =
+      locations.find((location) => location.id === selectedId) || null;
     setCurrentLocation(selectedLocation);
   };
 
@@ -235,7 +258,7 @@ const fetchLocationMenuItems = async (restaurantId: string): Promise<MenuItem[]>
       <div className="container mx-auto px-4 py-8 text-center">
         <p className="font-body text-gray-600">Loading menu...</p>
       </div>
-    )
+    );
 
   return (
     <div className="relative">
@@ -272,7 +295,10 @@ const fetchLocationMenuItems = async (restaurantId: string): Promise<MenuItem[]>
               </select>
             </div>
 
-            <div ref={categoryNavRef} className="flex-1 overflow-x-auto no-scrollbar">
+            <div
+              ref={categoryNavRef}
+              className="flex-1 overflow-x-auto no-scrollbar"
+            >
               <div className="flex w-max min-w-full flex-nowrap gap-1 md:justify-center">
                 {categories.map((category) => (
                   <button
@@ -295,7 +321,10 @@ const fetchLocationMenuItems = async (restaurantId: string): Promise<MenuItem[]>
 
             {isMergedHeaderVisible && (
               <div className="flex items-center gap-2 shrink-0 pl-1">
-                <Link href="/cart" className="btn btn-ghost btn-circle relative">
+                <Link
+                  href="/cart"
+                  className="btn btn-ghost btn-circle relative"
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-6 w-6"

@@ -73,6 +73,7 @@ export async function POST(request: NextRequest) {
         status: "paid",
         pickup_time: orderDetails.pickupTime || new Date(Date.now() + 30 * 60000).toISOString(),
         receipt_token: receiptToken,
+        restaurant_id: orderDetails.restaurantId,
     })
     .select()
     .single();
