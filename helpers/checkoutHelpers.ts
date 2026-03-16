@@ -3,6 +3,7 @@
  */
 
 interface CartItem {
+  // All helper math is in cents to avoid floating-point currency drift.
   priceCents: number;
   quantity: number;
 }
@@ -27,6 +28,7 @@ export const calculateTotal = (
 };
 
 export const formatCurrency = (cents: number): string => {
+  // Keep display format consistent across checkout and confirmation UIs.
   return `CA$${(cents / 100).toFixed(2)}`;
 };
 

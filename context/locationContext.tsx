@@ -13,6 +13,8 @@ type LocationContextType = {
   currentLocation: Location | null;
   setCurrentLocation: (loc: Location | null) => void;
   loading: boolean;
+  // isHydrated indicates localStorage has been read in the browser.
+  // Consumers use this to avoid fetching with stale default location.
   isHydrated: boolean;
 };
 
@@ -33,7 +35,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Load location from localStorage on mount
+  // Restore the user's previously selected location on startup.
   useEffect(() => {
     const savedLocation = localStorage.getItem("selectedLocation");
     if (savedLocation) {
@@ -46,7 +48,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
     setIsHydrated(true); // Mark as hydrated after localStorage is loaded
   }, []);
 
-  // Save location to localStorage whenever it changes
+  // Single setter used by consumers to keep React state + storage in sync.
   const handleSetCurrentLocation = (loc: Location | null) => {
     setCurrentLocation(loc);
     if (loc) {
@@ -57,6 +59,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    // Fetch all available pickup locations from Supabase once per load.
     const fetchLocations = async () => {
       setLoading(true);
       try {

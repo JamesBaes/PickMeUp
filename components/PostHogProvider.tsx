@@ -1,8 +1,8 @@
 "use client";
 
 import posthog from "posthog-js";
-import { PostHogProvider as PHProvider } from "posthog-js/react";
-import { useEffect } from "react";
+import { PostHogProvider as PHProvider, usePostHog } from "posthog-js/react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
@@ -12,26 +12,42 @@ const isPostHogEnabled = typeof POSTHOG_KEY === "string" && POSTHOG_KEY.trim().l
 
 function PostHogPageView() {
   const pathname = usePathname();
+  const ph = usePostHog();
 
   useEffect(() => {
-    if (!isPostHogEnabled) return;
+    if (ph && pathname) {
+      ph.capture("$pageview", {
+        $current_url: window.location.href,
+      });
+    }
+  }, [pathname, ph]);
+  
+  
+  
+  
+  // note it couyld also be this wasn't sure
+//   if (!isPostHogEnabled) return;
 
-    posthog.capture("$pageview", {
-      $current_url: window.location.href,
-    });
-  }, [pathname]);
+//     posthog.capture("$pageview", {
+//       $current_url: window.location.href,
+//     });
+//   }, [pathname]);
 
-  return null;
+//   return null;
 }
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
+  const [ready, setReady] = useState(false);
+
   useEffect(() => {
     if (!isPostHogEnabled) return;
 
     posthog.init(POSTHOG_KEY, {
       api_host: POSTHOG_HOST,
       capture_pageview: false,
+      capture_pageleave: true,
       person_profiles: "identified_only",
+      loaded: () => setReady(true),
     });
   }, []);
 
@@ -39,7 +55,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <PHProvider client={posthog}>
-      <PostHogPageView />
+      {ready && <PostHogPageView />}
       {children}
     </PHProvider>
   );

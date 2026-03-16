@@ -26,7 +26,7 @@ interface OrderData {
   subtotal: number;
   tax: number;
   total: number;
-  pickupTime?: string | null;
+  pickupTime?: string | null; // remember this line because it could but that it shouldn't be null
 }
 
 export default function OrderConfirmationPage() {
@@ -171,7 +171,7 @@ export default function OrderConfirmationPage() {
               <div className="font-heading text-3xl text-gray-900">
                 <span className="font-semibold">Pick Up Time:</span>{" "}
                 <span className="font-bold">
-                  {formatPickupTime(orderData.pickupTime)}
+                  {orderData.pickupTime ? formatPickupTime(orderData.pickupTime) : "—"}
                 </span>
               </div>
             </div>

@@ -5,6 +5,7 @@ import PromoCodeInput from "@/components/PromoCodeInput";
 import { formatCurrency } from "@/helpers/checkoutHelpers";
 
 interface CartItem {
+  itemId: string;
   name: string;
   quantity: number;
   priceCents: number;
@@ -22,6 +23,7 @@ interface OrderSummaryProps {
   onPromoApply: (code: string) => void;
   onPromoRemove: () => void;
   onPromoError: (message: string) => void;
+  onQuantityChange: (itemId: string, quantity: number) => void;
 }
 
 export default function OrderSummary({
@@ -35,7 +37,9 @@ export default function OrderSummary({
   onPromoApply,
   onPromoRemove,
   onPromoError,
+  onQuantityChange,
 }: OrderSummaryProps) {
+  // Presentation component only: receives fully calculated values from checkout page.
   return (
     <div className="bg-white rounded-lg p-4 sm:p-8 h-fit">
       {/* Logo */}
@@ -51,9 +55,9 @@ export default function OrderSummary({
 
       {/* Cart Items */}
       <div className="space-y-6 mb-6">
-        {cartItems.map((item, i) => (
-          <div key={i} className="flex items-start gap-3 sm:gap-4">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg shrink-0 relative overflow-hidden bg-gray-100">
+        {cartItems.map((item) => (
+          <div key={item.itemId} className="flex items-start gap-4">
+            <div className="w-16 h-16 rounded-lg flex-shrink-0 relative overflow-hidden bg-gray-100">
               {item.image ? (
                 <Image
                   src={item.image}
@@ -66,8 +70,26 @@ export default function OrderSummary({
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-gray-900 font-medium wrap-break-word">{item.name}</h3>
-              <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+              <h3 className="text-gray-900 font-medium">{item.name}</h3>
+              <div className="mt-2 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => onQuantityChange(item.itemId, item.quantity - 1)}
+                  className="h-7 w-7 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100"
+                >
+                  -
+                </button>
+                <span className="min-w-6 text-center text-sm text-gray-700">
+                  {item.quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onQuantityChange(item.itemId, item.quantity + 1)}
+                  className="h-7 w-7 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100"
+                >
+                  +
+                </button>
+              </div>
             </div>
             <div className="text-gray-900 font-medium text-sm sm:text-base shrink-0">
               {formatCurrency(item.priceCents * item.quantity)}

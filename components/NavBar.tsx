@@ -6,7 +6,6 @@ import React, { useState, useEffect } from "react";
 import type { User } from "@supabase/supabase-js";
 import supabase from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-import { useLocation } from "@/context/locationContext";
 import { useCart } from "@/context/cartContext";
 
 const NavBar = () => {
@@ -59,8 +58,6 @@ const NavBar = () => {
     router.push("/");
     router.refresh();
   };
-
-  const { currentLocation, isHydrated } = useLocation();
 
   const navLinkClass = (path: string) =>
     `font-heading font-semibold text-lg capitalize hover:text-accent transition-all ${

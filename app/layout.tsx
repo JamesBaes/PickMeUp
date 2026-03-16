@@ -36,17 +36,23 @@ export default function RootLayout({
         className={`${headingText.variable} ${bodyText.variable} flex flex-col min-h-screen antialiased`}
       >
         <PostHogProvider>
-        <LocationProvider>
-            <CartProvider>
-              <AuthProvider>
+          {/*
+            Provider dependency order matters:
+            - Location is needed by menu/cart experiences.
+            - Auth must wrap Cart because CartProvider reads useAuth().
+            - Favorites/Nav/Footer consume the providers above.
+          */}
+          <LocationProvider>
+            <AuthProvider>
+              <CartProvider>
                 <FavoritesProvider>
                   <NavBar />
                   <main className="flex flex-col grow">{children}</main>
                   <Footer />
                 </FavoritesProvider>
-              </AuthProvider>
-            </CartProvider>
-        </LocationProvider>
+              </CartProvider>
+            </AuthProvider>
+          </LocationProvider>
         </PostHogProvider>
       </body>
     </html>

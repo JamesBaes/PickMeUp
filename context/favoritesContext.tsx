@@ -94,7 +94,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data: favData, error: favError } = await supabase
         .from('favorites')
-        .select('favorite_item_id')
+        .select('item_id')
         .eq('customer_id', user.id)
 
       if (favError) throw favError
@@ -105,7 +105,14 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      const itemIds = favData.map(f => uuidToItemId(f.favorite_item_id))
+      const itemIds = favData
+        .map((f) => {
+          const raw = f.item_id
+          if (typeof raw === 'number') return raw
+          return parseInt(String(raw), 10)
+        })
+        .filter((id) => Number.isFinite(id))
+
       setFavoriteIds(new Set(itemIds))
 
       // Fetch item details from menu_items_restaurant_locations (deduplicated by item_id)
@@ -196,7 +203,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase
         .from('favorites')
         .delete()
-        .eq('favorite_item_id', uuidId)
+        .eq('item_id', numericId)
         .eq('customer_id', user.id)
 
       if (error) {
@@ -213,7 +220,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
 
       const { error } = await supabase
         .from('favorites')
-        .insert({ favorite_item_id: uuidId, customer_id: user.id })
+        .insert({ item_id: numericId, customer_id: user.id })
 
       if (error) {
         console.error('Error adding favorite:', error)

@@ -17,9 +17,139 @@ interface ItemPageProps {
   }>;
 }
 
+interface ItemComment {
+  id: string;
+  authorName: string;
+  comment: string;
+  createdAt: string | null;
+  stars: number | null;
+  userId: string | null;
+}
+
+interface NewCommentPayload {
+  comment: string;
+  stars: number;
+  user_id: string;
+  item_name: string;
+  restaurant_id: number | null;
+  display_email: boolean;
+  email?: string;
+}
+
+const getFirstString = (row: Record<string, unknown>, keys: string[]): string | null => {
+  for (const key of keys) {
+    const value = row[key];
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value;
+    }
+  }
+  return null;
+};
+
+const getCommentsItemId = (row: Record<string, unknown>): string | null => {
+  const value = row.item_id;
+
+  if (typeof value === "number") {
+    return value.toString();
+  }
+
+  if (typeof value === "string" && value.trim().length > 0) {
+    return value;
+  }
+
+  return null;
+};
+
+const getCommentsItemName = (row: Record<string, unknown>): string | null => {
+  return getFirstString(row, ["item_name", "menu_item_name", "item"]);
+};
+
+const normalizeItemName = (value: string): string => {
+  return value
+    .replace(/_/g, " ")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+};
+
+const getBoolean = (value: unknown): boolean => {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    return value.toLowerCase() === "true";
+  }
+
+  return false;
+};
+
+const toItemComment = (row: Record<string, unknown>): ItemComment | null => {
+  const commentText = getFirstString(row, ["comment", "content", "message", "text", "body"]);
+
+  if (!commentText) {
+    return null;
+  }
+
+  const idValue = row.id;
+  const createdAt = getFirstString(row, ["created_at", "updated_at"]);
+  const id =
+    typeof idValue === "string" && idValue.trim().length > 0
+      ? idValue
+      : `comment-${commentText.slice(0, 24)}-${createdAt ?? "unknown-date"}`;
+
+  const shouldDisplayEmail = getBoolean(row.display_email);
+  const authorName = shouldDisplayEmail
+    ? getFirstString(row, [
+        "user_email",
+        "email",
+        "user_name",
+        "author_name",
+        "name",
+        "display_name",
+        "username",
+      ]) ?? "Anonymous"
+    : "Anonymous";
+
+  const starsValue = row.stars;
+  const stars =
+    typeof starsValue === "number"
+      ? Math.max(1, Math.min(5, Math.round(starsValue)))
+      : typeof starsValue === "string" && starsValue.trim().length > 0
+      ? Math.max(1, Math.min(5, Math.round(Number(starsValue))))
+      : null;
+
+  const userIdValue = row.user_id;
+  const userId =
+    typeof userIdValue === "string" && userIdValue.trim().length > 0 ? userIdValue : null;
+
+  return {
+    id,
+    authorName,
+    comment: commentText,
+    createdAt,
+    stars: Number.isNaN(stars ?? Number.NaN) ? null : stars,
+    userId,
+  };
+};
+
 export default function ItemPage({ params }: ItemPageProps) {
   const { item: itemId } = use(params);
   const [item, setItem] = useState<MenuItem | null>(null);
+  const [comments, setComments] = useState<ItemComment[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(true);
+  const [newComment, setNewComment] = useState("");
+  const [newRating, setNewRating] = useState(5);
+  const [displayEmail, setDisplayEmail] = useState(false);
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [commentSuccess, setCommentSuccess] = useState<string | null>(null);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingCommentText, setEditingCommentText] = useState("");
+  const [editingCommentRating, setEditingCommentRating] = useState(5);
+  const [updatingComment, setUpdatingComment] = useState(false);
+  const [editCommentError, setEditCommentError] = useState<string | null>(null);
+  const [editCommentSuccess, setEditCommentSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const router = useRouter();
@@ -56,14 +186,129 @@ useEffect(() => {
 
 
     if (error) throw error;
-    setItem(data as MenuItem);
+
+    const fetchedItem = data as MenuItem;
+    setItem(fetchedItem);
+    fetchComments(fetchedItem.name);
   } catch (error) {
     console.error("Error fetching item:", error);
     setItem(null);
+    setComments([]);
+    setCommentsLoading(false);
   } finally {
     setLoading(false);
   }
 };
+
+  const fetchComments = async (itemName: string | null) => {
+    setCommentsLoading(true);
+    try {
+      const params = new URLSearchParams();
+      params.set("itemId", itemId);
+      if (itemName) {
+        params.set("itemName", itemName);
+      }
+
+      const response = await fetch(`/api/comments?${params.toString()}`, {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch comments");
+      }
+
+      const payload = (await response.json()) as { comments?: Record<string, unknown>[] };
+      const rows = payload.comments ?? [];
+      const normalizedCurrentItemName = itemName ? normalizeItemName(itemName) : null;
+
+      const filteredComments = rows
+        .filter((row) => {
+          const rowItemId = getCommentsItemId(row);
+          const rowItemName = getCommentsItemName(row);
+
+          const idMatches = rowItemId === itemId;
+          const nameMatches =
+            Boolean(normalizedCurrentItemName) &&
+            typeof rowItemName === "string" &&
+            normalizeItemName(rowItemName) === normalizedCurrentItemName;
+
+          return idMatches || nameMatches;
+        })
+        .map(toItemComment)
+        .filter((comment): comment is ItemComment => comment !== null);
+
+      setComments(filteredComments);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      setComments([]);
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
+
+  const formatCommentDate = (dateString: string | null): string => {
+    if (!dateString) {
+      return "";
+    }
+
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+
+    return date.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const renderStars = (stars: number | null) => {
+    if (!stars) {
+      return null;
+    }
+
+    return (
+      <div className="flex items-center gap-1" aria-label={`${stars} out of 5 stars`}>
+        {Array.from({ length: 5 }, (_, index) => (
+          <span
+            key={index}
+            className={index < stars ? "text-amber-500" : "text-base-content/25"}
+            aria-hidden="true"
+          >
+            ★
+          </span>
+        ))}
+      </div>
+    );
+  };
+
+  const renderEditableStars = (
+    selectedRating: number,
+    onSelect: (value: number) => void,
+    disabled: boolean
+  ) => {
+    return (
+      <div className="flex items-center gap-1" aria-label="Edit rating">
+        {Array.from({ length: 5 }, (_, index) => {
+          const value = index + 1;
+          return (
+            <button
+              key={value}
+              type="button"
+              onClick={() => onSelect(value)}
+              disabled={disabled}
+              className="text-lg"
+              aria-label={`Set rating to ${value} star${value > 1 ? "s" : ""}`}
+            >
+              <span className={value <= selectedRating ? "text-amber-500" : "text-base-content/25"}>★</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
 
   const formatName = (name: string): string => {
     return name
@@ -72,6 +317,28 @@ useEffect(() => {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(" ");
   };
+
+  const userHasCommented = Boolean(
+    user && comments.some((comment) => comment.userId === user.id)
+  );
+  const currentUserComment =
+    user ? comments.find((comment) => comment.userId === user.id) ?? null : null;
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    if (currentUserComment) {
+      setNewComment(currentUserComment.comment);
+      setNewRating(currentUserComment.stars ?? 5);
+      return;
+    }
+
+    setNewComment("");
+    setNewRating(5);
+    setDisplayEmail(false);
+  }, [user, currentUserComment?.id]);
 
   const handleAddToCart = () => {
     if (!item) return;
@@ -86,6 +353,173 @@ useEffect(() => {
     });
     setShowNotification(true);
     setTimeout(() => setShowNotification(false), 2000)
+  };
+
+  const handleSubmitComment = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!user) {
+      setCommentError("Please sign in to leave a comment.");
+      return;
+    }
+
+    const trimmedComment = newComment.trim();
+    if (!trimmedComment) {
+      setCommentError("Please write a comment before submitting.");
+      return;
+    }
+
+    if (!item) {
+      setCommentError("Item details are not available. Please refresh and try again.");
+      return;
+    }
+
+    setSubmittingComment(true);
+    setCommentError(null);
+    setCommentSuccess(null);
+
+    try {
+      if (userHasCommented) {
+        if (!currentUserComment || currentUserComment.id.startsWith("comment-")) {
+          setCommentError("Unable to edit this review right now. Please refresh and try again.");
+          return;
+        }
+
+        const updatePayload: {
+          comment: string;
+          stars: number;
+          display_email: boolean;
+          email?: string;
+        } = {
+          comment: trimmedComment,
+          stars: newRating,
+          display_email: displayEmail,
+        };
+
+        if (displayEmail && user.email) {
+          updatePayload.email = user.email;
+        }
+
+        const { error } = await supabase
+          .from("comments")
+          .update(updatePayload)
+          .eq("id", currentUserComment.id)
+          .eq("user_id", user.id);
+
+        if (error) {
+          throw error;
+        }
+
+        setCommentSuccess("Your comment has been updated.");
+        await fetchComments(item.name);
+        return;
+      }
+
+      const { data: existingCommentRows, error: existingCommentError } = await supabase
+        .from("comments")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("item_name", item.name)
+        .limit(1);
+
+      if (existingCommentError) {
+        throw existingCommentError;
+      }
+
+      if ((existingCommentRows ?? []).length > 0) {
+        setCommentError("You can only post one review per item.");
+        return;
+      }
+
+      const parsedRestaurantId = Number(item.restaurant_id);
+      const payload: NewCommentPayload = {
+        comment: trimmedComment,
+        stars: newRating,
+        user_id: user.id,
+        item_name: item.name,
+        restaurant_id: Number.isNaN(parsedRestaurantId) ? null : parsedRestaurantId,
+        display_email: displayEmail,
+      };
+
+      if (displayEmail && user.email) {
+        payload.email = user.email;
+      }
+
+      const { error } = await supabase.from("comments").insert(payload);
+      if (error) {
+        throw error;
+      }
+
+      setNewComment("");
+      setNewRating(5);
+      setDisplayEmail(false);
+      setCommentSuccess("Your comment has been posted.");
+      await fetchComments(item.name);
+    } catch (error: any) {
+      console.error("Error submitting comment:", error);
+      setCommentError(error?.message ?? "Failed to submit comment.");
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  const startEditingComment = (comment: ItemComment) => {
+    const existingRating = comment.stars ?? 5;
+    setEditingCommentId(comment.id);
+    setEditingCommentText(comment.comment);
+    setEditingCommentRating(existingRating);
+    setEditCommentError(null);
+    setEditCommentSuccess(null);
+  };
+
+  const cancelEditingComment = () => {
+    setEditingCommentId(null);
+    setEditingCommentText("");
+    setEditingCommentRating(5);
+    setEditCommentError(null);
+  };
+
+  const handleUpdateComment = async (commentId: string) => {
+    if (!user) {
+      setEditCommentError("Please sign in to edit your comment.");
+      return;
+    }
+
+    const trimmedComment = editingCommentText.trim();
+    if (!trimmedComment) {
+      setEditCommentError("Comment cannot be empty.");
+      return;
+    }
+
+    setUpdatingComment(true);
+    setEditCommentError(null);
+    setEditCommentSuccess(null);
+
+    try {
+      const { error } = await supabase
+        .from("comments")
+        .update({
+          comment: trimmedComment,
+          stars: editingCommentRating,
+        })
+        .eq("id", commentId)
+        .eq("user_id", user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      setEditCommentSuccess("Your comment has been updated.");
+      setEditingCommentId(null);
+      setEditingCommentText("");
+      setEditingCommentRating(5);
+      await fetchComments(item?.name ?? null);
+    } catch (error: any) {
+      console.error("Error updating comment:", error);
+      setEditCommentError(error?.message ?? "Failed to update comment.");
+    } finally {
+      setUpdatingComment(false);
+    }
   };
 
   if (loading) {
@@ -232,18 +666,18 @@ useEffect(() => {
 
           {/* Quantity and Add to Cart */}
           <div className="divider"></div>
-          
+
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-          <button
-            onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            disabled={quantity === 1}
-            className={`btn shadow-sm border-0 btn-circle btn-sm text-lg ${
-              quantity === 1 
-                ? 'bg-gray-100 text-gray-300 cursor-not-allowed' 
-                : 'bg-gray-400 text-black hover:bg-gray-500'
-            }`}
-          >
+              <button
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                disabled={quantity === 1}
+                className={`btn shadow-sm border-0 btn-circle btn-sm text-lg ${
+                  quantity === 1
+                    ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                    : 'bg-gray-400 text-black hover:bg-gray-500'
+                }`}
+              >
                 -
               </button>
               <span className="text-2xl font-bold w-12 text-center">
@@ -270,6 +704,174 @@ useEffect(() => {
                   Add to Cart - ${(item.price * quantity).toFixed(2)}
                 </p>
               </button>
+            )}
+          </div>
+
+        </div>
+      </div>
+
+      <div className="divider my-8"></div>
+
+      {/* Comments Section */}
+      <div className="grid md:grid-cols-2 gap-6 items-start">
+        <div className="p-4 rounded-lg bg-base-200 space-y-3">
+          <h3 className="text-xl font-heading font-bold">Leave a review</h3>
+
+          <form onSubmit={handleSubmitComment} className="space-y-3">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Share your thoughts about this item..."
+              className="textarea textarea-bordered w-full"
+              rows={4}
+              maxLength={500}
+              disabled={!user || submittingComment}
+            />
+
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm">Rating:</p>
+              {Array.from({ length: 5 }, (_, index) => {
+                const value = index + 1;
+                return (
+                  <button
+                    type="button"
+                    key={value}
+                    onClick={() => setNewRating(value)}
+                    className="text-xl"
+                    aria-label={`Set rating to ${value} star${value > 1 ? "s" : ""}`}
+                    disabled={!user || submittingComment}
+                  >
+                    <span className={value <= newRating ? "text-amber-500" : "text-base-content/25"}>★</span>
+                  </button>
+                );
+              })}
+
+              <label className="label cursor-pointer gap-2 p-0 ml-auto">
+                <input
+                  type="checkbox"
+                  className="checkbox checkbox-xs"
+                  checked={displayEmail}
+                  onChange={(e) => setDisplayEmail(e.target.checked)}
+                  disabled={!user || submittingComment}
+                />
+                <span className="label-text text-xs">Show my email</span>
+              </label>
+            </div>
+
+            {!user && (
+              <p className="text-sm text-base-content/70">Sign in to submit a comment.</p>
+            )}
+            {userHasCommented && (
+              <p className="text-sm text-base-content/70">Editing your existing review for this item.</p>
+            )}
+            {commentError && <p className="text-sm text-error">{commentError}</p>}
+            {commentSuccess && <p className="text-sm text-success">{commentSuccess}</p>}
+            {editCommentSuccess && <p className="text-sm text-success">{editCommentSuccess}</p>}
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="submit"
+                className="btn btn-sm bg-accent hover:bg-secondary border-0 text-white"
+                disabled={!user || submittingComment}
+              >
+                {submittingComment ? "Saving..." : userHasCommented ? "Update Comment" : "Post Comment"}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div className="max-h-[580px] overflow-y-auto rounded-lg bg-base-200">
+          <div className="sticky top-0 z-10 bg-base-200 px-4 py-3 border-b border-base-300">
+            <h3 className="text-xl font-heading font-bold">Community Reviews</h3>
+          </div>
+
+          <div className="p-4">
+            {commentsLoading ? (
+              <div className="flex justify-center py-4">
+                <span className="loading loading-spinner loading-md"></span>
+              </div>
+            ) : comments.length === 0 ? (
+              <div className="p-4 bg-base-100 rounded-lg">
+                <p className="text-sm text-base-content/70">No comments yet for this item.</p>
+              </div>
+            ) : (
+              <div className="space-y-3 pr-1">
+              {comments.map((comment) => {
+                const formattedDate = formatCommentDate(comment.createdAt);
+                const canEditComment = Boolean(
+                  user && comment.userId === user.id && !comment.id.startsWith("comment-")
+                );
+                const isEditingThisComment = editingCommentId === comment.id;
+
+                return (
+                  <div key={comment.id} className="p-4 bg-base-100 rounded-lg">
+                    <div className="flex items-start justify-between mb-1 gap-2">
+                      <div>
+                        <p className="font-semibold text-sm">{comment.authorName}</p>
+                        {isEditingThisComment
+                          ? renderEditableStars(
+                              editingCommentRating,
+                              setEditingCommentRating,
+                              updatingComment
+                            )
+                          : renderStars(comment.stars)}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {formattedDate && (
+                          <p className="text-xs text-base-content/60 whitespace-nowrap">{formattedDate}</p>
+                        )}
+                        {canEditComment && !isEditingThisComment && (
+                          <button
+                            type="button"
+                            className="btn btn-xs"
+                            onClick={() => startEditingComment(comment)}
+                          >
+                            Edit
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {isEditingThisComment ? (
+                      <div className="space-y-2">
+                        <textarea
+                          value={editingCommentText}
+                          onChange={(e) => setEditingCommentText(e.target.value)}
+                          className="textarea textarea-bordered w-full"
+                          rows={3}
+                          maxLength={500}
+                          disabled={updatingComment}
+                        />
+
+                        {editCommentError && (
+                          <p className="text-sm text-error">{editCommentError}</p>
+                        )}
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            className="btn btn-xs bg-accent hover:bg-secondary border-0 text-white"
+                            onClick={() => handleUpdateComment(comment.id)}
+                            disabled={updatingComment}
+                          >
+                            {updatingComment ? "Saving..." : "Save"}
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-xs"
+                            onClick={cancelEditingComment}
+                            disabled={updatingComment}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm leading-relaxed">{comment.comment}</p>
+                    )}
+                  </div>
+                );
+              })}
+              </div>
             )}
           </div>
         </div>
