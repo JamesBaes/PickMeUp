@@ -65,10 +65,10 @@ const NavBar = () => {
     }`;
 
   return (
-    <div className="navbar bg-gray-50 border-b border-gray-100 shadow-lg px-6 md:px-12">
+    <div className="navbar bg-gray-50 border-b border-gray-100 shadow-lg px-3 sm:px-6 md:px-12 py-2 flex-wrap gap-y-2">
       {/* Left: Logo */}
-      <div className="navbar-start">
-        <Link href="/" className="flex items-center gap-3">
+      <div className="navbar-start w-full md:flex-1 md:min-w-60">
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Image
             src="/gladiator-logo.png"
             alt="Gladiator Logo"
@@ -76,15 +76,33 @@ const NavBar = () => {
             width={40}
             height={40}
           />
-          <span className="font-heading font-extrabold text-accent text-3xl">
+          <span className="font-heading font-extrabold text-accent text-2xl sm:text-3xl whitespace-nowrap">
             Gladiator
           </span>
         </Link>
       </div>
+
+      {/* Center: Main nav links */}
+      <div className="navbar-center hidden lg:flex gap-8 xl:gap-10 px-4 xl:px-6 shrink-0">
+        <Link href="/" className={navLinkClass("/")}>
+          menu
+        </Link>
+        <Link
+          href="/select-location"
+          className={navLinkClass("/select-location")}
+        >
+          {isHydrated
+            ? currentLocation
+              ? currentLocation.name
+              : "select location"
+            : "select location"}
+        </Link>
+      </div>
+
       {/* Right: Cart + Profile/Auth */}
-      <div className="navbar-end flex items-center gap-2">
+      <div className="navbar-end w-full md:w-auto md:ml-auto flex items-center justify-end gap-1 sm:gap-2">
         {/* Cart icon with badge */}
-        <Link href="/cart" className="btn btn-ghost btn-circle relative">
+        <Link href="/cart" className="btn btn-ghost btn-circle btn-sm sm:btn-md relative">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-6 w-6"
@@ -131,12 +149,12 @@ const NavBar = () => {
             </div>
             <ul
               tabIndex={0}
-              className="menu menu-sm dropdown-content bg-base-100 rounded-box shadow-lg mt-3 w-52 p-2 z-50 border border-gray-100"
+              className="menu menu-sm dropdown-content bg-white rounded-box shadow-lg mt-3 w-52 p-2 z-50 border border-gray-200 text-slate-800"
             >
               <li>
                 <Link
                   href="/account"
-                  className={`font-heading font-semibold capitalize ${pathname === "/account" ? "text-accent" : ""}`}
+                  className={`font-heading font-semibold capitalize transition-colors hover:bg-gray-100 hover:text-accent focus-visible:bg-gray-100 focus-visible:text-accent ${pathname === "/account" ? "text-accent" : "text-slate-800"}`}
                 >
                   account
                 </Link>
@@ -144,7 +162,7 @@ const NavBar = () => {
               <li>
                 <Link
                   href="/order-history"
-                  className={`font-heading font-semibold capitalize ${pathname === "/order-history" ? "text-accent" : ""}`}
+                  className={`font-heading font-semibold capitalize transition-colors hover:bg-gray-100 hover:text-accent focus-visible:bg-gray-100 focus-visible:text-accent ${pathname === "/order-history" ? "text-accent" : "text-slate-800"}`}
                 >
                   order history
                 </Link>
@@ -152,7 +170,7 @@ const NavBar = () => {
               <li>
                 <Link
                   href="/favorites"
-                  className={`font-heading font-semibold capitalize ${pathname === "/favorites" ? "text-accent" : ""}`}
+                  className={`font-heading font-semibold capitalize transition-colors hover:bg-gray-100 hover:text-accent focus-visible:bg-gray-100 focus-visible:text-accent ${pathname === "/favorites" ? "text-accent" : "text-slate-800"}`}
                 >
                   favorites
                 </Link>
@@ -161,7 +179,7 @@ const NavBar = () => {
                 <button
                   onClick={handleSignOut}
                   disabled={signingOut}
-                  className="font-heading font-semibold capitalize disabled:opacity-50"
+                  className="font-heading font-semibold capitalize text-slate-800 transition-colors hover:bg-gray-100 hover:text-accent focus-visible:bg-gray-100 focus-visible:text-accent disabled:opacity-50"
                 >
                   {signingOut ? "signing out..." : "sign out"}
                 </button>
@@ -170,16 +188,16 @@ const NavBar = () => {
           </div>
         ) : (
           /* Unauthenticated: login + signup */
-          <div className="flex items-center gap-4 ml-4">
+          <div className="flex items-center gap-2 sm:gap-4 ml-1 sm:ml-4">
             <Link
               href="/login"
-              className="btn btn-medium font-heading font-semibold capitalize text-white border-none bg-black hover:bg-gray-800"
+              className="btn btn-sm sm:btn-md font-heading font-semibold capitalize text-white border-none bg-black hover:bg-gray-800"
             >
               login
             </Link>
             <Link
               href="/sign-up"
-              className="btn btn-medium font-heading font-semibold capitalize text-white border-none bg-blue-600 hover:bg-blue-700"
+              className="btn btn-sm sm:btn-md font-heading font-semibold capitalize text-white border-none bg-blue-600 hover:bg-blue-700"
             >
               sign up
             </Link>

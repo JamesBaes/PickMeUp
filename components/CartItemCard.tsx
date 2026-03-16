@@ -35,10 +35,10 @@ const CartItemCard = ({
     .join(" ");
 
   return (
-    <div className="flex items-center gap-6 p-4 bg-white  border-gray-200">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 p-4 bg-white border-gray-200">
 
       {/* image */}
-      <div className="relative w-24 h-24 shrink-0">
+      <div className="relative w-full h-44 sm:w-24 sm:h-24 shrink-0">
         {item.image_url ? (
           <Image 
             src={item.image_url} 
@@ -54,7 +54,7 @@ const CartItemCard = ({
       </div>
 
       {/* details */}
-      <div className="grow">
+      <div className="grow w-full min-w-0">
         <p className="text-xs text-gray-500 font-body mb-1">{item.category}</p>
         <h3 className="font-heading font-semibold text-xl mb-2">{formattedName}</h3>
         <p className="font-body text-sm text-gray-600">Unit Price: ${unitPrice.toFixed(2)}</p>

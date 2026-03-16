@@ -125,8 +125,8 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-2 gap-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <div className="grid lg:grid-cols-2 gap-4 sm:gap-8">
           {/* Left Column - Order Summary */}
           <OrderSummary
             cartItems={cartItems}
@@ -143,9 +143,9 @@ export default function CheckoutPage() {
           />
 
           {/* Right Column - Payment Form */}
-          <div className="bg-white rounded-lg p-8">
+          <div className="bg-white rounded-lg p-4 sm:p-8">
             {/* Apple Pay Button */}
-            <button className="w-full bg-black text-white py-4 rounded-lg font-medium mb-4 flex items-center justify-center hover:bg-gray-900 transition-colors">
+            <button className="w-full bg-black text-white py-3 sm:py-4 rounded-lg font-medium mb-4 flex items-center justify-center hover:bg-gray-900 transition-colors">
               <span className="text-xl"> Pay</span>
             </button>
 
@@ -230,7 +230,7 @@ export default function CheckoutPage() {
             <button
               onClick={handlePayButtonClick}
               disabled={isProcessing || !isPaymentReady}
-              className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg
+              className="w-full bg-green-600 text-white py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg
                          hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed
                          transition-colors mb-6"
             >

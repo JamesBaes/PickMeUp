@@ -20,27 +20,29 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex flex-col md:flex-row min-h-screen">
       {/* Sidebar */}
-      <aside className="w-52 border-r border-base-200 pt-10 flex flex-col gap-2 px-4 shrink-0">
-        {navLinks.map(({ label, href }) => (
-          <Link
-            key={href}
-            href={href}
-            className={`text-sm font-body py-2 px-3 rounded transition-colors ${
-              pathname === href
-                ? "font-semibold text-foreground"
-                : "text-base-content/60 hover:text-foreground"
-            }`}
-          >
-            {label}
-          </Link>
-        ))}
+      <aside className="w-full md:w-52 border-b md:border-b-0 md:border-r border-base-200 pt-3 md:pt-10 px-3 md:px-4 shrink-0">
+        <div className="flex md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0">
+          {navLinks.map(({ label, href }) => (
+            <Link
+              key={href}
+              href={href}
+              className={`text-sm font-body py-2 px-3 rounded transition-colors whitespace-nowrap ${
+                pathname === href
+                  ? "font-semibold text-slate-900"
+                  : "text-slate-700 hover:text-slate-900"
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
 
-        <div className="mt-4 border-t border-base-200 pt-4">
+        <div className="mt-2 md:mt-4 border-t border-base-200 pt-2 md:pt-4 pb-2 md:pb-0">
           <button
             onClick={handleLogout}
-            className="text-sm font-body py-2 px-3 rounded text-base-content/60 hover:text-foreground transition-colors w-full text-left"
+            className="text-sm font-body py-2 px-3 rounded text-slate-700 hover:text-slate-900 transition-colors w-full text-left"
           >
             Log Out
           </button>
@@ -48,7 +50,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 p-8">{children}</div>
+      <div className="flex-1 p-4 md:p-8">{children}</div>
     </div>
   );
 }

@@ -41,9 +41,9 @@ export default function OrderSummary({
 }: OrderSummaryProps) {
   // Presentation component only: receives fully calculated values from checkout page.
   return (
-    <div className="bg-white rounded-lg p-8 h-fit">
+    <div className="bg-white rounded-lg p-4 sm:p-8 h-fit">
       {/* Logo */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <Image
           src="/gladiator-logo.png"
           alt="Gladiator Logo"
@@ -91,7 +91,7 @@ export default function OrderSummary({
                 </button>
               </div>
             </div>
-            <div className="text-gray-900 font-medium">
+            <div className="text-gray-900 font-medium text-sm sm:text-base shrink-0">
               {formatCurrency(item.priceCents * item.quantity)}
             </div>
           </div>
@@ -114,8 +114,8 @@ export default function OrderSummary({
         />
 
         {appliedPromo && (
-          <div className="flex justify-between text-green-600">
-            <span className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-green-600">
+            <span className="flex items-center gap-2 min-w-0">
               <span className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-sm font-medium">
                 {appliedPromo}
               </span>
@@ -123,7 +123,7 @@ export default function OrderSummary({
                 {promoDiscount}% off
               </span>
             </span>
-            <span>-{formatCurrency(discountCents)}</span>
+            <span className="sm:text-right">-{formatCurrency(discountCents)}</span>
           </div>
         )}
 
