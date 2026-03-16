@@ -7,7 +7,14 @@ import type { User } from "@supabase/supabase-js";
 import { useCart } from "@/context/cartContext";
 import type { MenuItem } from "@/types";
 
-type OrderStatus = "ordered" | "accepted" | "complete" | "in_progress" | "ready" | "picked_up" | "cancelled";
+type OrderStatus =
+  | "ordered"
+  | "accepted"
+  | "complete"
+  | "in_progress"
+  | "ready"
+  | "picked_up"
+  | "cancelled";
 
 interface OrderItem {
   name: string;
@@ -48,8 +55,18 @@ const MOCK_ORDERS: Order[] = [
     location: "Brampton, ON (Pick Up Location)",
     items: [
       { name: "Combo Plate", quantity: 1, priceCents: 1499, image: undefined },
-      { name: "Strawberry Milkshake", quantity: 2, priceCents: 799, image: undefined },
-      { name: "Chicken Burger", quantity: 1, priceCents: 1099, image: undefined },
+      {
+        name: "Strawberry Milkshake",
+        quantity: 2,
+        priceCents: 799,
+        image: undefined,
+      },
+      {
+        name: "Chicken Burger",
+        quantity: 1,
+        priceCents: 1099,
+        image: undefined,
+      },
       { name: "Fries", quantity: 3, priceCents: 399, image: undefined },
     ],
     total_cents: 17770,
@@ -65,7 +82,12 @@ const MOCK_ORDERS: Order[] = [
     location: "Brampton, ON",
     items: [
       { name: "Combo Plate", quantity: 1, priceCents: 1499, image: undefined },
-      { name: "Strawberry Milkshake", quantity: 1, priceCents: 799, image: undefined },
+      {
+        name: "Strawberry Milkshake",
+        quantity: 1,
+        priceCents: 799,
+        image: undefined,
+      },
     ],
     total_cents: 5172,
     status: "picked_up",
@@ -79,7 +101,12 @@ const MOCK_ORDERS: Order[] = [
     customer_phone: "555-123-4567",
     location: "Brampton, ON",
     items: [
-      { name: "Chicken Burger", quantity: 2, priceCents: 1099, image: undefined },
+      {
+        name: "Chicken Burger",
+        quantity: 2,
+        priceCents: 1099,
+        image: undefined,
+      },
       { name: "Fries", quantity: 1, priceCents: 399, image: undefined },
     ],
     total_cents: 5172,
@@ -88,7 +115,13 @@ const MOCK_ORDERS: Order[] = [
   },
 ];
 
-const ACTIVE_STATUSES: OrderStatus[] = ["ordered", "accepted", "complete", "in_progress", "ready"];
+const ACTIVE_STATUSES: OrderStatus[] = [
+  "ordered",
+  "accepted",
+  "complete",
+  "in_progress",
+  "ready",
+];
 const PAST_STATUSES: OrderStatus[] = ["picked_up", "cancelled"];
 
 const STEP_ORDER: Array<{ key: OrderStatus; label: string }> = [
@@ -126,7 +159,11 @@ const formatShortDate = (dateString: string) => {
   }
 };
 
-const toMenuItemFromOrderItem = (orderItem: OrderItem, index: number, orderId: string): MenuItem => ({
+const toMenuItemFromOrderItem = (
+  orderItem: OrderItem,
+  index: number,
+  orderId: string,
+): MenuItem => ({
   item_id: `${orderId}-${index}-${orderItem.name}`,
   restaurant_id: "",
   name: orderItem.name,
@@ -176,11 +213,12 @@ const normalizeItems = (value: unknown): OrderItem[] => {
       const raw = item as Record<string, unknown>;
       const name = typeof raw.name === "string" ? raw.name : "Item";
       const quantity = typeof raw.quantity === "number" ? raw.quantity : 1;
-      const priceCents = typeof raw.priceCents === "number"
-        ? raw.priceCents
-        : typeof raw.price === "number"
-          ? Math.round(raw.price * 100)
-          : 0;
+      const priceCents =
+        typeof raw.priceCents === "number"
+          ? raw.priceCents
+          : typeof raw.price === "number"
+            ? Math.round(raw.price * 100)
+            : 0;
       const image = typeof raw.image === "string" ? raw.image : undefined;
       return { name, quantity, priceCents, image };
     })
@@ -190,30 +228,41 @@ const normalizeItems = (value: unknown): OrderItem[] => {
 const normalizeStatus = (value: unknown): OrderStatus => {
   const raw = typeof value === "string" ? value.trim().toLowerCase() : "";
 
-  if ([
-    "cancelled",
-    "canceled",
-    "rejected",
-    "declined",
-    "expired",
-    "timed_out",
-    "timed out",
-    "timeout",
-    "auto_rejected",
-    "auto_reject",
-    "auto-rejected",
-    "auto-cancelled",
-    "auto_cancelled",
-    "auto_canceled",
-  ].includes(raw)) {
+  if (
+    [
+      "cancelled",
+      "canceled",
+      "rejected",
+      "declined",
+      "expired",
+      "timed_out",
+      "timed out",
+      "timeout",
+      "auto_rejected",
+      "auto_reject",
+      "auto-rejected",
+      "auto-cancelled",
+      "auto_cancelled",
+      "auto_canceled",
+    ].includes(raw)
+  ) {
     return "cancelled";
   }
-  if (["picked_up", "picked up", "pickedup", "collected", "completed"].includes(raw)) return "picked_up";
-  if (["ready", "awaiting_pickup", "awaiting pickup"].includes(raw)) return "ready";
-  if (["in_progress", "in progress", "preparing", "processing"].includes(raw)) return "in_progress";
-  if (["complete", "complete_order", "complete order"].includes(raw)) return "complete";
+  if (
+    ["picked_up", "picked up", "pickedup", "collected", "completed"].includes(
+      raw,
+    )
+  )
+    return "picked_up";
+  if (["ready", "awaiting_pickup", "awaiting pickup"].includes(raw))
+    return "ready";
+  if (["in_progress", "in progress", "preparing", "processing"].includes(raw))
+    return "in_progress";
+  if (["complete", "complete_order", "complete order"].includes(raw))
+    return "complete";
   if (["accepted", "accept", "confirmed"].includes(raw)) return "accepted";
-  if (["ordered", "pending", "paid", "incoming", "new"].includes(raw)) return "ordered";
+  if (["ordered", "pending", "paid", "incoming", "new"].includes(raw))
+    return "ordered";
 
   return "ordered";
 };
@@ -247,8 +296,12 @@ const getStatusHeading = (status: OrderStatus) => {
 export default function OrderHistoryPage() {
   const router = useRouter();
   const { addItem, clearCart } = useCart();
-  const [user, setUser] = useState<User | null>(USE_MOCK_DATA ? ({} as User) : null);
-  const [orders, setOrders] = useState<Order[]>(USE_MOCK_DATA ? MOCK_ORDERS : []);
+  const [user, setUser] = useState<User | null>(
+    USE_MOCK_DATA ? ({} as User) : null,
+  );
+  const [orders, setOrders] = useState<Order[]>(
+    USE_MOCK_DATA ? MOCK_ORDERS : [],
+  );
   const [loading, setLoading] = useState(!USE_MOCK_DATA);
   const [error, setError] = useState<string | null>(null);
 
@@ -260,10 +313,9 @@ export default function OrderHistoryPage() {
     try {
       sessionStorage.setItem(
         `${ORDER_DETAILS_SNAPSHOT_PREFIX}${order.id}`,
-        JSON.stringify(buildOrderDetailsSnapshot(order))
+        JSON.stringify(buildOrderDetailsSnapshot(order)),
       );
-    } catch {
-    }
+    } catch {}
 
     router.push(`/order-confirmation/${order.id}`);
   };
@@ -319,7 +371,8 @@ export default function OrderHistoryPage() {
           customer_phone: row.customer_phone,
           location: row.location,
           items: normalizeItems(row.items),
-          total_cents: typeof row.total_cents === "number" ? row.total_cents : 0,
+          total_cents:
+            typeof row.total_cents === "number" ? row.total_cents : 0,
           status: normalizeStatus(row.status),
           pickup_time: row.pickup_time,
         }));
@@ -337,7 +390,7 @@ export default function OrderHistoryPage() {
 
   const activeOrder = useMemo(
     () => orders.find((order) => ACTIVE_STATUSES.includes(order.status)),
-    [orders]
+    [orders],
   );
 
   const filteredPastOrders = useMemo(() => {
@@ -348,13 +401,16 @@ export default function OrderHistoryPage() {
     const searched = lowered
       ? base.filter((order) => {
           const idMatch = order.id.toLowerCase().includes(lowered);
-          const itemMatch = order.items.some((item) => item.name.toLowerCase().includes(lowered));
+          const itemMatch = order.items.some((item) =>
+            item.name.toLowerCase().includes(lowered),
+          );
           return idMatch || itemMatch;
         })
       : base;
 
     const sorted = [...searched].sort((a, b) => {
-      const dateDiff = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      const dateDiff =
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       const dateValue = dateSort === "newest" ? dateDiff : -dateDiff;
 
       if (amountSort === "none") return dateValue;
@@ -375,9 +431,11 @@ export default function OrderHistoryPage() {
 
   if (!user) {
     return (
-      <div className="text-center py-20">
+      <div className="py-20">
         <h1 className="text-4xl font-heading font-bold mb-3">Order History</h1>
-        <p className="text-base-content/60 mb-6">Please log in to view your order history.</p>
+        <p className="text-base-content/60 mb-6">
+          Please log in to view your order history.
+        </p>
         <button
           onClick={() => router.push("/login")}
           className="btn bg-accent hover:bg-secondary border-0 text-white font-heading"
@@ -407,17 +465,22 @@ export default function OrderHistoryPage() {
     <div className="max-w-6xl mx-auto px-3 md:px-6 py-6 md:py-10">
       {USE_MOCK_DATA && (
         <div className="alert alert-warning mb-6 text-sm shadow-sm border border-amber-300">
-          Mock data mode is ON. Set <span className="font-semibold">USE_MOCK_DATA</span> to false in this file to fetch real orders.
+          Mock data mode is ON. Set{" "}
+          <span className="font-semibold">USE_MOCK_DATA</span> to false in this
+          file to fetch real orders.
         </div>
       )}
 
-      <div className="text-center mb-8 md:mb-10">
-        <h1 className="text-4xl md:text-5xl font-heading font-bold text-slate-900">Order History</h1>
-        <p className="text-sm text-slate-500 mt-2">Track your active orders and view past purchases</p>
+      <div className="mb-8 md:mb-10">
+        <h1 className="text-4xl md:text-5xl font-heading font-bold text-slate-900">
+          Order History
+        </h1>
       </div>
 
       <section className="mb-12">
-        <h2 className="text-2xl font-heading font-semibold text-slate-900 mb-4">Active Order</h2>
+        <h2 className="text-2xl font-heading font-semibold text-slate-900 mb-4">
+          Active Order
+        </h2>
 
         {activeOrder ? (
           <div className="relative bg-white rounded-[22px] border border-stone-200 shadow-[0_10px_28px_rgba(0,0,0,0.08)] overflow-hidden">
@@ -426,11 +489,19 @@ export default function OrderHistoryPage() {
             <div className="pt-6 p-6 md:p-8">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-6">
                 <div className="min-w-0 md:max-w-[70%]">
-                  <p className="font-heading font-semibold text-slate-900">{formatDate(activeOrder.created_at)}</p>
-                  <p className="text-sm text-slate-500 wrap-break-word">{activeOrder.location ?? "Pick Up Location"}</p>
-                  <p className="text-xs text-slate-400 mt-1 break-all">Order #{activeOrder.id.slice(-10)}</p>
+                  <p className="font-heading font-semibold text-slate-900">
+                    {formatDate(activeOrder.created_at)}
+                  </p>
+                  <p className="text-sm text-slate-500 wrap-break-word">
+                    {activeOrder.location ?? "Pick Up Location"}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1 break-all">
+                    Order #{activeOrder.id.slice(-10)}
+                  </p>
                 </div>
-                <p className="text-3xl font-heading font-bold text-slate-900">{formatCurrency(activeOrder.total_cents)}</p>
+                <p className="text-3xl font-heading font-bold text-slate-900">
+                  {formatCurrency(activeOrder.total_cents)}
+                </p>
               </div>
 
               <div className="mb-6">
@@ -444,14 +515,22 @@ export default function OrderHistoryPage() {
                       return (
                         <Fragment key={step.key}>
                           {index > 0 && (
-                            <div className={`w-8 sm:w-12 md:w-14 h-1 rounded-full mt-4 mx-1 ${index <= currentIndex ? "bg-green-500" : "bg-stone-200"}`}></div>
+                            <div
+                              className={`w-8 sm:w-12 md:w-14 h-1 rounded-full mt-4 mx-1 ${index <= currentIndex ? "bg-green-500" : "bg-stone-200"}`}
+                            ></div>
                           )}
 
                           <div className="w-[62px] sm:w-[78px] md:w-20 flex flex-col items-center">
-                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 ${done ? "bg-green-500 border-green-500 text-white" : "bg-gray-100 border-gray-200 text-gray-500"}`}>
-                              {step.key === "in_progress" && isCurrent ? "👨‍🍳" : index + 1}
+                            <div
+                              className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 ${done ? "bg-green-500 border-green-500 text-white" : "bg-gray-100 border-gray-200 text-gray-500"}`}
+                            >
+                              {step.key === "in_progress" && isCurrent
+                                ? "👨‍🍳"
+                                : index + 1}
                             </div>
-                            <p className={`text-[11px] leading-tight text-center mt-2 px-1 wrap-break-word ${done ? "text-slate-800" : "text-slate-400"}`}>
+                            <p
+                              className={`text-[11px] leading-tight text-center mt-2 px-1 wrap-break-word ${done ? "text-slate-800" : "text-slate-400"}`}
+                            >
                               {step.label}
                             </p>
                           </div>
@@ -470,16 +549,26 @@ export default function OrderHistoryPage() {
 
               <div className="grid md:grid-cols-[1fr_1.5fr] gap-6 mb-6">
                 <div>
-                  <p className="text-xs font-semibold tracking-wide uppercase text-slate-400 mb-2">Date</p>
-                  <p className="text-sm font-medium text-slate-900">{formatDate(activeOrder.created_at)}</p>
-                  <p className="text-sm text-slate-500">{activeOrder.location ?? "Pick Up Location"}</p>
+                  <p className="text-xs font-semibold tracking-wide uppercase text-slate-400 mb-2">
+                    Date
+                  </p>
+                  <p className="text-sm font-medium text-slate-900">
+                    {formatDate(activeOrder.created_at)}
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    {activeOrder.location ?? "Pick Up Location"}
+                  </p>
                 </div>
 
                 <div>
-                  <p className="text-xs font-semibold tracking-wide uppercase text-slate-400 mb-2">Items</p>
+                  <p className="text-xs font-semibold tracking-wide uppercase text-slate-400 mb-2">
+                    Items
+                  </p>
                   <div className="grid sm:grid-cols-2 gap-x-6 gap-y-1 text-sm text-slate-700 max-h-40 overflow-y-auto pr-1">
                     {activeOrder.items.map((item, idx) => (
-                      <p key={idx} className="wrap-break-word">• {item.name} ×{item.quantity}</p>
+                      <p key={idx} className="wrap-break-word">
+                        • {item.name} ×{item.quantity}
+                      </p>
                     ))}
                   </div>
                 </div>
@@ -504,15 +593,21 @@ export default function OrderHistoryPage() {
 
       <section>
         <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-5">
-          <h2 className="text-2xl font-heading font-semibold text-slate-900">Past Orders ({filteredPastOrders.length})</h2>
+          <h2 className="text-2xl font-heading font-semibold text-slate-900">
+            Past Orders ({filteredPastOrders.length})
+          </h2>
 
           <div className="w-full xl:w-auto flex flex-col sm:flex-row sm:items-center gap-2 xl:min-w-[520px] xl:justify-end">
-            <span className="text-sm text-slate-500 font-medium">Filters & Sorting</span>
+            <span className="text-sm text-slate-500 font-medium">
+              Filters & Sorting
+            </span>
 
             <select
               className="h-10 w-full sm:w-auto rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-accent/20"
               value={dateSort}
-              onChange={(e) => setDateSort(e.target.value as "newest" | "oldest")}
+              onChange={(e) =>
+                setDateSort(e.target.value as "newest" | "oldest")
+              }
             >
               <option value="newest">Date - Newest</option>
               <option value="oldest">Date - Oldest</option>
@@ -521,7 +616,9 @@ export default function OrderHistoryPage() {
             <select
               className="h-10 w-full sm:w-auto rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-accent/20"
               value={amountSort}
-              onChange={(e) => setAmountSort(e.target.value as "none" | "high" | "low")}
+              onChange={(e) =>
+                setAmountSort(e.target.value as "none" | "high" | "low")
+              }
             >
               <option value="none">Order Total</option>
               <option value="high">High to Low</option>
@@ -536,7 +633,10 @@ export default function OrderHistoryPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <button className="w-10 h-10 rounded-lg bg-white border border-stone-300 text-slate-700 hover:bg-stone-50 flex items-center justify-center shadow-sm" aria-label="Search orders">
+              <button
+                className="w-10 h-10 rounded-lg bg-white border border-stone-300 text-slate-700 hover:bg-stone-50 flex items-center justify-center shadow-sm"
+                aria-label="Search orders"
+              >
                 🔎
               </button>
             </div>
@@ -552,27 +652,44 @@ export default function OrderHistoryPage() {
         ) : (
           <div className="grid lg:grid-cols-2 gap-5">
             {filteredPastOrders.map((order) => (
-              <div key={order.id} className="relative bg-white rounded-2xl border border-stone-200 shadow-[0_8px_24px_rgba(0,0,0,0.06)] p-4 overflow-hidden">
+              <div
+                key={order.id}
+                className="relative bg-white rounded-2xl border border-stone-200 shadow-[0_8px_24px_rgba(0,0,0,0.06)] p-4 overflow-hidden"
+              >
                 <div className="relative flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-3">
                   <div className="min-w-0 sm:max-w-[55%]">
-                    <p className="font-heading font-semibold text-slate-900">{formatDate(order.created_at)}</p>
-                    <p className="text-sm text-slate-500 wrap-break-word">{order.location ?? "Brampton, ON"}</p>
+                    <p className="font-heading font-semibold text-slate-900">
+                      {formatDate(order.created_at)}
+                    </p>
+                    <p className="text-sm text-slate-500 wrap-break-word">
+                      {order.location ?? "Brampton, ON"}
+                    </p>
                   </div>
                   <div className="sm:text-right min-w-0 sm:max-w-[45%]">
-                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${order.status === "picked_up" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                    <span
+                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${order.status === "picked_up" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+                    >
                       {order.status === "picked_up" ? "Picked" : "Cancelled"}
                     </span>
-                    <p className="text-xs text-slate-400 mt-1 break-all">Order #{order.id.slice(-10)}</p>
-                    <p className="font-heading font-bold text-slate-900 mt-1">{formatCurrency(order.total_cents)}</p>
+                    <p className="text-xs text-slate-400 mt-1 break-all">
+                      Order #{order.id.slice(-10)}
+                    </p>
+                    <p className="font-heading font-bold text-slate-900 mt-1">
+                      {formatCurrency(order.total_cents)}
+                    </p>
                   </div>
                 </div>
 
                 <div className="relative mb-4">
                   <div>
-                    <p className="text-xs font-semibold tracking-wide uppercase text-slate-400 mb-2">Items</p>
+                    <p className="text-xs font-semibold tracking-wide uppercase text-slate-400 mb-2">
+                      Items
+                    </p>
                     <ul className="text-sm text-slate-700 space-y-1">
                       {order.items.slice(0, 3).map((item, idx) => (
-                        <li key={idx} className="wrap-break-word">• {item.name} ×{item.quantity}</li>
+                        <li key={idx} className="wrap-break-word">
+                          • {item.name} ×{item.quantity}
+                        </li>
                       ))}
                     </ul>
                   </div>
