@@ -46,7 +46,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
 
   const { user, loading } = useAuth();
-//   const { currentLocation, isHydrated } = useLocation();    // Temp comment just not sure if this function was created from a branch ahead of behind main so uncomment if necessary.
+  const { currentLocation, isHydrated } = useLocation();
   const [ items, setItems ] = useState<CartItem[]>([])
   const [lastCartSyncAt, setLastCartSyncAt] = useState<number | null>(null);
   const cartStorageKey = 'cart';

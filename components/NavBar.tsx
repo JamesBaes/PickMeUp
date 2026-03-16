@@ -7,6 +7,7 @@ import type { User } from "@supabase/supabase-js";
 import supabase from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/cartContext";
+import { useLocation } from "@/context/locationContext";
 
 const NavBar = () => {
   const pathname = usePathname();
@@ -15,6 +16,7 @@ const NavBar = () => {
   const [signingOut, setSigningOut] = useState(false);
   const { getItemCount } = useCart();
   const itemCount = getItemCount();
+  const { currentLocation, isHydrated } = useLocation();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -84,19 +86,6 @@ const NavBar = () => {
 
       {/* Center: Main nav links */}
       <div className="navbar-center hidden lg:flex gap-8 xl:gap-10 px-4 xl:px-6 shrink-0">
-        <Link href="/" className={navLinkClass("/")}>
-          menu
-        </Link>
-        <Link
-          href="/select-location"
-          className={navLinkClass("/select-location")}
-        >
-          {isHydrated
-            ? currentLocation
-              ? currentLocation.name
-              : "select location"
-            : "select location"}
-        </Link>
       </div>
 
       {/* Right: Cart + Profile/Auth */}

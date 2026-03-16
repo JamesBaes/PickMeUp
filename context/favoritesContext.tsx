@@ -7,7 +7,7 @@ import { MenuItem } from '@/types'
 // Temporary shortcut for demos/testing.
 // Keep this true until the favorites table + RLS are fully ready.
 // Later, just flip it to false and everything goes back to Supabase.
-export const USE_MOCK_FAVORITES = true
+export const USE_MOCK_FAVORITES = false
 
 const MOCK_FAVORITE_ITEMS: MenuItem[] = [
   {

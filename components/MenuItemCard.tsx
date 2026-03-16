@@ -3,12 +3,10 @@ import { MenuItem } from "@/types";
 import { useState } from "react";
 import { useCart } from "@/context/cartContext";
 import { useAuth } from "@/context/authContext";
-import { USE_MOCK_FAVORITES, useFavorites } from "@/context/favoritesContext";
+import { useFavorites } from "@/context/favoritesContext";
 import { usePostHog } from "posthog-js/react";
-import { useRouter } from "next/navigation";
 
 export default function MenuItemCard({ item }: MenuItemCardProps) {
-  const router = useRouter();
   const { user } = useAuth();
   const { addItem } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -17,9 +15,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [favoriteMessage, setFavoriteMessage] = useState<string | null>(null);
-  const [isFavoriteUpdating, setIsFavoriteUpdating] = useState(false);
-  const favorited = isFavorite(item.item_id);
+  const [isHeartAnimating, setIsHeartAnimating] = useState(false);
 
   // Just a function to capitalize plus replace _ with spaces.
   const formattedName = (): string => {
@@ -64,25 +60,15 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
     setQuantity((q) => q + 1);
   };
 
-  const handleFavoriteClick = async (e: React.MouseEvent) => {
+  const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsHeartAnimating(true);
+    toggleFavorite(item);
 
-    if (!user && !USE_MOCK_FAVORITES) {
-      router.push("/login");
-      return;
-    }
-
-    const wasFavorite = favorited;
-    setIsFavoriteUpdating(true);
-
-    await toggleFavorite(item);
-
-    setFavoriteMessage(wasFavorite ? "Removed from favorites" : "Added to favorites");
     setTimeout(() => {
-      setFavoriteMessage(null);
-      setIsFavoriteUpdating(false);
-    }, 1200);
+      setIsHeartAnimating(false);
+    }, 1000);
   };
 
   return (
@@ -91,35 +77,14 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
     // makes the whole card visually clickable. Buttons sit above it via z-10.
     <div className="group card bg-background w-full h-full shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer flex flex-col relative">
         {/* Image Container */}
-        <figure className="shrink-0 relative">
-          {item.image_url ? (
-            <img
-              src={item.image_url}
-              alt={item.name}
-              className="w-full h-48 object-cover"
-            />
-          ) : (
-            <div className="w-full h-48 bg-white"></div>
-          )}
-          {/* Favourite button */}
-          <button
-            onClick={handleFavoriteClick}
-            className={`absolute top-2 right-2 p-1.5 rounded-full shadow transition-all ${favorited ? "bg-red-50" : "bg-white/80 hover:bg-white"} ${isFavoriteUpdating ? "scale-110" : "scale-100"}`}
-            aria-label={
-              favorited
-                ? "Remove from favourites"
-                : "Add to favourites"
-            }
-          >
-            {favorited ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="w-5 h-5 text-red-600"
-              >
-                <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
-              </svg>
+        {item.image_url && (
+          <figure className="flex-shrink-0 relative">
+            {item.image_url ? (
+              <img
+                src={item.image_url}
+                alt={item.name}
+                className="w-full h-48 object-cover"
+              />
             ) : (
               <div className="w-full h-48 bg-white"></div>
             )}
@@ -163,14 +128,8 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
                 )}
               </button>
             )}
-          </button>
-
-          {favoriteMessage && (
-            <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md">
-              {favoriteMessage}
-            </div>
-          )}
-        </figure>
+          </figure>
+        )}
 
         {/* Card Body */}
         <div className="card-body flex flex-col flex-grow">
@@ -189,7 +148,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
             ${item.price.toFixed(2)}
           </p>
 
-          <p className="text-foreground font-body text-sm line-clamp-4 grow mb-4">
+          <p className="text-foreground font-body text-sm line-clamp-4 flex-grow mb-4">
             {item.description}
           </p>
 
