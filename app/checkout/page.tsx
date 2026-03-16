@@ -10,10 +10,12 @@ import CardholderForm from "@/components/CardholderForm";
 import BillingAddressForm from "@/components/BillingAddressForm";
 import { generatePickupTime } from "@/helpers/checkoutHelpers";
 import { useCart } from "@/context/cartContext";
+import { useLocation } from "@/context/locationContext";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, updateQuantity } = useCart();
+  const { currentLocation } = useLocation();
   const posthog = usePostHog();
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -92,6 +94,7 @@ export default function CheckoutPage() {
     items: cartItems,
     totalCents,
     pickupTime: getPickupTime(),
+    restaurantId: currentLocation?.id ?? "",
   };
 
   // Keep receipt token out of URL and hand it to confirmation page via sessionStorage.

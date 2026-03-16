@@ -22,6 +22,7 @@ interface OrderDetails {
   items: Array<{ name: string; quantity: number; priceCents: number }>;
   totalCents: number;
   pickupTime: string;
+  restaurantId: string;
 }
 
 interface PaymentFormProps {
