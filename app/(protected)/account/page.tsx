@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import supabase from "@/utils/supabase/client";
 import { useLocation } from "@/context/locationContext";
+import { deleteAccount } from "./actions";
 
 const Account = () => {
   const [email, setEmail] = useState("");
@@ -14,6 +15,9 @@ const Account = () => {
   const [showLocationSelect, setShowLocationSelect] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const {
     locations,
@@ -85,6 +89,16 @@ const Account = () => {
     }
 
     setIsLoading(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    setDeleteError(null);
+    const result = await deleteAccount();
+    if (result?.error) {
+      setDeleteError(result.error);
+      setIsDeleting(false);
+    }
   };
 
   const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -313,6 +327,55 @@ const Account = () => {
           )}
         </div>
       </section>
+
+      {/* Danger Zone */}
+      <section className="flex flex-col gap-4 pt-4 border-t border-error/30">
+        <h2 className="font-heading text-xl font-bold text-error">Danger Zone</h2>
+        <p className="font-body text-sm text-base-content/60">
+          Permanently delete your account and all associated data. This cannot be undone.
+        </p>
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          className="font-body text-sm text-white bg-error rounded-lg px-4 py-2 w-fit hover:shadow-md hover:cursor-pointer"
+        >
+          Delete Account
+        </button>
+      </section>
+
+      {/* Delete Account Confirmation Modal */}
+      <dialog open={showDeleteModal} className="modal">
+        <div className="modal-box">
+          <h3 className="font-heading font-bold text-lg">Delete Account</h3>
+          <p className="font-body text-sm py-4">
+            This action is permanent and cannot be undone. Your favourites and cart will be deleted.
+          </p>
+          {deleteError && (
+            <div role="alert" className="alert alert-error mb-4">
+              <span className="font-body text-sm">{deleteError}</span>
+            </div>
+          )}
+          <div className="modal-action">
+            <button
+              onClick={() => { setShowDeleteModal(false); setDeleteError(null); }}
+              disabled={isDeleting}
+              className="font-body text-sm rounded-lg px-4 py-2 border border-base-200 hover:shadow-md cursor-pointer disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDeleteAccount}
+              disabled={isDeleting}
+              className="font-body text-sm text-white bg-error rounded-lg px-4 py-2 hover:shadow-md disabled:opacity-50 cursor-pointer"
+            >
+              {isDeleting ? "Deleting..." : "Yes, Delete My Account"}
+            </button>
+          </div>
+        </div>
+        <div
+          className="modal-backdrop"
+          onClick={() => { if (!isDeleting) { setShowDeleteModal(false); setDeleteError(null); } }}
+        />
+      </dialog>
     </div>
   );
 };
