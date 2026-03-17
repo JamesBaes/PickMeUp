@@ -47,7 +47,7 @@ export async function signUp(formData: FormData) {
   // create a new account
   const supabase = await createClient();
   
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -58,6 +58,19 @@ export async function signUp(formData: FormData) {
   if (error) {
     console.log(error.message);
     return { error: "Could not create account. Please try again." };
+  }
+
+  if (data.user) {
+    const { error: profileError } = await supabase.from("profiles").upsert({
+      id: data.user.id,
+      email: data.user.email,
+      role: "user",
+      created_at: new Date().toISOString(),
+    });
+
+    if (profileError) {
+      console.log("Profile creation error:", profileError.message);
+    }
   }
 
   redirect("/verify-email?from=signup");
