@@ -4,19 +4,20 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 
 export async function login(email: string, password: string) {
-  // Basic validation
-  if (!email || !email.includes("@")) {
+  const trimmedEmail = email?.trim().toLowerCase();
+
+  if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
     return { error: "Please enter a valid email" };
   }
 
-  if (!password || password.length < 1) {
+  if (!password) {
     return { error: "Please enter your password" };
   }
 
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signInWithPassword({
-    email,
+    email: trimmedEmail,
     password,
   });
 
