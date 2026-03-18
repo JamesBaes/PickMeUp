@@ -21,7 +21,6 @@ export async function login(email: string, password: string) {
   });
 
   if (error) {
-    console.log("Login error:", error.message, error.status);
     return { error: "Invalid email or password" };
   }
 
