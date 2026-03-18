@@ -65,6 +65,60 @@ const SignUpForm = () => {
           </div>
         )}
 
+        {/* First Name and Last Name inputs */}
+        <div className="flex gap-2 w-full">
+          <label className="input input-bordered flex items-center gap-2 flex-1 bg-background">
+            <svg
+              className="h-4 w-4 opacity-50 shrink-0"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <input
+              type="text"
+              name="firstName"
+              placeholder="First Name"
+              aria-label="First name"
+              autoComplete="given-name"
+              required
+              disabled={loading}
+              className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
+            />
+          </label>
+          <label className="input input-bordered flex items-center gap-2 flex-1 bg-background">
+            <svg
+              className="h-4 w-4 opacity-50 shrink-0"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <input
+              type="text"
+              name="lastName"
+              placeholder="Last Name"
+              aria-label="Last name"
+              autoComplete="family-name"
+              required
+              disabled={loading}
+              className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
+            />
+          </label>
+        </div>
+
         {/* Email input */}
         <label className="input input-bordered flex items-center gap-2 w-full bg-background">
           <svg

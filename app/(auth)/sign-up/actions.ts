@@ -4,6 +4,8 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 
 export async function signUp(formData: FormData) {
+  const firstName = formData.get("firstName") as string;
+  const lastName = formData.get("lastName") as string;
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const confirmPassword = formData.get("confirmPassword") as string;
@@ -23,6 +25,13 @@ export async function signUp(formData: FormData) {
   const verifyData = await verifyResponse.json();
   if (!verifyData.success || verifyData.score < 0.5) {
     return { error: "reCAPTCHA verification failed. Please try again." };
+  }
+
+  if (!firstName || firstName.trim().length === 0) {
+    return { error: "Please enter your first name" };
+  }
+  if (!lastName || lastName.trim().length === 0) {
+    return { error: "Please enter your last name" };
   }
 
   if (!email || !email.includes("@") || email.length > 255) {
@@ -47,30 +56,22 @@ export async function signUp(formData: FormData) {
   // create a new account
   const supabase = await createClient();
   
-  const { data, error } = await supabase.auth.signUp({
+  const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      data: {
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        role: "user",
+      },
     },
   });
 
   if (error) {
     console.log(error.message);
     return { error: "Could not create account. Please try again." };
-  }
-
-  if (data.user) {
-    const { error: profileError } = await supabase.from("profiles").upsert({
-      id: data.user.id,
-      email: data.user.email,
-      role: "user",
-      created_at: new Date().toISOString(),
-    });
-
-    if (profileError) {
-      console.log("Profile creation error:", profileError.message);
-    }
   }
 
   redirect("/verify-email?from=signup");
