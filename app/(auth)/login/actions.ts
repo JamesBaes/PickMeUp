@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
 
 export async function login(email: string, password: string) {
   // Basic validation
@@ -24,5 +25,5 @@ export async function login(email: string, password: string) {
     return { error: "Invalid email or password" };
   }
 
-  return { success: true };
+  redirect("/");
 }
