@@ -74,7 +74,9 @@ export default function OrderSummary({
               <div className="mt-2 flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => onQuantityChange(item.itemId, item.quantity - 1)}
+                  onClick={() =>
+                    onQuantityChange(item.itemId, item.quantity - 1)
+                  }
                   className="h-7 w-7 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100"
                 >
                   -
@@ -84,7 +86,9 @@ export default function OrderSummary({
                 </span>
                 <button
                   type="button"
-                  onClick={() => onQuantityChange(item.itemId, item.quantity + 1)}
+                  onClick={() =>
+                    onQuantityChange(item.itemId, item.quantity + 1)
+                  }
                   className="h-7 w-7 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100"
                 >
                   +
@@ -106,12 +110,12 @@ export default function OrderSummary({
         </div>
 
         {/* Promo Code Section */}
-        <PromoCodeInput
+        {/* <PromoCodeInput
           appliedPromo={appliedPromo}
           onApply={onPromoApply}
           onRemove={onPromoRemove}
           onError={onPromoError}
-        />
+        /> */}
 
         {appliedPromo && (
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-green-600">
@@ -123,13 +127,15 @@ export default function OrderSummary({
                 {promoDiscount}% off
               </span>
             </span>
-            <span className="sm:text-right">-{formatCurrency(discountCents)}</span>
+            <span className="sm:text-right">
+              -{formatCurrency(discountCents)}
+            </span>
           </div>
         )}
 
         <div className="flex justify-between text-gray-500 text-sm">
           <span>Tax</span>
-          <span>Enter address to calculate</span>
+          {/* <span>Enter address to calculate</span> */}
         </div>
 
         <div className="flex justify-between text-lg font-semibold text-gray-900 pt-3 border-t">
