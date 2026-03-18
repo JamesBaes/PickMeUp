@@ -14,7 +14,7 @@ import { useLocation } from "@/context/locationContext";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, updateQuantity } = useCart();
+  const { items, updateQuantity, clearCart } = useCart();
   const { currentLocation } = useLocation();
   const posthog = usePostHog();
   const [error, setError] = useState<string | null>(null);
@@ -106,10 +106,11 @@ export default function CheckoutPage() {
         total_cents: totalCents,
         items_count: cartItems.length,
       });
+      clearCart();
       sessionStorage.setItem("pendingReceiptToken", receiptToken);
       router.push("/order-confirmation");
     },
-    [router, posthog, totalCents, cartItems.length],
+    [router, posthog, totalCents, cartItems.length, clearCart],
   );
 
   const handleError = useCallback((errorMessage: string) => {
