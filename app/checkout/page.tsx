@@ -42,11 +42,13 @@ export default function CheckoutPage() {
     image: item.image_url,
   }));
 
-  
   // Temp comment just not sure if this function was created from a branch ahead of behind main so uncomment if necessary.
-  const handleQuantityChange = useCallback((itemId: string, quantity: number) => {
-    updateQuantity(itemId, quantity);
-  }, [updateQuantity]);
+  const handleQuantityChange = useCallback(
+    (itemId: string, quantity: number) => {
+      updateQuantity(itemId, quantity);
+    },
+    [updateQuantity],
+  );
 
   const subtotalCents = cartItems.reduce(
     (sum, item) => sum + item.priceCents * item.quantity,
@@ -98,14 +100,17 @@ export default function CheckoutPage() {
   };
 
   // Keep receipt token out of URL and hand it to confirmation page via sessionStorage.
-  const handleSuccess = useCallback((receiptToken: string) => {
-    posthog.capture("payment_success", {
-      total_cents: totalCents,
-      items_count: cartItems.length,
-    });
-    sessionStorage.setItem("pendingReceiptToken", receiptToken);
-    router.push("/order-confirmation");
-  }, [router, posthog, totalCents, cartItems.length]);
+  const handleSuccess = useCallback(
+    (receiptToken: string) => {
+      posthog.capture("payment_success", {
+        total_cents: totalCents,
+        items_count: cartItems.length,
+      });
+      sessionStorage.setItem("pendingReceiptToken", receiptToken);
+      router.push("/order-confirmation");
+    },
+    [router, posthog, totalCents, cartItems.length],
+  );
 
   const handleError = useCallback((errorMessage: string) => {
     setError(errorMessage);
@@ -148,11 +153,6 @@ export default function CheckoutPage() {
 
           {/* Right Column - Payment Form */}
           <div className="bg-white rounded-lg p-8">
-            {/* Apple Pay Button */}
-            <button className="w-full bg-black text-white py-4 rounded-lg font-medium mb-4 flex items-center justify-center hover:bg-gray-900 transition-colors">
-              <span className="text-xl"> Pay</span>
-            </button>
-
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300"></div>
