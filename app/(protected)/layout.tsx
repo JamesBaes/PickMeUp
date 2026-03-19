@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import supabase from "@/utils/supabase/client";
+import { toast } from "sonner";
 
 const navLinks = [
   { label: "Favourites", href: "/favorites" },
@@ -15,6 +16,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   const router = useRouter();
 
   const handleLogout = async () => {
+    toast("Signing out...");
     await supabase.auth.signOut();
     router.push("/");
   };
