@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { login } from "./actions";
+import { toast } from "sonner";
 import Link from "next/link";
 
 const Login = () => {
@@ -12,6 +13,7 @@ const Login = () => {
   const handleLogin = async (formData: FormData) => {
     setLoading(true);
     setError(null);
+    toast("Signing in...");
 
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
@@ -20,6 +22,7 @@ const Login = () => {
 
     // if login failed (success redirects)
     if (result?.error) {
+      toast.dismiss();
       setError(result.error);
       setLoading(false);
     }
