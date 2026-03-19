@@ -49,7 +49,7 @@ const SignUpForm = () => {
         width="96"
         height="96"
       />
-      <h1 className="font-heading text-4xl font-black text-gray-700">
+      <h1 className="font-heading text-4xl font-black text-neutral-700">
         Sign Up
       </h1>
 
@@ -91,7 +91,7 @@ const SignUpForm = () => {
             autoComplete="email"
             required
             disabled={loading}
-            className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
+            className="grow font-heading placeholder:text-neutral-400 disabled:opacity-50"
           />
         </label>
 
@@ -123,7 +123,7 @@ const SignUpForm = () => {
             disabled={loading}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
+            className="grow font-heading placeholder:text-neutral-400 disabled:opacity-50"
           />
           <button
             type="button"
@@ -173,7 +173,7 @@ const SignUpForm = () => {
             autoComplete="new-password"
             required
             disabled={loading}
-            className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
+            className="grow font-heading placeholder:text-neutral-400 disabled:opacity-50"
           />
           <button
             type="button"
@@ -198,14 +198,14 @@ const SignUpForm = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg py-3 font-heading font-medium text-lg transition-colors hover:cursor-pointer disabled:opacity-50"
+          className="w-full bg-info hover:bg-info-hover active:bg-info-dark text-white rounded-lg py-3 font-heading font-medium text-lg transition-colors hover:cursor-pointer disabled:opacity-50"
         >
           {loading ? "Creating Account..." : "Create an Account"}
         </button>
 
-        <p className="font-heading text-grey-700 text-center text-sm mt-2 pb-20">
+        <p className="font-heading text-neutral-700 text-center text-sm mt-2 pb-20">
           Already have an account?{" "}
-          <Link href="/login" className="text-blue-500 hover:text-blue-700">
+          <Link href="/login" className="text-info-muted hover:text-info-hover">
             Login
           </Link>
         </p>

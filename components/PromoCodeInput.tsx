@@ -35,19 +35,19 @@ export default function PromoCodeInput({
         onChange={(e) => setInputValue(e.target.value.toUpperCase())}
         placeholder="Promo code"
         disabled={!!appliedPromo}
-        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+        className="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-info-muted disabled:bg-neutral-100"
       />
       {!appliedPromo ? (
         <button
           onClick={handleApply}
-          className="w-full sm:w-auto px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+          className="w-full sm:w-auto px-6 py-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 transition-colors"
         >
           Apply
         </button>
       ) : (
         <button
           onClick={onRemove}
-          className="w-full sm:w-auto px-6 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+          className="w-full sm:w-auto px-6 py-2 bg-danger-subtle text-danger-text rounded-lg hover:bg-danger-border transition-colors"
         >
           Remove
         </button>

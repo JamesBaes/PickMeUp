@@ -21,9 +21,9 @@ export default function BillingAddressForm({
 
   return (
     <div className="mb-6">
-      <h3 className="text-gray-900 font-medium mb-3">Billing address</h3>
+      <h3 className="text-neutral-900 font-medium mb-3">Billing address</h3>
       <div className="space-y-3">
-        <label htmlFor="billing-country" className="block text-sm text-gray-700 mb-1">
+        <label htmlFor="billing-country" className="block text-sm text-neutral-700 mb-1">
           Country
         </label>
         <select
@@ -31,14 +31,14 @@ export default function BillingAddressForm({
           value={country}
           onChange={(e) => onCountryChange(e.target.value)}
           autoComplete="country-name"
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-info-muted bg-background"
         >
           <option value="Canada">Canada</option>
           <option value="United States">United States</option>
           <option value="Mexico">Mexico</option>
         </select>
         <div>
-          <label htmlFor="billing-address" className="block text-sm text-gray-700 mb-1">
+          <label htmlFor="billing-address" className="block text-sm text-neutral-700 mb-1">
             Address
           </label>
           <input
@@ -50,10 +50,10 @@ export default function BillingAddressForm({
             autoComplete="street-address"
             aria-invalid={Boolean(errors.address)}
             aria-describedby={addressErrorId}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-info-muted"
           />
           {errors.address && (
-            <p id="billing-address-error" className="mt-1 text-sm text-red-600">{errors.address}</p>
+            <p id="billing-address-error" className="mt-1 text-sm text-danger-dark">{errors.address}</p>
           )}
         </div>
       </div>
