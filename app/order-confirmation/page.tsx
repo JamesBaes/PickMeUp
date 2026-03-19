@@ -105,17 +105,17 @@ export default function OrderConfirmationPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="font-body text-gray-600">Loading order details...</p>
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <p className="font-body text-neutral-600">Loading order details...</p>
       </div>
     );
   }
 
   if (error || !orderData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="font-body text-red-600 mb-4">{error || "Order not found"}</p>
+          <p className="font-body text-danger-dark mb-4">{error || "Order not found"}</p>
           <button
             onClick={() => router.push("/")}
             className="text-accent hover:underline font-body"
@@ -128,24 +128,24 @@ export default function OrderConfirmationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-neutral-50">
       <div className="max-w-7xl mx-auto px-8 py-12">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left Column - Thank You Message & Payment Summary */}
           <div className="space-y-8">
             {/* Thank You Message */}
             <div>
-              <h1 className="font-heading font-bold text-5xl text-gray-900 mb-6">
+              <h1 className="font-heading font-bold text-5xl text-neutral-900 mb-6">
                 Thank you for your order!
               </h1>
-              <p className="font-body text-gray-600 text-lg mb-8">
+              <p className="font-body text-neutral-600 text-lg mb-8">
                 We will notify you once your order has begun being processed.
                 <br />
                 You can view the status of your order below.
               </p>
 
               {/* Pickup Time */}
-              <div className="font-heading text-3xl text-gray-900">
+              <div className="font-heading text-3xl text-neutral-900">
                 <span className="font-semibold">Pick Up Time:</span>{" "}
                 <span className="font-bold">{formatPickupTime(orderData.pickupTime)}</span>
               </div>
@@ -153,30 +153,30 @@ export default function OrderConfirmationPage() {
 
             {/* Payment Summary Card */}
             <div className="bg-white rounded-2xl shadow-md p-8">
-              <h2 className="font-heading font-bold text-3xl text-gray-900 mb-6">
+              <h2 className="font-heading font-bold text-3xl text-neutral-900 mb-6">
                 Payment Summary
               </h2>
 
               {/* Billing Address */}
               <div className="mb-8">
-                <h3 className="font-heading font-semibold text-xl text-gray-800 mb-4">
+                <h3 className="font-heading font-semibold text-xl text-neutral-800 mb-4">
                   Billing Address
                 </h3>
-                <div className="space-y-2 font-body text-gray-700">
+                <div className="space-y-2 font-body text-neutral-700">
                   <div className="flex">
-                    <span className="w-20 text-gray-600">Name:</span>
+                    <span className="w-20 text-neutral-600">Name:</span>
                     <span>{orderData.customerName}</span>
                   </div>
                   <div className="flex">
-                    <span className="w-20 text-gray-600">Address:</span>
+                    <span className="w-20 text-neutral-600">Address:</span>
                     <span>{orderData.billingAddress}</span>
                   </div>
                   <div className="flex">
-                    <span className="w-20 text-gray-600">Email:</span>
+                    <span className="w-20 text-neutral-600">Email:</span>
                     <span>{orderData.customerEmail}</span>
                   </div>
                   <div className="flex">
-                    <span className="w-20 text-gray-600">Phone:</span>
+                    <span className="w-20 text-neutral-600">Phone:</span>
                     <span>{orderData.customerPhone}</span>
                   </div>
                 </div>
@@ -187,12 +187,12 @@ export default function OrderConfirmationPage() {
                 <button
                   onClick={handleEmailReceipt}
                   disabled={sendingEmail || emailSent}
-                  className="bg-accent text-white font-heading font-semibold py-3 px-8 rounded-lg hover:shadow-lg transition-all disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="bg-accent text-white font-heading font-semibold py-3 px-8 rounded-lg hover:shadow-lg transition-all disabled:bg-neutral-400 disabled:cursor-not-allowed"
                 >
                   {sendingEmail ? "Sending..." : emailSent ? "Email Sent!" : "Email Receipt"}
                 </button>
                 {emailSent && (
-                  <p className="mt-2 text-sm text-green-600 font-body">
+                  <p className="mt-2 text-sm text-success font-body">
                     Receipt sent to {orderData.customerEmail}
                   </p>
                 )}
@@ -202,33 +202,33 @@ export default function OrderConfirmationPage() {
 
           {/* Right Column - Order Summary */}
           <div className="bg-white rounded-2xl shadow-md p-8">
-            <h2 className="font-heading font-bold text-3xl text-gray-900 mb-6">
+            <h2 className="font-heading font-bold text-3xl text-neutral-900 mb-6">
               Order Summary
             </h2>
 
             {/* Order Details */}
             <div className="space-y-3 mb-6 font-body">
               <div className="flex justify-between">
-                <span className="text-gray-600">Order Number:</span>
-                <span className="text-gray-900">{orderData.orderNumber}</span>
+                <span className="text-neutral-600">Order Number:</span>
+                <span className="text-neutral-900">{orderData.orderNumber}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Date:</span>
-                <span className="text-gray-900">{orderData.date}</span>
+                <span className="text-neutral-600">Date:</span>
+                <span className="text-neutral-900">{orderData.date}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Payment Method:</span>
-                <span className="text-gray-900">{orderData.paymentMethod}</span>
+                <span className="text-neutral-600">Payment Method:</span>
+                <span className="text-neutral-900">{orderData.paymentMethod}</span>
               </div>
             </div>
 
-            <hr className="border-gray-300 mb-6" />
+            <hr className="border-neutral-300 mb-6" />
 
             {/* Order Items */}
             <div className="space-y-4 mb-6">
               {orderData.items.map((item, index) => (
                 <div key={index} className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 bg-gray-100">
+                  <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 bg-neutral-100">
                     {item.image_url ? (
                       <Image
                         src={item.image_url}
@@ -238,43 +238,43 @@ export default function OrderConfirmationPage() {
                         className="object-cover w-full h-full"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gray-200" />
+                      <div className="w-full h-full bg-neutral-200" />
                     )}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-heading font-semibold text-lg text-gray-900">
+                    <h3 className="font-heading font-semibold text-lg text-neutral-900">
                       {item.name}
                     </h3>
-                    <p className="font-body text-sm text-gray-600">
+                    <p className="font-body text-sm text-neutral-600">
                       Quantity: {item.quantity}
                     </p>
                   </div>
-                  <div className="font-body text-gray-900">
+                  <div className="font-body text-neutral-900">
                     ${(item.price * item.quantity).toFixed(2)}
                   </div>
                 </div>
               ))}
             </div>
 
-            <hr className="border-gray-300 mb-6" />
+            <hr className="border-neutral-300 mb-6" />
 
             {/* Pricing */}
             <div className="space-y-3 font-body mb-6">
               <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal</span>
-                <span className="text-gray-900">${orderData.subtotal.toFixed(2)}</span>
+                <span className="text-neutral-600">Subtotal</span>
+                <span className="text-neutral-900">${orderData.subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Tax</span>
-                <span className="text-gray-900">${orderData.tax.toFixed(2)}</span>
+                <span className="text-neutral-600">Tax</span>
+                <span className="text-neutral-900">${orderData.tax.toFixed(2)}</span>
               </div>
             </div>
 
             {/* Order Total */}
-            <div className="pt-4 border-t border-gray-300">
+            <div className="pt-4 border-t border-neutral-300">
               <div className="flex justify-between font-heading text-2xl">
-                <span className="font-bold text-gray-900">Order Total</span>
-                <span className="font-bold text-gray-900">
+                <span className="font-bold text-neutral-900">Order Total</span>
+                <span className="font-bold text-neutral-900">
                   ${orderData.total.toFixed(2)}
                 </span>
               </div>

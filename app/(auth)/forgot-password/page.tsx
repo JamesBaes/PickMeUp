@@ -36,7 +36,7 @@ const ForgotPassword = () => {
         width="80"
         height="80"
       />
-      <h1 className="font-heading text-4xl font-black text-gray-700 text-center leading-tight">
+      <h1 className="font-heading text-4xl font-black text-neutral-700 text-center leading-tight">
         Forgot Password
       </h1>
 
@@ -50,7 +50,7 @@ const ForgotPassword = () => {
           </div>
           <Link
             href="/login"
-            className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg py-3 font-heading font-medium text-lg transition-colors text-center"
+            className="w-full bg-info hover:bg-info-hover active:bg-info-dark text-white rounded-lg py-3 font-heading font-medium text-lg transition-colors text-center"
           >
             Back to Login
           </Link>
@@ -89,14 +89,14 @@ const ForgotPassword = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="grow font-heading placeholder:text-gray-400"
+              className="grow font-heading placeholder:text-neutral-400"
             />
           </label>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg py-3 font-heading font-medium text-lg transition-colors hover:cursor-pointer disabled:opacity-50"
+            className="w-full bg-info hover:bg-info-hover active:bg-info-dark text-white rounded-lg py-3 font-heading font-medium text-lg transition-colors hover:cursor-pointer disabled:opacity-50"
           >
             {loading ? "Sending..." : "Send Password Reset Link"}
           </button>

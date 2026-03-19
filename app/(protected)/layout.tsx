@@ -30,8 +30,8 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
               href={href}
               className={`text-sm font-body py-2 px-3 rounded transition-colors whitespace-nowrap ${
                 pathname === href
-                  ? "font-semibold text-slate-900"
-                  : "text-slate-700 hover:text-slate-900"
+                  ? "font-semibold text-neutral-900"
+                  : "text-neutral-700 hover:text-neutral-900"
               }`}
             >
               {label}
@@ -42,7 +42,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
         <div className="mt-2 md:mt-4 border-t border-base-200 pt-2 md:pt-4 pb-2 md:pb-0">
           <button
             onClick={handleLogout}
-            className="text-sm font-body py-2 px-3 rounded text-slate-700 hover:text-slate-900 transition-colors w-full text-left"
+            className="text-sm font-body py-2 px-3 rounded text-neutral-700 hover:text-neutral-900 transition-colors w-full text-left"
           >
             Log Out
           </button>

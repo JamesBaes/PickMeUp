@@ -8,6 +8,51 @@
   --accent: #A30000;
   --secondary: #850000;
   --active: #6d0000;
+
+  /* Neutral scale */
+  --neutral-50: #F9FAFB;
+  --neutral-100: #F3F4F6;
+  --neutral-200: #E5E7EB;
+  --neutral-300: #D1D5DB;
+  --neutral-400: #9CA3AF;
+  --neutral-500: #6B7280;
+  --neutral-600: #4B5563;
+  --neutral-700: #374151;
+  --neutral-800: #1F2937;
+  --neutral-900: #111827;
+
+  /* Danger / Error */
+  --danger: #EF4444;
+  --danger-dark: #DC2626;
+  --danger-subtle: #FEE2E2;
+  --danger-border: #FECACA;
+  --danger-text: #B91C1C;
+
+  /* Info (blue) */
+  --info-muted: #3B82F6;
+  --info: #2563EB;
+  --info-hover: #1D4ED8;
+  --info-dark: #1E40AF;
+  --info-bg: #EFF6FF;
+  --info-border: #BFDBFE;
+
+  /* Success (green/emerald) */
+  --success: #16A34A;
+  --success-dark: #15803D;
+  --success-subtle: #DCFCE7;
+  --success-indicator: #10B981;
+
+  /* Warning (amber) */
+  --warning-bg: #FFFBEB;
+  --warning-bg-hover: #FEF3C7;
+  --warning-highlight: #FCD34D;
+  --warning-text: #B45309;
+  --warning-text-dark: #92400E;
+
+  /* Misc */
+  --heart: #EC4899;
+  --rating: #F59E0B;
+  --black: #000000;
 }
 
 @theme inline {
@@ -26,6 +71,51 @@
   --font-body: var(--font-body);
   --color-secondary: var(--secondary);
   --color-active: var(--active);
+
+  /* Neutral scale */
+  --color-neutral-50: var(--neutral-50);
+  --color-neutral-100: var(--neutral-100);
+  --color-neutral-200: var(--neutral-200);
+  --color-neutral-300: var(--neutral-300);
+  --color-neutral-400: var(--neutral-400);
+  --color-neutral-500: var(--neutral-500);
+  --color-neutral-600: var(--neutral-600);
+  --color-neutral-700: var(--neutral-700);
+  --color-neutral-800: var(--neutral-800);
+  --color-neutral-900: var(--neutral-900);
+
+  /* Danger */
+  --color-danger: var(--danger);
+  --color-danger-dark: var(--danger-dark);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-danger-border: var(--danger-border);
+  --color-danger-text: var(--danger-text);
+
+  /* Info */
+  --color-info-muted: var(--info-muted);
+  --color-info: var(--info);
+  --color-info-hover: var(--info-hover);
+  --color-info-dark: var(--info-dark);
+  --color-info-bg: var(--info-bg);
+  --color-info-border: var(--info-border);
+
+  /* Success */
+  --color-success: var(--success);
+  --color-success-dark: var(--success-dark);
+  --color-success-subtle: var(--success-subtle);
+  --color-success-indicator: var(--success-indicator);
+
+  /* Warning */
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-bg-hover: var(--warning-bg-hover);
+  --color-warning-highlight: var(--warning-highlight);
+  --color-warning-text: var(--warning-text);
+  --color-warning-text-dark: var(--warning-text-dark);
+
+  /* Misc */
+  --color-heart: var(--heart);
+  --color-rating: var(--rating);
+  --color-black: var(--black);
 }
 
 @media (prefers-color-scheme: dark) {
