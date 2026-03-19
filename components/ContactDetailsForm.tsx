@@ -1,6 +1,6 @@
 "use client";
 
-import { formatPhoneNumber } from "@/helpers/checkoutValidation";
+import { formatPhoneNumber, stripInjectionChars } from "@/helpers/checkoutValidation";
 
 interface ContactDetailsFormProps {
   email: string;
@@ -41,8 +41,9 @@ export default function ContactDetailsForm({
             type="email"
             placeholder="email@example.com"
             value={email}
-            onChange={(e) => onEmailChange(e.target.value)}
+            onChange={(e) => onEmailChange(stripInjectionChars(e.target.value))}
             autoComplete="email"
+            maxLength={50}
             aria-invalid={Boolean(errors.email)}
             aria-describedby={emailErrorId}
             className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-info-muted"
@@ -62,6 +63,7 @@ export default function ContactDetailsForm({
             value={phone}
             onChange={(e) => handlePhoneChange(e.target.value)}
             autoComplete="tel"
+            maxLength={20}
             aria-invalid={Boolean(errors.phone)}
             aria-describedby={phoneErrorId}
             className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-info-muted"

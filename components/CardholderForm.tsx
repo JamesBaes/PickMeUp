@@ -1,5 +1,7 @@
 "use client";
 
+import { sanitizeNameInput } from "@/helpers/checkoutValidation";
+
 interface CardholderFormProps {
   name: string;
   onNameChange: (name: string) => void;
@@ -25,8 +27,9 @@ export default function CardholderForm({
           type="text"
           placeholder="Full name on card"
           value={name}
-          onChange={(e) => onNameChange(e.target.value)}
+          onChange={(e) => onNameChange(sanitizeNameInput(e.target.value))}
           autoComplete="cc-name"
+          maxLength={50}
           aria-invalid={Boolean(error)}
           aria-describedby={nameErrorId}
           className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-info-muted"

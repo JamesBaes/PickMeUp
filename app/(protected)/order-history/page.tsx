@@ -6,6 +6,7 @@ import supabase from "@/utils/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { useCart } from "@/context/cartContext";
 import type { MenuItem } from "@/types";
+import { stripInjectionChars } from "@/helpers/checkoutValidation";
 
 type OrderStatus =
   | "ordered"
@@ -629,9 +630,10 @@ export default function OrderHistoryPage() {
               <input
                 type="text"
                 placeholder="Search"
-                className="h-10 w-full sm:w-40 md:w-44 rounded-lg border border-stone-300 bg-white px-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-accent/20"
+                className="h-10 w-full sm:w-40 md:w-44 rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-accent/20"
+                maxLength={100}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(stripInjectionChars(e.target.value))}
               />
               <button
                 className="w-10 h-10 rounded-lg bg-white border border-stone-300 text-neutral-700 hover:bg-stone-50 flex items-center justify-center shadow-sm"
