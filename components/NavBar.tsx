@@ -70,7 +70,7 @@ const NavBar = () => {
     }`;
 
   return (
-    <div className="navbar bg-neutral-50 border-b border-neutral-100 shadow-lg px-3 sm:px-6 md:px-12 py-2">
+    <div className="navbar sticky top-0 z-30 bg-neutral-50 border-b border-neutral-100 shadow-lg px-3 sm:px-6 md:px-12 py-2">
       {/* Left: Logo */}
       <div className="navbar-start">
         <Link href="/" className="flex items-center gap-2 sm:gap-3 min-w-0">

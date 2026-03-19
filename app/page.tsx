@@ -1,9 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { useRouter, usePathname } from "next/navigation";
 import supabase from "@/utils/supabase/client";
 import { MenuItem } from "@/types/";
 import {
@@ -14,19 +11,15 @@ import {
 } from "@/helpers/menuHelpers";
 import CategorySection from "@/components/CategorySection";
 import { useLocation } from "@/context/locationContext";
-import { useCart } from "@/context/cartContext";
-import { useAuth } from "@/context/authContext";
 
 export default function MenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
   // SHOULD ADD A LOADING STATE PROBABLY (LIKE HOW WE DID IN MOBILE DEV CPRG-303)
   const [loading, setLoading] = useState(true);
-  const [signingOut, setSigningOut] = useState(false);
   const [isRefreshingMenu, setIsRefreshingMenu] = useState(false);
   const [hasFetchedMenu, setHasFetchedMenu] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [isMergedHeaderVisible, setIsMergedHeaderVisible] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const categoryNavRef = useRef<HTMLDivElement | null>(null);
   const categoryButtonRefs = useRef<Record<string, HTMLButtonElement | null>>(
@@ -44,25 +37,6 @@ export default function MenuPage() {
     setCurrentLocation,
     loading: locationLoading,
   } = useLocation();
-  const { getItemCount } = useCart();
-  const { user } = useAuth();
-  const itemCount = getItemCount();
-
-  const router = useRouter();
-  const pathname = usePathname();
-
-  const handleSignOut = async () => {
-    setSigningOut(true);
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error("Sign out error:", error.message);
-      setSigningOut(false);
-      return;
-    }
-    setSigningOut(false);
-    router.push("/");
-    router.refresh();
-  };
 
   useEffect(() => {
     // Wait for browser-only location hydration before first fetch.
@@ -102,10 +76,8 @@ export default function MenuPage() {
   }, [currentLocation, isHydrated]);
 
   useEffect(() => {
-    // Drive floating "scroll to top" and compact merged header visibility.
     const onScroll = () => {
       setShowScrollTop(window.scrollY > 300);
-      setIsMergedHeaderVisible(window.scrollY > 88);
     };
     window.addEventListener("scroll", onScroll);
     onScroll();
@@ -263,182 +235,28 @@ export default function MenuPage() {
   return (
     <div className="relative">
       {categories.length > 0 && (
-        <nav className="sticky top-0 z-20 bg-background border-b border-neutral-200 shadow-sm">
-          {/* Row 1: logo (when scrolled) + location selector + cart/auth (when scrolled) */}
-          <div className="container mx-auto px-4 py-3 flex items-center gap-3">
-            {isMergedHeaderVisible && (
-              <Link href="/" className="flex items-center gap-2 shrink-0 pr-1">
-                <Image
-                  src="/gladiator-logo.png"
-                  alt="Gladiator Logo"
-                  title="Gladiator Logo"
-                  width={30}
-                  height={30}
-                />
-              </Link>
-            )}
-
-            <div className={`shrink-0 ${isMergedHeaderVisible ? "hidden" : "w-56"}`}>
-              <select
-                value={currentLocation?.id || ""}
-                onChange={handleLocationChange}
-                disabled={locationLoading}
-                className="w-full rounded-lg border border-neutral-300 bg-background px-3 py-2 font-body text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-accent disabled:cursor-not-allowed disabled:bg-neutral-100"
-              >
-                <option value="" disabled>
-                  {locationLoading ? "Loading locations..." : "Select Location"}
-                </option>
-                {locations.map((location) => (
-                  <option key={location.id} value={location.id}>
-                    {location.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex-1" />
-
-            {isMergedHeaderVisible && (
-              <div className="flex items-center gap-2 shrink-0 pl-1">
-                <Link
-                  href="/cart"
-                  className="btn btn-ghost btn-circle relative"
+        <nav className="sticky top-16 z-20 bg-background border-b border-neutral-200 shadow-sm">
+          <div
+            ref={categoryNavRef}
+            className="overflow-x-auto no-scrollbar px-4 py-2"
+          >
+            <div className="flex w-max min-w-full flex-nowrap gap-1 md:justify-center">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  ref={(element) => {
+                    categoryButtonRefs.current[category] = element;
+                  }}
+                  onClick={() => scrollToCategory(category)}
+                  className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-body font-medium transition-colors shrink-0 ${
+                    activeCategory === category
+                      ? "bg-danger-dark text-white"
+                      : "text-neutral-700 hover:bg-neutral-100"
+                  }`}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                  {itemCount > 0 && (
-                    <span className="badge badge-sm absolute -top-1 -right-1 bg-accent text-white border-none">
-                      {itemCount}
-                    </span>
-                  )}
-                </Link>
-
-                {user ? (
-                  <div className="dropdown dropdown-end">
-                    <div
-                      tabIndex={0}
-                      role="button"
-                      aria-label="Account menu"
-                      aria-haspopup="true"
-                      className="btn btn-ghost btn-circle"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6"
-                        aria-hidden="true"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zM21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    </div>
-                    <ul
-                      tabIndex={0}
-                      className="menu menu-sm dropdown-content bg-base-100 rounded-box shadow-lg mt-3 w-52 p-2 z-50 border border-neutral-100"
-                    >
-                      <li>
-                        <Link
-                          href="/account"
-                          className={`font-heading font-semibold capitalize ${pathname === "/account" ? "text-accent" : ""}`}
-                        >
-                          account
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/order-history"
-                          className={`font-heading font-semibold capitalize ${pathname === "/order-history" ? "text-accent" : ""}`}
-                        >
-                          order history
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/favorites"
-                          className={`font-heading font-semibold capitalize ${pathname === "/favorites" ? "text-accent" : ""}`}
-                        >
-                          favorites
-                        </Link>
-                      </li>
-                      <li>
-                        <button
-                          onClick={handleSignOut}
-                          disabled={signingOut}
-                          className="font-heading font-semibold capitalize disabled:opacity-50"
-                        >
-                          {signingOut ? "signing out..." : "sign out"}
-                        </button>
-                      </li>
-                    </ul>
-                  </div>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="btn btn-ghost btn-circle"
-                    aria-label="Login"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zM21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </Link>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Row 2: Category scroll bar */}
-          <div className="border-t border-neutral-100">
-            <div
-              ref={categoryNavRef}
-              className="overflow-x-auto no-scrollbar px-4 py-2"
-            >
-              <div className="flex w-max min-w-full flex-nowrap gap-1 md:justify-center">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    ref={(element) => {
-                      categoryButtonRefs.current[category] = element;
-                    }}
-                    onClick={() => scrollToCategory(category)}
-                    className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-body font-medium transition-colors shrink-0 ${
-                      activeCategory === category
-                        ? "bg-danger-dark text-white"
-                        : "text-neutral-700 hover:bg-neutral-100"
-                    }`}
-                  >
-                    {formatCategoryName(category)}
-                  </button>
-                ))}
-              </div>
+                  {formatCategoryName(category)}
+                </button>
+              ))}
             </div>
           </div>
         </nav>
@@ -448,6 +266,24 @@ export default function MenuPage() {
           isRefreshingMenu ? "opacity-45" : "opacity-100"
         }`}
       >
+        {/* Location selector */}
+        <div className="mb-6 w-56">
+          <select
+            value={currentLocation?.id || ""}
+            onChange={handleLocationChange}
+            disabled={locationLoading}
+            className="w-full rounded-lg border border-neutral-300 bg-background px-3 py-2 font-body text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-accent disabled:cursor-not-allowed disabled:bg-neutral-100"
+          >
+            <option value="" disabled>
+              {locationLoading ? "Loading locations..." : "Select Location"}
+            </option>
+            {locations.map((location) => (
+              <option key={location.id} value={location.id}>
+                {location.name}
+              </option>
+            ))}
+          </select>
+        </div>
         {categories.length === 0 ? (
           <div>
             <p>No items found.</p>
