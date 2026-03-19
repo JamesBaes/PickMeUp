@@ -106,7 +106,7 @@ const ResetPassword = () => {
         width={80}
         height={80}
       />
-      <h1 className="font-heading text-4xl font-black text-center leading-tight text-gray-700">
+      <h1 className="font-heading text-4xl font-black text-center leading-tight text-neutral-700">
         Reset Password
       </h1>
 
@@ -160,11 +160,12 @@ const ResetPassword = () => {
               type={showNewPassword ? 'text' : 'password'}
               placeholder="Enter new password"
               aria-label="New password"
+              maxLength={128}
               required
               disabled={isLoading}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
+              className="grow font-heading placeholder:text-neutral-400 disabled:opacity-50"
             />
             <button
               type="button"
@@ -224,11 +225,12 @@ const ResetPassword = () => {
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Confirm new password"
               aria-label="Confirm new password"
+              maxLength={128}
               required
               disabled={isLoading}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
+              className="grow font-heading placeholder:text-neutral-400 disabled:opacity-50"
             />
             <button
               type="button"
@@ -257,7 +259,7 @@ const ResetPassword = () => {
         <button
           type="submit"
           disabled={!canSubmit}
-          className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg py-3 font-heading font-medium text-lg transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full bg-info hover:bg-info-hover active:bg-info-dark text-white rounded-lg py-3 font-heading font-medium text-lg transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? 'Updating...' : 'Reset Password'}
         </button>

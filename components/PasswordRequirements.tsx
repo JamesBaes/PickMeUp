@@ -54,7 +54,7 @@ const PasswordRequirements = ({ password }: PasswordRequirementsProps) => {
               </svg>
             )}
           </div>
-          <span className="text-gray-800">{label}</span>
+          <span className="text-neutral-800">{label}</span>
         </li>
       ))}
     </ul>

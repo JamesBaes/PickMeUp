@@ -2,6 +2,18 @@
  * Validation functions for checkout form fields
  */
 
+// Restrict name fields to letters, spaces, hyphens, apostrophes, and periods
+export const sanitizeNameInput = (value: string): string =>
+  value.replace(/[^a-zA-Z\s\-'.,]/g, "");
+
+// Restrict address fields to alphanumeric and common address punctuation
+export const sanitizeAddressInput = (value: string): string =>
+  value.replace(/[^a-zA-Z0-9\s\-.,#/]/g, "");
+
+// Strip characters commonly used in injection and XSS attacks
+export const stripInjectionChars = (value: string): string =>
+  value.replace(/[<>"`;\\]/g, "");
+
 export const validateEmail = (email: string): string | undefined => {
   if (!email.trim()) {
     return "Email is required";
