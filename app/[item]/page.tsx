@@ -275,7 +275,7 @@ useEffect(() => {
         {Array.from({ length: 5 }, (_, index) => (
           <span
             key={index}
-            className={index < stars ? "text-amber-500" : "text-base-content/25"}
+            className={index < stars ? "text-rating" : "text-base-content/25"}
             aria-hidden="true"
           >
             ★
@@ -303,7 +303,7 @@ useEffect(() => {
               className="text-lg"
               aria-label={`Set rating to ${value} star${value > 1 ? "s" : ""}`}
             >
-              <span className={value <= selectedRating ? "text-amber-500" : "text-base-content/25"}>★</span>
+              <span className={value <= selectedRating ? "text-rating" : "text-base-content/25"}>★</span>
             </button>
           );
         })}
@@ -590,11 +590,11 @@ useEffect(() => {
                 aria-label={isFavorite(item.item_id) ? "Remove from favourites" : "Add to favourites"}
               >
                 {isFavorite(item.item_id) ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 text-red-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 text-danger-dark">
                     <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
                   </svg>
                 ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7 text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7 text-neutral-400">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                   </svg>
                 )}
@@ -612,13 +612,13 @@ useEffect(() => {
           <div className="divider"></div>
           
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 border-white border-2 bg-gray-100 rounded-lg">
+            <div className="p-4 border-white border-2 bg-neutral-100 rounded-lg">
               <p className="text-xl font-heading font-medium text-black mb-1">Calories</p>
               {/* <p className="text-md font-body font-sm capitalize">{item.calories}</p> */}  {/* add this line back after design review LOLLLLLL*/}
               <p className="text-md font-body font-sm capitalize">450 Cal</p>
             </div>
             
-            <div className="p-4 border-white border-2 bg-gray-100 rounded-lg">
+            <div className="p-4 border-white border-2 bg-neutral-100 rounded-lg">
               <p className="text-xl font-heading font-medium text-black mb-1">Category</p>
               <p className="text-md font-body font-sm capitalize">
                 {item.category.replace(/_/g, " ")}
@@ -675,8 +675,8 @@ useEffect(() => {
                 disabled={quantity === 1}
                 className={`btn shadow-sm border-0 btn-circle btn-sm text-lg ${
                   quantity === 1
-                    ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                    : 'bg-gray-400 text-black hover:bg-gray-500'
+                    ? 'bg-neutral-100 text-neutral-300 cursor-not-allowed'
+                    : 'bg-neutral-400 text-black hover:bg-neutral-500'
                 }`}
               >
                 -
@@ -686,14 +686,14 @@ useEffect(() => {
               </span>
               <button
                 onClick={() => setQuantity(quantity + 1)}
-                className="btn shadow-sm border-0 btn-circle btn-sm text-lg text-black bg-gray-400 hover:bg-gray-500"
+                className="btn shadow-sm border-0 btn-circle btn-sm text-lg text-black bg-neutral-400 hover:bg-neutral-500"
               >
                 +
               </button>
             </div>
 
             {showNotification ? (
-              <div className="btn btn-lg flex-1 bg-green-600 border-0 pointer-events-none">
+              <div className="btn btn-lg flex-1 bg-success border-0 pointer-events-none">
                 <p className="font-heading text-white">Added to cart!</p>
               </div>
             ) : (
@@ -742,7 +742,7 @@ useEffect(() => {
                     aria-label={`Set rating to ${value} star${value > 1 ? "s" : ""}`}
                     disabled={!user || submittingComment}
                   >
-                    <span className={value <= newRating ? "text-amber-500" : "text-base-content/25"}>★</span>
+                    <span className={value <= newRating ? "text-rating" : "text-base-content/25"}>★</span>
                   </button>
                 );
               })}

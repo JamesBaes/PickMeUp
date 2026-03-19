@@ -17,9 +17,9 @@ export default function CardholderForm({
 
   return (
     <div className="mb-6">
-      <h3 className="text-gray-900 font-medium mb-3">Cardholder</h3>
+      <h3 className="text-neutral-900 font-medium mb-3">Cardholder</h3>
       <div>
-        <label htmlFor="cardholder-name" className="block text-sm text-gray-700 mb-1">
+        <label htmlFor="cardholder-name" className="block text-sm text-neutral-700 mb-1">
           Full name on card
         </label>
         <input
@@ -32,9 +32,9 @@ export default function CardholderForm({
           maxLength={50}
           aria-invalid={Boolean(error)}
           aria-describedby={nameErrorId}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-info-muted"
         />
-        {error && <p id="cardholder-name-error" className="mt-1 text-sm text-red-600">{error}</p>}
+        {error && <p id="cardholder-name-error" className="mt-1 text-sm text-danger-dark">{error}</p>}
       </div>
     </div>
   );

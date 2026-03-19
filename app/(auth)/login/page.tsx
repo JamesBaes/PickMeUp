@@ -35,7 +35,7 @@ const Login = () => {
         width="80"
         height="80"
       />
-      <h1 className="font-heading text-4xl font-black text-foreground text-center leading-tight text-gray-700">
+      <h1 className="font-heading text-4xl font-black text-center leading-tight text-neutral-700">
         Welcome to
         <br />
         Gladiator Burger
@@ -112,7 +112,7 @@ const Login = () => {
             maxLength={128}
             required
             disabled={loading}
-            className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
+            className="grow font-heading placeholder:text-neutral-400 disabled:opacity-50"
           />
           <button
             type="button"
@@ -155,7 +155,7 @@ const Login = () => {
         <div className="text-right">
           <Link
             href="/forgot-password"
-            className="font-heading text-blue-500 hover:text-blue-700 text-sm"
+            className="font-heading text-info-muted hover:text-info-hover text-sm"
           >
             Forgot Password?
           </Link>
@@ -164,15 +164,15 @@ const Login = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg py-3 font-heading font-medium text-lg transition-colors hover:cursor-pointer disabled:opacity-50"
+          className="w-full bg-info hover:bg-info-hover active:bg-info-dark text-white rounded-lg py-3 font-heading font-medium text-lg transition-colors hover:cursor-pointer disabled:opacity-50"
         >
           {loading ? "Signing in..." : "Sign In"}
         </button>
 
-        <p className="text-center font-heading text-sm text-gray-500 mt-2 pb-20">
+        <p className="text-center font-heading text-sm text-neutral-500 mt-2 pb-20">
           New to Gladiator Burger?
           <br />
-          <Link href="/sign-up" className="text-blue-500 hover:text-blue-700">
+          <Link href="/sign-up" className="text-info-muted hover:text-info-hover">
             Create your account.
           </Link>
         </p>

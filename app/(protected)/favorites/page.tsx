@@ -32,7 +32,7 @@ export default function FavoritesPage() {
     <div className="min-h-screen bg-stone-50">
       <section className="border-b border-stone-300 bg-white">
         <div className="max-w-6xl mx-auto px-4 py-10">
-          <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-slate-900">
+          <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-neutral-900">
             Favourites
           </h1>
         </div>
@@ -41,7 +41,7 @@ export default function FavoritesPage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="rounded-2xl border-2 border-accent/70 bg-white shadow-md p-5 md:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h2 className="font-heading text-2xl font-bold text-slate-900">
+            <h2 className="font-heading text-2xl font-bold text-neutral-900">
               {favoriteItems.length} Favorite Items
             </h2>
           </div>
@@ -56,13 +56,13 @@ export default function FavoritesPage() {
           )}
         </div>
 
-        <h3 className="text-3xl font-heading font-bold text-slate-900 mb-5">
+        <h3 className="text-3xl font-heading font-bold text-neutral-900 mb-5">
           Your Favorite Burgers
         </h3>
 
         {favoriteItems.length === 0 ? (
           <div className="rounded-2xl border border-stone-200 bg-white p-10 text-center">
-            <p className="text-slate-500 mb-4">
+            <p className="text-neutral-500 mb-4">
               You haven&apos;t added any favorites yet.
             </p>
             <Link
@@ -99,7 +99,7 @@ export default function FavoritesPage() {
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
                       fill="currentColor"
-                      className="w-4 h-4 text-pink-500"
+                      className="w-4 h-4 text-heart"
                     >
                       <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
                     </svg>
@@ -108,14 +108,14 @@ export default function FavoritesPage() {
 
                 <div className="p-4 flex flex-col grow">
                   <Link href={`/${item.item_id}`} className="hover:underline">
-                    <h4 className="font-heading text-2xl font-semibold text-slate-900 wrap-break-word">
+                    <h4 className="font-heading text-2xl font-semibold text-neutral-900 wrap-break-word">
                       {formatName(item.name)}
                     </h4>
                   </Link>
-                  <p className="text-slate-500 mt-1 mb-3 text-sm">
+                  <p className="text-neutral-500 mt-1 mb-3 text-sm">
                     ${item.price.toFixed(2)}
                   </p>
-                  <p className="text-slate-600 text-sm mb-4 line-clamp-2 grow">
+                  <p className="text-neutral-600 text-sm mb-4 line-clamp-2 grow">
                     {item.description}
                   </p>
 

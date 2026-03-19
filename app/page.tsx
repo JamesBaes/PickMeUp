@@ -256,14 +256,14 @@ export default function MenuPage() {
   if (loading)
     return (
       <div className="container mx-auto px-4 py-8 text-center">
-        <p className="font-body text-gray-600">Loading menu...</p>
+        <p className="font-body text-neutral-600">Loading menu...</p>
       </div>
     );
 
   return (
     <div className="relative">
       {categories.length > 0 && (
-        <nav className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
+        <nav className="sticky top-0 z-20 bg-background border-b border-neutral-200 shadow-sm">
           <div className="container mx-auto px-4 py-3 flex items-center gap-3">
             {isMergedHeaderVisible && (
               <Link href="/" className="flex items-center gap-2 shrink-0 pr-1">
@@ -282,7 +282,7 @@ export default function MenuPage() {
                 value={currentLocation?.id || ""}
                 onChange={handleLocationChange}
                 disabled={locationLoading}
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-body text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-accent disabled:cursor-not-allowed disabled:bg-gray-100"
+                className="w-full rounded-lg border border-neutral-300 bg-background px-3 py-2 font-body text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-accent disabled:cursor-not-allowed disabled:bg-neutral-100"
               >
                 <option value="" disabled>
                   {locationLoading ? "Loading locations..." : "Select Location"}
@@ -309,8 +309,8 @@ export default function MenuPage() {
                     onClick={() => scrollToCategory(category)}
                     className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-body font-medium transition-colors shrink-0 ${
                       activeCategory === category
-                        ? "bg-red-600 text-white"
-                        : "text-gray-700 hover:bg-gray-100"
+                        ? "bg-danger-dark text-white"
+                        : "text-neutral-700 hover:bg-neutral-100"
                     }`}
                   >
                     {formatCategoryName(category)}
@@ -373,7 +373,7 @@ export default function MenuPage() {
                     </div>
                     <ul
                       tabIndex={0}
-                      className="menu menu-sm dropdown-content bg-base-100 rounded-box shadow-lg mt-3 w-52 p-2 z-50 border border-gray-100"
+                      className="menu menu-sm dropdown-content bg-base-100 rounded-box shadow-lg mt-3 w-52 p-2 z-50 border border-neutral-100"
                     >
                       <li>
                         <Link
@@ -458,15 +458,15 @@ export default function MenuPage() {
       </div>
       {isRefreshingMenu && (
         <div className="pointer-events-none fixed inset-x-0 top-20 z-20 flex justify-center">
-          <div className="rounded-full border border-gray-200 bg-white/95 px-4 py-1.5 shadow-sm">
-            <p className="font-body text-sm text-gray-600">Updating menu...</p>
+          <div className="rounded-full border border-neutral-200 bg-background/95 px-4 py-1.5 shadow-sm">
+            <p className="font-body text-sm text-neutral-600">Updating menu...</p>
           </div>
         </div>
       )}
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 z-50 bg-black text-white p-3 rounded-full shadow-lg hover:bg-gray-800 transition-colors"
+          className="fixed bottom-6 right-6 z-50 bg-black text-white p-3 rounded-full shadow-lg hover:bg-neutral-800 transition-colors"
           aria-label="Scroll to top"
         >
           ↑

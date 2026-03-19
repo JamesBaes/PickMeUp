@@ -115,7 +115,7 @@ const Account = () => {
       {/* Header */}
       <section className="border-b border-stone-300 bg-white">
         <div className="max-w-6xl mx-auto px-4 py-10">
-          <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-slate-900">
+          <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-neutral-900">
             Account Settings
           </h1>
         </div>
@@ -124,23 +124,23 @@ const Account = () => {
       <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col gap-6">
         {/* Profile Settings Card */}
         <div className="bg-white rounded-2xl border border-stone-200 shadow-[0_8px_24px_rgba(0,0,0,0.06)] p-6 md:p-8">
-          <h2 className="text-2xl font-heading font-semibold text-slate-900 mb-6">
+          <h2 className="text-2xl font-heading font-semibold text-neutral-900 mb-6">
             Profile Settings
           </h2>
 
           {/* Email */}
           <div className="mb-6 pb-6 border-b border-stone-100">
-            <p className="text-xs font-semibold tracking-wide uppercase text-slate-400 mb-1">
+            <p className="text-xs font-semibold tracking-wide uppercase text-neutral-400 mb-1">
               Email
             </p>
-            <p className="text-sm font-medium text-slate-900">
+            <p className="text-sm font-medium text-neutral-900">
               {email || "Loading..."}
             </p>
           </div>
 
           {/* Change Password */}
           <div className="mb-6 pb-6 border-b border-stone-100">
-            <h3 className="text-lg font-heading font-semibold text-slate-900 mb-4">
+            <h3 className="text-lg font-heading font-semibold text-neutral-900 mb-4">
               Change Password
             </h3>
 
@@ -183,10 +183,10 @@ const Account = () => {
               )}
 
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold tracking-wide uppercase text-slate-400">
+                <label className="text-xs font-semibold tracking-wide uppercase text-neutral-400">
                   New Password
                 </label>
-                <label className="input flex items-center gap-2 bg-white w-full max-w-sm p-3 border border-stone-300 rounded-lg focus-within:border-slate-400">
+                <label className="input flex items-center gap-2 bg-white w-full max-w-sm p-3 border border-stone-300 rounded-lg focus-within:border-neutral-400">
                   <svg
                     className="h-[1em] opacity-50"
                     xmlns="http://www.w3.org/2000/svg"
@@ -210,7 +210,7 @@ const Account = () => {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
-                    className="text-sm text-slate-700 placeholder:text-slate-400 py-2 focus:outline-none focus:ring-0 flex-1 bg-transparent"
+                    className="text-sm text-neutral-700 placeholder:text-neutral-400 py-2 focus:outline-none focus:ring-0 flex-1 bg-transparent"
                   />
                   <button
                     type="button"
@@ -234,13 +234,13 @@ const Account = () => {
                 </label>
                 {newPassword && (
                   <ul className="text-xs mt-1 flex flex-col gap-0.5">
-                    <li className={newPassword.length >= 8 ? "text-success" : "text-slate-400"}>
+                    <li className={newPassword.length >= 8 ? "text-success" : "text-neutral-400"}>
                       {newPassword.length >= 8 ? "✓" : "✗"} At least 8 characters
                     </li>
-                    <li className={/[A-Z]/.test(newPassword) ? "text-success" : "text-slate-400"}>
+                    <li className={/[A-Z]/.test(newPassword) ? "text-success" : "text-neutral-400"}>
                       {/[A-Z]/.test(newPassword) ? "✓" : "✗"} At least one uppercase letter
                     </li>
-                    <li className={/[0-9]/.test(newPassword) ? "text-success" : "text-slate-400"}>
+                    <li className={/[0-9]/.test(newPassword) ? "text-success" : "text-neutral-400"}>
                       {/[0-9]/.test(newPassword) ? "✓" : "✗"} At least one number
                     </li>
                   </ul>
@@ -248,10 +248,10 @@ const Account = () => {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold tracking-wide uppercase text-slate-400">
+                <label className="text-xs font-semibold tracking-wide uppercase text-neutral-400">
                   Confirm Password
                 </label>
-                <label className="input flex items-center gap-2 bg-white w-full max-w-sm p-3 border border-stone-300 rounded-lg focus-within:border-slate-400">
+                <label className="input flex items-center gap-2 bg-white w-full max-w-sm p-3 border border-stone-300 rounded-lg focus-within:border-neutral-400">
                   <svg
                     className="h-[1em] opacity-50"
                     xmlns="http://www.w3.org/2000/svg"
@@ -275,7 +275,7 @@ const Account = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="text-sm text-slate-700 placeholder:text-slate-400 py-2 focus:outline-none focus:ring-0 flex-1 bg-transparent"
+                    className="text-sm text-neutral-700 placeholder:text-neutral-400 py-2 focus:outline-none focus:ring-0 flex-1 bg-transparent"
                   />
                   <button
                     type="button"
@@ -314,16 +314,16 @@ const Account = () => {
 
           {/* Location */}
           <div>
-            <p className="text-xs font-semibold tracking-wide uppercase text-slate-400 mb-2">
+            <p className="text-xs font-semibold tracking-wide uppercase text-neutral-400 mb-2">
               Location
             </p>
-            <p className="text-sm font-medium text-slate-900 mb-3">
+            <p className="text-sm font-medium text-neutral-900 mb-3">
               {locationLoading ? "Loading..." : (currentLocation?.name ?? "Not set")}
             </p>
 
             {showLocationSelect ? (
               <select
-                className="w-full max-w-sm h-10 rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-accent/20"
+                className="w-full max-w-sm h-10 rounded-lg border border-stone-300 bg-white px-3 text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-accent/20"
                 value={currentLocation?.id || ""}
                 onChange={handleLocationChange}
               >
@@ -348,16 +348,16 @@ const Account = () => {
         </div>
 
         {/* Danger Zone Card */}
-        <div className="bg-white rounded-2xl border border-red-200 shadow-[0_8px_24px_rgba(0,0,0,0.06)] p-6 md:p-8">
-          <h2 className="text-2xl font-heading font-semibold text-red-600 mb-3">
+        <div className="bg-white rounded-2xl border border-danger-border shadow-[0_8px_24px_rgba(0,0,0,0.06)] p-6 md:p-8">
+          <h2 className="text-2xl font-heading font-semibold text-danger-dark mb-3">
             Danger Zone
           </h2>
-          <p className="text-sm text-slate-500 mb-5">
+          <p className="text-sm text-neutral-500 mb-5">
             Permanently delete your account and all associated data. This cannot be undone.
           </p>
           <button
             onClick={() => setShowDeleteModal(true)}
-            className="btn bg-error hover:bg-red-700 border-0 text-white font-heading"
+            className="btn bg-error hover:bg-danger-text border-0 text-white font-heading"
           >
             Delete Account
           </button>
@@ -367,10 +367,10 @@ const Account = () => {
       {/* Delete Account Confirmation Modal */}
       <dialog open={showDeleteModal} className="modal">
         <div className="modal-box rounded-2xl border border-stone-200 shadow-[0_10px_28px_rgba(0,0,0,0.12)]">
-          <h3 className="font-heading font-bold text-xl text-slate-900 mb-2">
+          <h3 className="font-heading font-bold text-xl text-neutral-900 mb-2">
             Delete Account
           </h3>
-          <p className="text-sm text-slate-500 py-3">
+          <p className="text-sm text-neutral-500 py-3">
             This action is permanent and cannot be undone. Your favourites and cart will be deleted.
           </p>
           {deleteError && (
@@ -382,14 +382,14 @@ const Account = () => {
             <button
               onClick={() => { setShowDeleteModal(false); setDeleteError(null); }}
               disabled={isDeleting}
-              className="btn bg-white hover:bg-stone-50 border-stone-300 text-slate-700 font-heading disabled:opacity-50"
+              className="btn bg-white hover:bg-stone-50 border-stone-300 text-neutral-700 font-heading disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               onClick={handleDeleteAccount}
               disabled={isDeleting}
-              className="btn bg-error hover:bg-red-700 border-0 text-white font-heading disabled:opacity-50"
+              className="btn bg-error hover:bg-danger-text border-0 text-white font-heading disabled:opacity-50"
             >
               {isDeleting ? "Deleting..." : "Yes, Delete My Account"}
             </button>

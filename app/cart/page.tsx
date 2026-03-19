@@ -259,7 +259,7 @@ const Cart = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <p className="font-body text-gray-600">Loading cart...</p>
+        <p className="font-body text-neutral-600">Loading cart...</p>
       </div>
     )
   };
@@ -273,19 +273,19 @@ const Cart = () => {
           <h2 className="font-heading font-bold text-3xl">Shopping Cart</h2>
           <div className="flex flex-col items-end gap-1">
             <div className="flex items-center gap-2">
-              <span className={`h-2 w-2 rounded-full ${isRealtimeSyncEnabled ? 'bg-emerald-500' : 'bg-gray-300'}`} />
-              <span className="font-body text-xs text-gray-500">
+              <span className={`h-2 w-2 rounded-full ${isRealtimeSyncEnabled ? 'bg-success-indicator' : 'bg-neutral-300'}`} />
+              <span className="font-body text-xs text-neutral-500">
                 {isRealtimeSyncEnabled ? 'Auto-sync on' : 'Auto-sync off (guest)'}
               </span>
               {lastCartSyncAt && (
-                <span className="font-body text-xs text-emerald-600">Updated from another session just now</span>
+                <span className="font-body text-xs text-success-indicator">Updated from another session just now</span>
               )}
             </div>
             <div className="flex items-center gap-3">
-            <h2 className="font-body text-gray-600 text-md">{cartItems.length} items</h2>
+            <h2 className="font-body text-neutral-600 text-md">{cartItems.length} items</h2>
             {cartItems.length > 0 && (
               <button
-                className="font-body text-sm text-red-500 hover:text-red-600 hover:cursor-pointer"
+                className="font-body text-sm text-danger hover:text-danger-dark hover:cursor-pointer"
                 onClick={handleClearCart}
               >
                 Clear Cart
@@ -295,25 +295,25 @@ const Cart = () => {
           </div>
         </header>
         
-        <hr className="border-gray-300" />
+        <hr className="border-neutral-300" />
         
         {cartItems.length === 0 ? (
           <div className="py-12 text-center">
-            <p className="font-body text-gray-500 text-lg">Your cart is empty</p>
+            <p className="font-body text-neutral-500 text-lg">Your cart is empty</p>
           </div>
         ) : (
           <div className="flex flex-col gap-6 py-4">
             {Object.entries(groupedItems).map(([restaurantId, restaurantItems]) => (
-              <div key={restaurantId} className="rounded-xl border border-gray-200 bg-white p-4">
+              <div key={restaurantId} className="rounded-xl border border-neutral-200 bg-background p-4">
                 <div className="mb-3 flex items-center justify-between">
-                  <h3 className="font-heading text-lg font-bold text-gray-900">
+                  <h3 className="font-heading text-lg font-bold text-neutral-900">
                     {getRestaurantDisplayName(restaurantId)}
                   </h3>
-                  <span className="font-body text-sm text-gray-500">
+                  <span className="font-body text-sm text-neutral-500">
                     {restaurantItems.length} item{restaurantItems.length === 1 ? '' : 's'}
                   </span>
                 </div>
-                <div className="flex flex-col divide-y divide-gray-200">
+                <div className="flex flex-col divide-y divide-neutral-200">
                   {restaurantItems.map((item) => (
                     <div key={`${restaurantId}-${item.item_id}`} className="py-3">
                       <CartItemCard 
@@ -329,18 +329,18 @@ const Cart = () => {
           </div>
         )}
 
-        <hr className="border-gray-300" />
+        <hr className="border-neutral-300" />
 
         <div className="flex justify-between pt-4">
-          <button 
-            className="font-body text-md text-gray-600 hover:text-gray-700 hover:cursor-pointer" 
+          <button
+            className="font-body text-md text-neutral-600 hover:text-neutral-700 hover:cursor-pointer"
             onClick={() => router.push("/")}
           >
             Back to Menu
           </button>
           {cartItems.length > 0 && (
-            <button 
-              className="font-body text-md text-red-500 hover:text-red-600 hover:cursor-pointer"
+            <button
+              className="font-body text-md text-danger hover:text-danger-dark hover:cursor-pointer"
               onClick={handleClearCart}
             >
               Clear Cart
@@ -350,20 +350,20 @@ const Cart = () => {
       </section>
 
       {/* Right section */}
-      <section className="flex flex-col lg:w-2/5 bg-gray-50 shadow-md p-8 xl:p-12 rounded-2xl h-fit">
+      <section className="flex flex-col lg:w-2/5 bg-neutral-50 shadow-md p-8 xl:p-12 rounded-2xl h-fit">
         <header className="flex justify-between items-end pb-4">
           <h2 className="font-heading font-bold text-3xl">Order Summary</h2>
-          <h2 className="font-body text-gray-600 text-md">{cartItems.length} items</h2>
+          <h2 className="font-body text-neutral-600 text-md">{cartItems.length} items</h2>
         </header>
         
-        <hr className="border-gray-300" />
+        <hr className="border-neutral-300" />
         
         <div className="py-4">
-          <label className="font-body text-gray-600 mb-2 block">Pickup Location</label>
-          <select 
+          <label className="font-body text-neutral-600 mb-2 block">Pickup Location</label>
+          <select
             value={currentLocation?.id || ''}
             onChange={(e) => handleLocationChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+            className="w-full px-3 py-2 border border-neutral-300 rounded-lg font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent"
           >
             <option value="" disabled>Select Location</option>
             {locations.map((location) => (
@@ -373,18 +373,18 @@ const Cart = () => {
 
           {/* Location swap suggestion — shown when cart items exist at the newly selected location */}
           {isCheckingSwap && (
-            <p className="mt-2 font-body text-xs text-gray-400">Checking availability at this location…</p>
+            <p className="mt-2 font-body text-xs text-neutral-400">Checking availability at this location…</p>
           )}
           {!isCheckingSwap && locationSwapSuggestion && (
-            <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
-              <p className="font-heading text-sm font-semibold text-blue-800">
+            <div className="mt-3 rounded-lg border border-info-border bg-info-bg p-3">
+              <p className="font-heading text-sm font-semibold text-info-dark">
                 Switch to {locationSwapSuggestion.targetLocation.name}?
               </p>
-              <p className="mt-1 font-body text-xs text-blue-700">
+              <p className="mt-1 font-body text-xs text-info-hover">
                 {locationSwapSuggestion.swaps.length} of your item{locationSwapSuggestion.swaps.length === 1 ? '' : 's'} {locationSwapSuggestion.swaps.length === 1 ? 'is' : 'are'} available at this location.
               </p>
               {locationSwapSuggestion.unavailableNames.length > 0 && (
-                <p className="mt-1 font-body text-xs text-amber-700">
+                <p className="mt-1 font-body text-xs text-warning-text">
                   Not available here:{' '}
                   {locationSwapSuggestion.unavailableNames
                     .map((n) =>
@@ -395,13 +395,13 @@ const Cart = () => {
               )}
               <div className="mt-2 flex gap-2">
                 <button
-                  className="rounded-md bg-blue-600 px-3 py-1.5 font-body text-xs text-white hover:bg-blue-700 transition-colors"
+                  className="rounded-md bg-info px-3 py-1.5 font-body text-xs text-white hover:bg-info-hover transition-colors"
                   onClick={handleSwapItems}
                 >
                   Switch {locationSwapSuggestion.swaps.length} item{locationSwapSuggestion.swaps.length === 1 ? '' : 's'}
                 </button>
                 <button
-                  className="rounded-md border border-blue-300 px-3 py-1.5 font-body text-xs text-blue-700 hover:bg-blue-100 transition-colors"
+                  className="rounded-md border border-info-border px-3 py-1.5 font-body text-xs text-info-hover hover:bg-info-border transition-colors"
                   onClick={() => setLocationSwapSuggestion(null)}
                 >
                   Keep as-is
@@ -411,23 +411,23 @@ const Cart = () => {
           )}
 
           {hasLocationMismatch && currentLocation && (
-            <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3">
-              <p className="font-body text-sm font-semibold text-red-700">Conflicting items:</p>
-              <ul className="mt-2 max-h-40 space-y-2 overflow-y-auto pr-1 font-body text-sm text-red-700">
+            <div className="mt-3 rounded-lg border border-danger-border bg-danger-subtle p-3">
+              <p className="font-body text-sm font-semibold text-danger-text">Conflicting items:</p>
+              <ul className="mt-2 max-h-40 space-y-2 overflow-y-auto pr-1 font-body text-sm text-danger-text">
                 {cartItems
                   .filter((item) => normalizeRestaurantId(item.restaurant_id) !== normalizeRestaurantId(currentLocation.id))
                   .map((item) => (
                     <li key={`summary-${item.item_id}`} className="flex items-center justify-between gap-3">
                       <div className="flex min-w-0 flex-col">
-                        <span className="truncate font-semibold text-red-800">
+                        <span className="truncate font-semibold text-danger-text">
                           {item.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                         </span>
-                        <span className="text-xs text-red-400">
+                        <span className="text-xs text-danger">
                           Qty {item.quantity} &middot; {getRestaurantDisplayName(normalizeRestaurantId(item.restaurant_id))}
                         </span>
                       </div>
                       <button
-                        className="shrink-0 rounded-md border border-red-300 px-2 py-1 text-xs text-red-600 transition-colors hover:bg-red-100"
+                        className="shrink-0 rounded-md border border-danger-border px-2 py-1 text-xs text-danger-dark transition-colors hover:bg-danger-subtle"
                         onClick={() => handleRemoveItem(item.item_id)}
                       >
                         Remove
@@ -439,20 +439,20 @@ const Cart = () => {
           )}
         </div>
 
-        <hr className="border-gray-300" />
+        <hr className="border-neutral-300" />
         
         <div className="flex flex-col py-4 gap-3">
           <div className="flex justify-between font-body">
-            <span className="text-gray-600">Subtotal</span>
-            <span className="text-gray-900">${subtotal.toFixed(2)}</span>
+            <span className="text-neutral-600">Subtotal</span>
+            <span className="text-neutral-900">${subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between font-body">
-            <span className="text-gray-600">Tax (13%)</span>
-            <span className="text-gray-900">${tax.toFixed(2)}</span>
+            <span className="text-neutral-600">Tax (13%)</span>
+            <span className="text-neutral-900">${tax.toFixed(2)}</span>
           </div>
         </div>
 
-        <hr className="border-gray-300" />
+        <hr className="border-neutral-300" />
         
         <div className="flex justify-between font-heading text-xl pt-4 pb-6">
           <span className="font-bold">Total</span>
@@ -460,7 +460,7 @@ const Cart = () => {
         </div>
         
         <button
-          className="w-full bg-accent text-white font-heading font-semibold py-3 hover:cursor-pointer rounded-lg hover:shadow-lg transition-colors disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none"
+          className="w-full bg-accent text-white font-heading font-semibold py-3 hover:cursor-pointer rounded-lg hover:shadow-lg transition-colors disabled:bg-neutral-200 disabled:text-neutral-500 disabled:cursor-not-allowed disabled:shadow-none"
           disabled={cartItems.length === 0 || hasLocationMismatch}
           onClick={handleProceedToCheckout}
         >
@@ -470,12 +470,12 @@ const Cart = () => {
 
       {hasLocationMismatch && (
         <div className="fixed left-1/2 top-24 z-40 w-full max-w-md -translate-x-1/2 px-4">
-          <div className="alert alert-warning border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900 shadow-lg">
+          <div className="alert alert-warning border border-warning-highlight bg-warning-bg px-4 py-3 text-warning-text-dark shadow-lg">
             <div className="flex w-full flex-col gap-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="font-heading text-base font-bold leading-none">Location Mismatch Detected</p>
                 <button
-                  className="btn btn-xs btn-outline border-amber-700 text-amber-800 hover:bg-amber-100"
+                  className="btn btn-xs btn-outline border-warning-text text-warning-text-dark hover:bg-warning-bg-hover"
                   onClick={() => setShowCheckoutGuardModal(true)}
                 >
                   Review
@@ -505,35 +505,35 @@ const Cart = () => {
 
       {showCheckoutGuardModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
-            <h3 className="font-heading text-2xl font-bold text-gray-900">Checkout Location Mismatch</h3>
+          <div className="w-full max-w-lg rounded-2xl bg-background p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+            <h3 className="font-heading text-2xl font-bold text-neutral-900">Checkout Location Mismatch</h3>
             {!currentLocation ? (
-              <p className="mt-3 font-body text-gray-700">
+              <p className="mt-3 font-body text-neutral-700">
                 Please choose a pickup location before checking out.
               </p>
             ) : (
               <>
-                <p className="mt-3 font-body text-gray-700">
+                <p className="mt-3 font-body text-neutral-700">
                   Your selected location is <span className="font-semibold">{currentLocation.name}</span>, but your cart has items from other locations.
                 </p>
-                <p className="mt-2 font-body text-sm text-gray-600">
+                <p className="mt-2 font-body text-sm text-neutral-600">
                   You can switch items that exist in {currentLocation.name}, remove unavailable ones, or remove all conflicting items.
                 </p>
-                <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
-                  <p className="font-body text-sm font-semibold text-red-700">Conflicting items:</p>
-                  <ul className="mt-2 max-h-52 space-y-2 overflow-y-auto font-body text-sm text-red-700 pr-1">
+                <div className="mt-4 rounded-lg border border-danger-border bg-danger-subtle p-4">
+                  <p className="font-body text-sm font-semibold text-danger-text">Conflicting items:</p>
+                  <ul className="mt-2 max-h-52 space-y-2 overflow-y-auto font-body text-sm text-danger-text pr-1">
                     {mismatchedItems.map((item) => (
                       <li key={item.item_id} className="flex items-center justify-between gap-3">
                         <div className="flex min-w-0 flex-col">
-                          <span className="truncate font-semibold text-red-800">
+                          <span className="truncate font-semibold text-danger-text">
                             {item.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                           </span>
-                          <span className="text-xs text-red-400">
+                          <span className="text-xs text-danger">
                             Qty {item.quantity} &middot; {getRestaurantDisplayName(normalizeRestaurantId(item.restaurant_id))}
                           </span>
                         </div>
                         <button
-                          className="shrink-0 rounded-md border border-red-300 px-2 py-1 text-xs text-red-600 transition-colors hover:bg-red-100"
+                          className="shrink-0 rounded-md border border-danger-border px-2 py-1 text-xs text-danger-dark transition-colors hover:bg-danger-subtle"
                           onClick={() => handleRemoveItem(item.item_id)}
                         >
                           Remove
@@ -544,15 +544,15 @@ const Cart = () => {
                 </div>
                 {/* Swap suggestion — shown when items exist at the selected location */}
                 {isCheckingSwap && (
-                  <p className="mt-3 font-body text-xs text-gray-400">Checking availability at {currentLocation.name}...</p>
+                  <p className="mt-3 font-body text-xs text-neutral-400">Checking availability at {currentLocation.name}...</p>
                 )}
                 {!isCheckingSwap && locationSwapSuggestion && locationSwapSuggestion.targetLocation.id === currentLocation.id && (
-                  <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
-                    <p className="font-heading text-sm font-semibold text-blue-800">
+                  <div className="mt-4 rounded-lg border border-info-border bg-info-bg p-4">
+                    <p className="font-heading text-sm font-semibold text-info-dark">
                       {activeSwaps.length} of {mismatchedItems.length} conflicting item{mismatchedItems.length === 1 ? '' : 's'} can be switched to {currentLocation.name}
                     </p>
                     {unavailableDisplayNames.length > 0 && (
-                      <p className="mt-1 font-body text-xs text-amber-700">
+                      <p className="mt-1 font-body text-xs text-warning-text">
                         Not available here:{' '}
                         {unavailableDisplayNames.join(', ')}
                       </p>
@@ -560,7 +560,7 @@ const Cart = () => {
                     <div className="mt-3 grid gap-2">
                       {activeSwaps.length > 0 && (
                         <button
-                          className="w-full rounded-lg bg-blue-600 py-2 font-body text-sm text-white transition-colors hover:bg-blue-700"
+                          className="w-full rounded-lg bg-info py-2 font-body text-sm text-white transition-colors hover:bg-info-hover"
                           onClick={handleSwapItems}
                         >
                           Switch Available Items ({activeSwaps.length})
@@ -568,7 +568,7 @@ const Cart = () => {
                       )}
                       {unavailableMismatchedItems.length > 0 && (
                         <button
-                          className="w-full rounded-lg border border-amber-300 bg-amber-50 py-2 font-body text-sm text-amber-700 transition-colors hover:bg-amber-100"
+                          className="w-full rounded-lg border border-warning-highlight bg-warning-bg py-2 font-body text-sm text-warning-text transition-colors hover:bg-warning-bg-hover"
                           onClick={handleRemoveUnavailableItems}
                         >
                           Remove Unavailable Items ({unavailableMismatchedItems.length})
@@ -579,11 +579,11 @@ const Cart = () => {
                 )}
 
                 <div className="mt-4">
-                  <label className="mb-2 block font-body text-sm text-gray-700">Change pickup location</label>
+                  <label className="mb-2 block font-body text-sm text-neutral-700">Change pickup location</label>
                   <select
                     value={currentLocation?.id || ''}
                     onChange={(e) => handleLocationChange(e.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   >
                     <option value="" disabled>Select Location</option>
                     {locations.map((location) => (
@@ -596,7 +596,7 @@ const Cart = () => {
 
             <div className="mt-6 flex justify-end gap-3">
               <button
-                className="rounded-lg border border-gray-300 px-4 py-2 font-body text-sm text-gray-700 hover:bg-gray-100"
+                className="rounded-lg border border-neutral-300 px-4 py-2 font-body text-sm text-neutral-700 hover:bg-neutral-100"
                 onClick={() => setShowCheckoutGuardModal(false)}
               >
                 Close

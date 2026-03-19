@@ -30,10 +30,10 @@ export default function ContactDetailsForm({
 
   return (
     <div className="mb-6">
-      <h3 className="text-gray-900 font-medium mb-4">Contact details</h3>
+      <h3 className="text-neutral-900 font-medium mb-4">Contact details</h3>
       <div className="space-y-3">
         <div>
-          <label htmlFor="contact-email" className="block text-sm text-gray-700 mb-1">
+          <label htmlFor="contact-email" className="block text-sm text-neutral-700 mb-1">
             Email address
           </label>
           <input
@@ -46,14 +46,14 @@ export default function ContactDetailsForm({
             maxLength={50}
             aria-invalid={Boolean(errors.email)}
             aria-describedby={emailErrorId}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-info-muted"
           />
           {errors.email && (
-            <p id="contact-email-error" className="mt-1 text-sm text-red-600">{errors.email}</p>
+            <p id="contact-email-error" className="mt-1 text-sm text-danger-dark">{errors.email}</p>
           )}
         </div>
         <div>
-          <label htmlFor="contact-phone" className="block text-sm text-gray-700 mb-1">
+          <label htmlFor="contact-phone" className="block text-sm text-neutral-700 mb-1">
             Phone number
           </label>
           <input
@@ -66,10 +66,10 @@ export default function ContactDetailsForm({
             maxLength={20}
             aria-invalid={Boolean(errors.phone)}
             aria-describedby={phoneErrorId}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-info-muted"
           />
           {errors.phone && (
-            <p id="contact-phone-error" className="mt-1 text-sm text-red-600">{errors.phone}</p>
+            <p id="contact-phone-error" className="mt-1 text-sm text-danger-dark">{errors.phone}</p>
           )}
         </div>
       </div>
