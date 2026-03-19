@@ -10,6 +10,7 @@ import { useLocation } from "@/context/locationContext";
 import { USE_MOCK_FAVORITES, useFavorites } from "@/context/favoritesContext";
 import { useAuth } from "@/context/authContext";
 import { usePostHog } from "posthog-js/react";
+import { stripInjectionChars } from "@/helpers/checkoutValidation";
 
 interface ItemPageProps {
   params: Promise<{
@@ -720,11 +721,11 @@ useEffect(() => {
           <form onSubmit={handleSubmitComment} className="space-y-3">
             <textarea
               value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
+              onChange={(e) => setNewComment(stripInjectionChars(e.target.value))}
               placeholder="Share your thoughts about this item..."
               className="textarea textarea-bordered w-full"
               rows={4}
-              maxLength={500}
+              maxLength={400}
               disabled={!user || submittingComment}
             />
 
@@ -835,10 +836,10 @@ useEffect(() => {
                       <div className="space-y-2">
                         <textarea
                           value={editingCommentText}
-                          onChange={(e) => setEditingCommentText(e.target.value)}
+                          onChange={(e) => setEditingCommentText(stripInjectionChars(e.target.value))}
                           className="textarea textarea-bordered w-full"
                           rows={3}
-                          maxLength={500}
+                          maxLength={400}
                           disabled={updatingComment}
                         />
 

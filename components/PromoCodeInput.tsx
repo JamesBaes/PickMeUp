@@ -32,8 +32,9 @@ export default function PromoCodeInput({
       <input
         type="text"
         value={appliedPromo || inputValue}
-        onChange={(e) => setInputValue(e.target.value.toUpperCase())}
+        onChange={(e) => setInputValue(e.target.value.toUpperCase().replace(/[^A-Z0-9\-]/g, ""))}
         placeholder="Promo code"
+        maxLength={20}
         disabled={!!appliedPromo}
         className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
       />

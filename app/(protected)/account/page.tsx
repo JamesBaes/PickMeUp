@@ -206,6 +206,7 @@ const Account = () => {
                   <input
                     type={showNewPassword ? "text" : "password"}
                     placeholder="Enter new password"
+                    maxLength={128}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
@@ -270,6 +271,7 @@ const Account = () => {
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm new password"
+                    maxLength={128}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required

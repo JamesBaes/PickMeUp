@@ -160,6 +160,7 @@ const ResetPassword = () => {
               type={showNewPassword ? 'text' : 'password'}
               placeholder="Enter new password"
               aria-label="New password"
+              maxLength={128}
               required
               disabled={isLoading}
               value={newPassword}
@@ -224,6 +225,7 @@ const ResetPassword = () => {
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Confirm new password"
               aria-label="Confirm new password"
+              maxLength={128}
               required
               disabled={isLoading}
               value={confirmPassword}

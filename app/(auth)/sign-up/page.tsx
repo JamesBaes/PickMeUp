@@ -89,8 +89,10 @@ const SignUpForm = () => {
             placeholder="Email@example.com"
             aria-label="Email address"
             autoComplete="email"
+            maxLength={254}
             required
             disabled={loading}
+            onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/[<>"`;\\]/g, ""); }}
             className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
           />
         </label>
@@ -119,6 +121,7 @@ const SignUpForm = () => {
             placeholder="Password"
             aria-label="Password"
             autoComplete="new-password"
+            maxLength={128}
             required
             disabled={loading}
             value={password}
@@ -171,6 +174,7 @@ const SignUpForm = () => {
             placeholder="Confirm Password"
             aria-label="Confirm password"
             autoComplete="new-password"
+            maxLength={128}
             required
             disabled={loading}
             className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"

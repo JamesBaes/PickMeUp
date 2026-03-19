@@ -1,5 +1,7 @@
 "use client";
 
+import { sanitizeAddressInput } from "@/helpers/checkoutValidation";
+
 interface BillingAddressFormProps {
   country: string;
   address: string;
@@ -46,8 +48,9 @@ export default function BillingAddressForm({
             type="text"
             placeholder="Address"
             value={address}
-            onChange={(e) => onAddressChange(e.target.value)}
+            onChange={(e) => onAddressChange(sanitizeAddressInput(e.target.value))}
             autoComplete="street-address"
+            maxLength={100}
             aria-invalid={Boolean(errors.address)}
             aria-describedby={addressErrorId}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

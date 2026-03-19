@@ -87,7 +87,8 @@ const ForgotPassword = () => {
               name="email"
               placeholder="Email@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value.replace(/[<>"`;\\]/g, ""))}
+              maxLength={254}
               required
               className="grow font-heading placeholder:text-gray-400"
             />

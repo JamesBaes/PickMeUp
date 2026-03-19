@@ -77,8 +77,10 @@ const Login = () => {
             placeholder="Email address"
             aria-label="Email address"
             autoComplete="email"
+            maxLength={254}
             required
             disabled={loading}
+            onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/[<>"`;\\]/g, ""); }}
             className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
           />
         </label>
@@ -107,6 +109,7 @@ const Login = () => {
             placeholder="Password"
             aria-label="Password"
             autoComplete="current-password"
+            maxLength={128}
             required
             disabled={loading}
             className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
