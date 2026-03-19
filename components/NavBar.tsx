@@ -85,13 +85,15 @@ const NavBar = () => {
       </div>
 
       {/* Center: Main nav links */}
-      <div className="navbar-center hidden lg:flex gap-8 xl:gap-10 px-4 xl:px-6 shrink-0">
-      </div>
+      <div className="navbar-center hidden lg:flex gap-8 xl:gap-10 px-4 xl:px-6 shrink-0"></div>
 
       {/* Right: Cart + Profile/Auth */}
       <div className="navbar-end flex items-center gap-1 sm:gap-2">
         {/* Cart icon with badge */}
-        <Link href="/cart" className="btn btn-ghost btn-circle btn-sm sm:btn-md relative">
+        <Link
+          href="/cart"
+          className="btn btn-ghost btn-circle btn-sm sm:btn-md relative"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-6 w-6"
