@@ -264,6 +264,7 @@ export default function MenuPage() {
     <div className="relative">
       {categories.length > 0 && (
         <nav className="sticky top-0 z-20 bg-background border-b border-neutral-200 shadow-sm">
+          {/* Row 1: logo (when scrolled) + location selector + cart/auth (when scrolled) */}
           <div className="container mx-auto px-4 py-3 flex items-center gap-3">
             {isMergedHeaderVisible && (
               <Link href="/" className="flex items-center gap-2 shrink-0 pr-1">
@@ -277,7 +278,7 @@ export default function MenuPage() {
               </Link>
             )}
 
-            <div className="w-56 shrink-0">
+            <div className={`shrink-0 ${isMergedHeaderVisible ? "hidden" : "w-56"}`}>
               <select
                 value={currentLocation?.id || ""}
                 onChange={handleLocationChange}
@@ -295,29 +296,7 @@ export default function MenuPage() {
               </select>
             </div>
 
-            <div
-              ref={categoryNavRef}
-              className="flex-1 overflow-x-auto no-scrollbar"
-            >
-              <div className="flex w-max min-w-full flex-nowrap gap-1 md:justify-center">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    ref={(element) => {
-                      categoryButtonRefs.current[category] = element;
-                    }}
-                    onClick={() => scrollToCategory(category)}
-                    className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-body font-medium transition-colors shrink-0 ${
-                      activeCategory === category
-                        ? "bg-danger-dark text-white"
-                        : "text-neutral-700 hover:bg-neutral-100"
-                    }`}
-                  >
-                    {formatCategoryName(category)}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <div className="flex-1" />
 
             {isMergedHeaderVisible && (
               <div className="flex items-center gap-2 shrink-0 pl-1">
@@ -434,6 +413,33 @@ export default function MenuPage() {
                 )}
               </div>
             )}
+          </div>
+
+          {/* Row 2: Category scroll bar */}
+          <div className="border-t border-neutral-100">
+            <div
+              ref={categoryNavRef}
+              className="overflow-x-auto no-scrollbar px-4 py-2"
+            >
+              <div className="flex w-max min-w-full flex-nowrap gap-1 md:justify-center">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    ref={(element) => {
+                      categoryButtonRefs.current[category] = element;
+                    }}
+                    onClick={() => scrollToCategory(category)}
+                    className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-body font-medium transition-colors shrink-0 ${
+                      activeCategory === category
+                        ? "bg-danger-dark text-white"
+                        : "text-neutral-700 hover:bg-neutral-100"
+                    }`}
+                  >
+                    {formatCategoryName(category)}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </nav>
       )}
