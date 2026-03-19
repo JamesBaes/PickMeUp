@@ -484,7 +484,7 @@ export default function OrderHistoryPage() {
         </h2>
 
         {activeOrder ? (
-          <div className="relative bg-white rounded-[22px] border border-stone-200 shadow-[0_10px_28px_rgba(0,0,0,0.08)] overflow-hidden">
+          <div className="relative bg-background rounded-[22px] border border-stone-200 shadow-[0_10px_28px_rgba(0,0,0,0.08)] overflow-hidden">
             <div className="h-1.5 bg-accent"></div>
 
             <div className="pt-6 p-6 md:p-8">
@@ -586,7 +586,7 @@ export default function OrderHistoryPage() {
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 text-neutral-500">
+          <div className="bg-background rounded-2xl border border-stone-200 shadow-sm p-6 text-neutral-500">
             No active order right now.
           </div>
         )}
@@ -604,7 +604,7 @@ export default function OrderHistoryPage() {
             </span>
 
             <select
-              className="h-10 w-full sm:w-auto rounded-lg border border-stone-300 bg-white px-3 text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-accent/20"
+              className="h-10 w-full sm:w-auto rounded-lg border border-stone-300 bg-background px-3 text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-accent/20"
               value={dateSort}
               onChange={(e) =>
                 setDateSort(e.target.value as "newest" | "oldest")
@@ -615,7 +615,7 @@ export default function OrderHistoryPage() {
             </select>
 
             <select
-              className="h-10 w-full sm:w-auto rounded-lg border border-stone-300 bg-white px-3 text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-accent/20"
+              className="h-10 w-full sm:w-auto rounded-lg border border-stone-300 bg-background px-3 text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-accent/20"
               value={amountSort}
               onChange={(e) =>
                 setAmountSort(e.target.value as "none" | "high" | "low")
@@ -630,13 +630,13 @@ export default function OrderHistoryPage() {
               <input
                 type="text"
                 placeholder="Search"
-                className="h-10 w-full sm:w-40 md:w-44 rounded-lg border border-stone-300 bg-white px-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-accent/20"
+                className="h-10 w-full sm:w-40 md:w-44 rounded-lg border border-stone-300 bg-background px-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-accent/20"
                 maxLength={100}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(stripInjectionChars(e.target.value))}
               />
               <button
-                className="w-10 h-10 rounded-lg bg-white border border-stone-300 text-neutral-700 hover:bg-stone-50 flex items-center justify-center shadow-sm"
+                className="w-10 h-10 rounded-lg bg-background border border-stone-300 text-neutral-700 hover:bg-stone-50 flex items-center justify-center shadow-sm"
                 aria-label="Search orders"
               >
                 🔎
@@ -646,7 +646,7 @@ export default function OrderHistoryPage() {
         </div>
 
         {filteredPastOrders.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 text-neutral-500">
+          <div className="bg-background rounded-2xl border border-stone-200 shadow-sm p-6 text-neutral-500">
             {orders.some((order) => PAST_STATUSES.includes(order.status))
               ? "No orders match your filters."
               : "You do not have past orders yet."}
@@ -656,7 +656,7 @@ export default function OrderHistoryPage() {
             {filteredPastOrders.map((order) => (
               <div
                 key={order.id}
-                className="relative bg-white rounded-2xl border border-stone-200 shadow-[0_8px_24px_rgba(0,0,0,0.06)] p-4 overflow-hidden"
+                className="relative bg-background rounded-2xl border border-stone-200 shadow-[0_8px_24px_rgba(0,0,0,0.06)] p-4 overflow-hidden"
               >
                 <div className="relative flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-3">
                   <div className="min-w-0 sm:max-w-[55%]">
@@ -706,7 +706,7 @@ export default function OrderHistoryPage() {
                   </button>
                   <button
                     onClick={() => openOrderDetails(order)}
-                    className="btn btn-sm bg-white hover:bg-stone-50 border-stone-300 text-neutral-700 font-heading px-4"
+                    className="btn btn-sm bg-background hover:bg-stone-50 border-stone-300 text-neutral-700 font-heading px-4"
                   >
                     View Details
                   </button>

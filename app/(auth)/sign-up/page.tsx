@@ -93,7 +93,7 @@ const SignUpForm = () => {
             required
             disabled={loading}
             onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/[<>"`;\\]/g, ""); }}
-            className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
+            className="grow font-heading placeholder:text-neutral-400 disabled:opacity-50"
           />
         </label>
 
