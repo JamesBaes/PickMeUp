@@ -70,9 +70,9 @@ const NavBar = () => {
     }`;
 
   return (
-    <div className="navbar bg-neutral-50 border-b border-neutral-100 shadow-lg px-3 sm:px-6 md:px-12 py-2 flex-wrap gap-y-2">
+    <div className="navbar sticky top-0 z-30 bg-neutral-50 border-b border-neutral-100 shadow-lg px-3 sm:px-6 md:px-12 py-2">
       {/* Left: Logo */}
-      <div className="navbar-start w-full md:flex-1 md:min-w-60">
+      <div className="navbar-start">
         <Link href="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Image
             src="/gladiator-logo.png"
@@ -81,9 +81,6 @@ const NavBar = () => {
             width={40}
             height={40}
           />
-          <span className="font-heading font-extrabold text-accent text-2xl sm:text-3xl whitespace-nowrap">
-            Gladiator
-          </span>
         </Link>
       </div>
 
@@ -92,7 +89,7 @@ const NavBar = () => {
       </div>
 
       {/* Right: Cart + Profile/Auth */}
-      <div className="navbar-end w-full md:w-auto md:ml-auto flex items-center justify-end gap-1 sm:gap-2">
+      <div className="navbar-end flex items-center gap-1 sm:gap-2">
         {/* Cart icon with badge */}
         <Link href="/cart" className="btn btn-ghost btn-circle btn-sm sm:btn-md relative">
           <svg
