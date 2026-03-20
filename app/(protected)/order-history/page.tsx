@@ -9,12 +9,11 @@ import type { MenuItem } from "@/types";
 import { stripInjectionChars } from "@/helpers/checkoutValidation";
 
 type OrderStatus =
-  | "ordered"
-  | "accepted"
-  | "complete"
+  | "paid"
   | "in_progress"
   | "ready"
-  | "picked_up"
+  | "completed"
+  | "refunded"
   | "cancelled";
 
 interface OrderItem {
@@ -43,7 +42,7 @@ interface Order {
 // Keep this `true` while designing/testing UI.
 // When your database is populated, switch this to `false`
 // and the real Supabase fetch below will run automatically.
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 const ORDER_DETAILS_SNAPSHOT_PREFIX = "order-details:";
 
 const MOCK_ORDERS: Order[] = [
@@ -91,7 +90,7 @@ const MOCK_ORDERS: Order[] = [
       },
     ],
     total_cents: 5172,
-    status: "picked_up",
+    status: "completed",
     pickup_time: "2025-10-01T19:00:00.000Z",
   },
   {
@@ -111,27 +110,19 @@ const MOCK_ORDERS: Order[] = [
       { name: "Fries", quantity: 1, priceCents: 399, image: undefined },
     ],
     total_cents: 5172,
-    status: "picked_up",
+    status: "completed",
     pickup_time: "2025-09-28T16:30:00.000Z",
   },
 ];
 
-const ACTIVE_STATUSES: OrderStatus[] = [
-  "ordered",
-  "accepted",
-  "complete",
-  "in_progress",
-  "ready",
-];
-const PAST_STATUSES: OrderStatus[] = ["picked_up", "cancelled"];
+const ACTIVE_STATUSES: OrderStatus[] = ["paid", "in_progress", "ready"];
+const PAST_STATUSES: OrderStatus[] = ["completed", "refunded"];
 
 const STEP_ORDER: Array<{ key: OrderStatus; label: string }> = [
-  { key: "ordered", label: "Ordered" },
-  { key: "accepted", label: "Accepted" },
-  { key: "complete", label: "Complete" },
-  { key: "in_progress", label: "In Progress" },
+  { key: "paid", label: "Order Placed" },
+  { key: "in_progress", label: "Preparing" },
   { key: "ready", label: "Ready" },
-  { key: "picked_up", label: "Picked" },
+  { key: "completed", label: "Completed" },
 ];
 
 const formatCurrency = (cents: number) => `$${(cents / 100).toFixed(2)}`;
@@ -229,43 +220,13 @@ const normalizeItems = (value: unknown): OrderItem[] => {
 const normalizeStatus = (value: unknown): OrderStatus => {
   const raw = typeof value === "string" ? value.trim().toLowerCase() : "";
 
-  if (
-    [
-      "cancelled",
-      "canceled",
-      "rejected",
-      "declined",
-      "expired",
-      "timed_out",
-      "timed out",
-      "timeout",
-      "auto_rejected",
-      "auto_reject",
-      "auto-rejected",
-      "auto-cancelled",
-      "auto_cancelled",
-      "auto_canceled",
-    ].includes(raw)
-  ) {
-    return "cancelled";
-  }
-  if (
-    ["picked_up", "picked up", "pickedup", "collected", "completed"].includes(
-      raw,
-    )
-  )
-    return "picked_up";
-  if (["ready", "awaiting_pickup", "awaiting pickup"].includes(raw))
-    return "ready";
-  if (["in_progress", "in progress", "preparing", "processing"].includes(raw))
-    return "in_progress";
-  if (["complete", "complete_order", "complete order"].includes(raw))
-    return "complete";
-  if (["accepted", "accept", "confirmed"].includes(raw)) return "accepted";
-  if (["ordered", "pending", "paid", "incoming", "new"].includes(raw))
-    return "ordered";
+  if (["refunded"].includes(raw)) return "refunded";
+  if (["completed", "picked_up", "picked up", "pickedup", "collected"].includes(raw)) return "completed";
+  if (["ready", "awaiting_pickup", "awaiting pickup"].includes(raw)) return "ready";
+  if (["in_progress", "in progress", "preparing", "processing"].includes(raw)) return "in_progress";
+  if (["paid", "ordered", "pending", "accepted", "confirmed", "incoming", "new"].includes(raw)) return "paid";
 
-  return "ordered";
+  return "paid";
 };
 
 const getStepIndex = (status: OrderStatus) => {
@@ -275,20 +236,14 @@ const getStepIndex = (status: OrderStatus) => {
 
 const getStatusHeading = (status: OrderStatus) => {
   switch (status) {
-    case "ordered":
+    case "paid":
       return "Order Received";
-    case "accepted":
-      return "Order Accepted";
-    case "complete":
-      return "Order Complete";
     case "in_progress":
       return "Order Being Prepared";
     case "ready":
       return "Ready for Pick-Up";
-    case "picked_up":
-      return "Order Picked Up";
-    case "cancelled":
-      return "Order Cancelled";
+    case "completed":
+      return "Order Completed";
     default:
       return "Order Status";
   }
@@ -309,6 +264,7 @@ export default function OrderHistoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [dateSort, setDateSort] = useState<"newest" | "oldest">("newest");
   const [amountSort, setAmountSort] = useState<"none" | "high" | "low">("none");
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   const openOrderDetails = (order: Order) => {
     try {
@@ -351,7 +307,21 @@ export default function OrderHistoryPage() {
 
         setUser(user);
 
-        if (!user?.email) {
+        if (!user?.id) {
+          setOrders([]);
+          return;
+        }
+
+        const orConditions: string[] = [];
+        if (user.id) {
+          orConditions.push(`customer_id.eq.${user.id}`);
+        }
+        if (user.email) {
+          // Wrap email in quotes so PostgREST correctly parses the @ character
+          orConditions.push(`customer_email.eq."${user.email}"`);
+        }
+
+        if (orConditions.length === 0) {
           setOrders([]);
           return;
         }
@@ -359,7 +329,7 @@ export default function OrderHistoryPage() {
         const { data, error } = await supabase
           .from("orders")
           .select("*")
-          .eq("customer_email", user.email)
+          .or(orConditions.join(","))
           .order("created_at", { ascending: false });
 
         if (error) throw error;
@@ -393,6 +363,38 @@ export default function OrderHistoryPage() {
     () => orders.find((order) => ACTIVE_STATUSES.includes(order.status)),
     [orders],
   );
+
+  // Real-time listener: update active order's status when it changes in the DB
+  useEffect(() => {
+    if (!activeOrder) return;
+
+    const channel = supabase
+      .channel(`order-status-${activeOrder.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "orders",
+          filter: `id=eq.${activeOrder.id}`,
+        },
+        (payload) => {
+          const newStatus = normalizeStatus(payload.new.status);
+          setOrders((prev) =>
+            prev.map((order) =>
+              order.id === activeOrder.id
+                ? { ...order, status: newStatus }
+                : order,
+            ),
+          );
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeOrder?.id]);
 
   const filteredPastOrders = useMemo(() => {
     const lowered = searchQuery.trim().toLowerCase();
@@ -483,113 +485,117 @@ export default function OrderHistoryPage() {
           Active Order
         </h2>
 
-        {activeOrder ? (
-          <div className="relative bg-background rounded-[22px] border border-stone-200 shadow-[0_10px_28px_rgba(0,0,0,0.08)] overflow-hidden">
-            <div className="h-1.5 bg-accent"></div>
+        <div className="min-h-[120px]">
+          {activeOrder ? (
+            <div className="relative bg-background rounded-[22px] border border-stone-200 shadow-[0_10px_28px_rgba(0,0,0,0.08)] overflow-hidden">
+              <div className="h-1.5 bg-accent"></div>
 
-            <div className="pt-6 p-6 md:p-8">
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-6">
-                <div className="min-w-0 md:max-w-[70%]">
-                  <p className="font-heading font-semibold text-neutral-900">
-                    {formatDate(activeOrder.created_at)}
-                  </p>
-                  <p className="text-sm text-neutral-500 wrap-break-word">
-                    {activeOrder.location ?? "Pick Up Location"}
-                  </p>
-                  <p className="text-xs text-neutral-400 mt-1 break-all">
-                    Order #{activeOrder.id.slice(-10)}
+              <div className="p-6 md:p-8">
+                <div className="flex items-start justify-between gap-4 mb-6">
+                  <div className="min-w-0">
+                    <p className="font-heading font-semibold text-neutral-900">
+                      {formatDate(activeOrder.created_at)}
+                    </p>
+                    <p className="text-sm text-neutral-500 mt-0.5">
+                      {activeOrder.location ?? "Pick Up Location"}
+                    </p>
+                    <p className="text-xs text-neutral-400 mt-1">
+                      Order #{activeOrder.id.slice(-10)}
+                    </p>
+                  </div>
+                  <p className="text-3xl font-heading font-bold text-neutral-900 shrink-0">
+                    {formatCurrency(activeOrder.total_cents)}
                   </p>
                 </div>
-                <p className="text-3xl font-heading font-bold text-neutral-900">
-                  {formatCurrency(activeOrder.total_cents)}
-                </p>
-              </div>
 
-              <div className="mb-6">
-                <div className="w-full overflow-x-auto pb-2">
-                  <div className="min-w-max mx-auto flex items-start px-1">
-                    {STEP_ORDER.map((step, index) => {
-                      const currentIndex = getStepIndex(activeOrder.status);
-                      const done = index <= currentIndex;
-                      const isCurrent = index === currentIndex;
+                <div className="mb-6">
+                  <div className="w-full overflow-x-auto pb-2 flex justify-center">
+                    <div className="flex items-start px-1">
+                      {STEP_ORDER.map((step, index) => {
+                        const currentIndex = getStepIndex(activeOrder.status);
+                        const done = index <= currentIndex;
+                        const isCurrent = index === currentIndex;
 
-                      return (
-                        <Fragment key={step.key}>
-                          {index > 0 && (
-                            <div
-                              className={`w-8 sm:w-12 md:w-14 h-1 rounded-full mt-4 mx-1 ${index <= currentIndex ? "bg-success" : "bg-stone-200"}`}
-                            ></div>
-                          )}
+                        return (
+                          <Fragment key={step.key}>
+                            {index > 0 && (
+                              <div
+                                className={`w-8 sm:w-12 md:w-14 h-1 rounded-full mt-4 mx-1 ${index <= currentIndex ? "bg-success" : "bg-stone-200"}`}
+                              ></div>
+                            )}
 
-                          <div className="w-[62px] sm:w-[78px] md:w-20 flex flex-col items-center">
-                            <div
-                              className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 ${done ? "bg-success border-success text-white" : "bg-neutral-100 border-neutral-200 text-neutral-500"}`}
-                            >
-                              {step.key === "in_progress" && isCurrent
-                                ? "👨‍🍳"
-                                : index + 1}
+                            <div className="w-[62px] sm:w-[78px] md:w-20 flex flex-col items-center">
+                              <div
+                                className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 ${done ? "bg-success border-success text-white" : "bg-neutral-100 border-neutral-200 text-neutral-500"}`}
+                              >
+                                {step.key === "in_progress" && isCurrent
+                                  ? "👨‍🍳"
+                                  : index + 1}
+                              </div>
+                              <p
+                                className={`text-[11px] leading-tight text-center mt-2 px-1 ${done ? "text-neutral-800" : "text-neutral-400"}`}
+                              >
+                                {step.label}
+                              </p>
                             </div>
-                            <p
-                              className={`text-[11px] leading-tight text-center mt-2 px-1 wrap-break-word ${done ? "text-neutral-800" : "text-neutral-400"}`}
-                            >
-                              {step.label}
-                            </p>
-                          </div>
-                        </Fragment>
-                      );
-                    })}
+                          </Fragment>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="text-center mb-6">
-                <h3 className="text-2xl font-heading font-semibold text-neutral-900">
-                  {getStatusHeading(activeOrder.status)}
-                </h3>
-              </div>
-
-              <div className="grid md:grid-cols-[1fr_1.5fr] gap-6 mb-6">
-                <div>
-                  <p className="text-xs font-semibold tracking-wide uppercase text-neutral-400 mb-2">
-                    Date
-                  </p>
-                  <p className="text-sm font-medium text-neutral-900">
-                    {formatDate(activeOrder.created_at)}
-                  </p>
-                  <p className="text-sm text-neutral-500">
-                    {activeOrder.location ?? "Pick Up Location"}
-                  </p>
+                <div className="text-center mb-6">
+                  <h3 className="text-2xl font-heading font-semibold text-neutral-900">
+                    {getStatusHeading(activeOrder.status)}
+                  </h3>
                 </div>
 
-                <div>
-                  <p className="text-xs font-semibold tracking-wide uppercase text-neutral-400 mb-2">
-                    Items
-                  </p>
-                  <div className="grid sm:grid-cols-2 gap-x-6 gap-y-1 text-sm text-neutral-700 max-h-40 overflow-y-auto pr-1">
-                    {activeOrder.items.map((item, idx) => (
-                      <p key={idx} className="wrap-break-word">
-                        • {item.name} ×{item.quantity}
-                      </p>
-                    ))}
+                <div className="flex flex-wrap gap-8 mb-6">
+                  <div>
+                    <p className="text-xs font-semibold tracking-wide uppercase text-neutral-400 mb-2">
+                      Date
+                    </p>
+                    <p className="text-sm font-medium text-neutral-900">
+                      {formatDate(activeOrder.created_at)}
+                    </p>
+                    <p className="text-sm text-neutral-500">
+                      {activeOrder.location ?? "Pick Up Location"}
+                    </p>
+                  </div>
+
+                  <div className="flex-1 min-w-[180px]">
+                    <p className="text-xs font-semibold tracking-wide uppercase text-neutral-400 mb-2">
+                      Items
+                    </p>
+                    <ul className="flex flex-col gap-1.5 text-sm max-h-40 overflow-y-auto pr-1">
+                      {activeOrder.items.map((item, idx) => (
+                        <li key={idx} className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-neutral-300 shrink-0" />
+                          <span className="font-medium text-neutral-800 capitalize">{item.name}</span>
+                          <span className="text-neutral-400 text-xs">×{item.quantity}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => openOrderDetails(activeOrder)}
-                  className="btn bg-accent hover:bg-secondary border-0 text-white font-heading px-6"
-                >
-                  View Details
-                </button>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => openOrderDetails(activeOrder)}
+                    className="btn bg-accent hover:bg-secondary border-0 text-white font-heading px-6"
+                  >
+                    View Details
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="bg-background rounded-2xl border border-stone-200 shadow-sm p-6 text-neutral-500">
-            No active order right now.
-          </div>
-        )}
+          ) : (
+            <div className="bg-background rounded-2xl border border-stone-200 shadow-sm p-6 text-neutral-500">
+              No active order right now.
+            </div>
+          )}
+        </div>
       </section>
 
       <section>
@@ -652,61 +658,80 @@ export default function OrderHistoryPage() {
               : "You do not have past orders yet."}
           </div>
         ) : (
-          <div className="grid lg:grid-cols-2 gap-5">
+          <div className="grid lg:grid-cols-2 gap-4">
             {filteredPastOrders.map((order) => (
               <div
                 key={order.id}
-                className="relative bg-background rounded-2xl border border-stone-200 shadow-[0_8px_24px_rgba(0,0,0,0.06)] p-4 overflow-hidden"
+                className="bg-background rounded-2xl border border-stone-200 shadow-[0_4px_16px_rgba(0,0,0,0.05)] overflow-hidden"
               >
-                <div className="relative flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-3">
-                  <div className="min-w-0 sm:max-w-[55%]">
-                    <p className="font-heading font-semibold text-neutral-900">
+                {/* Header */}
+                <div className="flex justify-between items-start px-5 pt-5 pb-4">
+                  <div className="min-w-0">
+                    <p className="font-heading font-semibold text-neutral-900 text-base leading-tight">
                       {formatDate(order.created_at)}
                     </p>
-                    <p className="text-sm text-neutral-500 wrap-break-word">
+                    <p className="text-sm text-accent mt-0.5 wrap-break-word">
                       {order.location ?? "Brampton, ON"}
                     </p>
                   </div>
-                  <div className="sm:text-right min-w-0 sm:max-w-[45%]">
+                  <div className="text-right shrink-0 ml-4">
                     <span
-                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${order.status === "picked_up" ? "bg-success-subtle text-success-dark" : "bg-danger-subtle text-danger-text"}`}
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide ${order.status === "completed" ? "bg-success-subtle text-success-dark" : "bg-danger-subtle text-danger-text"}`}
                     >
-                      {order.status === "picked_up" ? "Picked" : "Cancelled"}
+                      {order.status === "completed" ? "Completed" : "Refunded"}
                     </span>
-                    <p className="text-xs text-neutral-400 mt-1 break-all">
+                    <p className="text-[11px] text-neutral-400 mt-1.5 break-all">
                       Order #{order.id.slice(-10)}
                     </p>
-                    <p className="font-heading font-bold text-neutral-900 mt-1">
+                    <p className="font-heading font-bold text-neutral-900 text-lg mt-0.5">
                       {formatCurrency(order.total_cents)}
                     </p>
                   </div>
                 </div>
 
-                <div className="relative mb-4">
-                  <div>
-                    <p className="text-xs font-semibold tracking-wide uppercase text-neutral-400 mb-2">
-                      Items
-                    </p>
-                    <ul className="text-sm text-neutral-700 space-y-1">
-                      {order.items.slice(0, 3).map((item, idx) => (
-                        <li key={idx} className="wrap-break-word">
-                          • {item.name} ×{item.quantity}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                {/* Divider + Items */}
+                <div className="border-t border-stone-100 px-5 py-3">
+                  <p className="text-[10px] font-semibold tracking-widest uppercase text-neutral-400 mb-2">
+                    Items
+                  </p>
+                  <ul className="text-sm text-neutral-600 space-y-1">
+                    {(expandedItems.has(order.id) ? order.items : order.items.slice(0, 3)).map((item, idx) => (
+                      <li key={idx} className="flex items-center gap-2 wrap-break-word">
+                        <span className="w-1.5 h-1.5 rounded-full bg-neutral-300 shrink-0" />
+                        <span className="font-semibold capitalize">{item.name}</span>
+                        <span className="text-neutral-400 text-xs">×{item.quantity}</span>
+                      </li>
+                    ))}
+                    {order.items.length > 3 && (
+                      <li>
+                        <button
+                          onClick={() => setExpandedItems((prev) => {
+                            const next = new Set(prev);
+                            next.has(order.id) ? next.delete(order.id) : next.add(order.id);
+                            return next;
+                          })}
+                          className="text-xs text-accent hover:underline pl-3.5"
+                        >
+                          {expandedItems.has(order.id)
+                            ? "Show less"
+                            : `+${order.items.length - 3} more item${order.items.length - 3 > 1 ? "s" : ""}`}
+                        </button>
+                      </li>
+                    )}
+                  </ul>
                 </div>
 
-                <div className="relative flex flex-wrap gap-2">
+                {/* Actions */}
+                <div className="border-t border-stone-100 px-5 py-3 flex gap-2">
                   <button
                     onClick={() => handleOrderAgain(order)}
-                    className="btn btn-sm bg-accent hover:bg-secondary border-0 text-white font-heading px-4"
+                    className="btn btn-sm bg-accent hover:bg-secondary border-0 text-white font-heading px-5 rounded-lg"
                   >
                     Order Again
                   </button>
                   <button
                     onClick={() => openOrderDetails(order)}
-                    className="btn btn-sm bg-background hover:bg-stone-50 border-stone-300 text-neutral-700 font-heading px-4"
+                    className="btn btn-sm bg-transparent hover:bg-stone-50 border border-stone-300 text-neutral-700 font-heading px-5 rounded-lg"
                   >
                     View Details
                   </button>
