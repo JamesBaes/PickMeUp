@@ -4,50 +4,9 @@ import supabase from '../utils/supabase/client'
 import { useAuth } from './authContext'
 import { MenuItem } from '@/types'
 
-// Temporary shortcut for demos/testing.
-// Keep this true until the favorites table + RLS are fully ready.
-// Later, just flip it to false and everything goes back to Supabase.
-export const USE_MOCK_FAVORITES = false
-
-const MOCK_FAVORITE_ITEMS: MenuItem[] = [
-  {
-    item_id: '1',
-    restaurant_id: '1',
-    name: 'Double Cheese Smash',
-    description: 'Double smashed beef patties with cheese, lettuce, and house sauce.',
-    price: 12.99,
-    category: 'beef_burgers',
-    calories: 0,
-    allergy_information: '',
-    image_url: '/double-cheese-smash.png',
-    list_of_ingredients: [],
-  },
-  {
-    item_id: '2',
-    restaurant_id: '1',
-    name: 'Crispy Chicken Blaze',
-    description: 'Crispy chicken burger with signature spicy sauce and fresh toppings.',
-    price: 11.49,
-    category: 'chicken_burgers',
-    calories: 0,
-    allergy_information: '',
-    image_url: '/crispy-chicken-blaze.png',
-    list_of_ingredients: [],
-  },
-]
-
-const getMockFavoriteIds = () =>
-  new Set(MOCK_FAVORITE_ITEMS.map((item) => parseInt(item.item_id.toString(), 10)).filter((id) => !Number.isNaN(id)))
-
-// The favorites table uses uuid for favorite_item_id, but menu items use integers.
-// We convert item_id to a deterministic UUID for storage.
-const itemIdToUuid = (itemId: number | string): string => {
-  const id = typeof itemId === 'string' ? parseInt(itemId, 10) : itemId
-  return `00000000-0000-0000-0000-${id.toString().padStart(12, '0')}`
-}
-
-const uuidToItemId = (uuid: string): number => {
-  return parseInt(uuid.split('-').pop() || '0', 10)
+const toNumericId = (id: string | number): number | null => {
+  const n = typeof id === 'string' ? parseInt(id, 10) : id
+  return Number.isFinite(n) ? n : null
 }
 
 interface FavoritesContextType {
@@ -68,18 +27,11 @@ const FavoritesContext = createContext<FavoritesContextType>({
 
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
-  const [favoriteIds, setFavoriteIds] = useState<Set<number>>(USE_MOCK_FAVORITES ? getMockFavoriteIds() : new Set())
-  const [favoriteItems, setFavoriteItems] = useState<MenuItem[]>(USE_MOCK_FAVORITES ? MOCK_FAVORITE_ITEMS : [])
+  const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set())
+  const [favoriteItems, setFavoriteItems] = useState<MenuItem[]>([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (USE_MOCK_FAVORITES) {
-      setFavoriteIds(getMockFavoriteIds())
-      setFavoriteItems(MOCK_FAVORITE_ITEMS)
-      setLoading(false)
-      return
-    }
-
     if (!user) {
       setFavoriteIds(new Set())
       setFavoriteItems([])
@@ -106,16 +58,11 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       }
 
       const itemIds = favData
-        .map((f) => {
-          const raw = f.item_id
-          if (typeof raw === 'number') return raw
-          return parseInt(String(raw), 10)
-        })
-        .filter((id) => Number.isFinite(id))
+        .map((f) => toNumericId(f.item_id))
+        .filter((id): id is number => id !== null)
 
       setFavoriteIds(new Set(itemIds))
 
-      // Fetch item details from menu_items_restaurant_locations (deduplicated by item_id)
       const { data: itemData, error: itemError } = await supabase
         .from('menu_items_restaurant_locations')
         .select('item_id, restaurant_id, name, price, description, category, image_url, calories, allergy_information')
@@ -125,14 +72,14 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
 
       // Deduplicate: keep first occurrence per item_id
       const seen = new Set<number>()
-      const uniqueItems = (itemData || []).filter(item => {
+      const uniqueItems = (itemData || []).filter((item) => {
         if (seen.has(item.item_id)) return false
         seen.add(item.item_id)
         return true
       })
 
       setFavoriteItems(
-        uniqueItems.map(item => ({
+        uniqueItems.map((item) => ({
           item_id: item.item_id.toString(),
           restaurant_id: item.restaurant_id?.toString() || '',
           name: item.name,
@@ -153,52 +100,23 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   }
 
   const isFavorite = (itemId: string | number): boolean => {
-    const parsedId = typeof itemId === 'string' ? parseInt(itemId, 10) : itemId
-    const id = Number(parsedId)
-    if (Number.isNaN(id)) return false
-    return favoriteIds.has(id)
+    const id = toNumericId(itemId)
+    return id !== null && favoriteIds.has(id)
   }
 
-  const toggleFavorite = async (item: MenuItem) => {
-    if (USE_MOCK_FAVORITES) {
-      const numericId = parseInt(item.item_id.toString(), 10)
-      if (Number.isNaN(numericId)) return false
-
-      const currentlyFavorite = favoriteIds.has(numericId)
-
-      if (currentlyFavorite) {
-        setFavoriteIds(prev => {
-          const next = new Set(prev)
-          next.delete(numericId)
-          return next
-        })
-        setFavoriteItems(prev => prev.filter(f => parseInt(f.item_id.toString(), 10) !== numericId))
-      } else {
-        setFavoriteIds(prev => new Set([...prev, numericId]))
-        setFavoriteItems(prev => [...prev, item])
-      }
-
-      return true
-    }
-
+  const toggleFavorite = async (item: MenuItem): Promise<boolean> => {
     if (!user) return false
-    const numericId = parseInt(item.item_id.toString(), 10)
-    if (Number.isNaN(numericId)) return false
-    const uuidId = itemIdToUuid(numericId)
-    const currentlyFavorite = favoriteIds.has(numericId)
 
+    const numericId = toNumericId(item.item_id)
+    if (numericId === null) return false
+
+    const currentlyFavorite = favoriteIds.has(numericId)
     const previousIds = new Set(favoriteIds)
     const previousItems = [...favoriteItems]
 
     if (currentlyFavorite) {
-      setFavoriteIds(prev => {
-        const next = new Set(prev)
-        next.delete(numericId)
-        return next
-      })
-      setFavoriteItems(prev =>
-        prev.filter(f => parseInt(f.item_id.toString(), 10) !== numericId)
-      )
+      setFavoriteIds((prev) => { const next = new Set(prev); next.delete(numericId); return next })
+      setFavoriteItems((prev) => prev.filter((f) => toNumericId(f.item_id) !== numericId))
 
       const { error } = await supabase
         .from('favorites')
@@ -212,11 +130,9 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         setFavoriteItems(previousItems)
         return false
       }
-
-      return true
     } else {
-      setFavoriteIds(prev => new Set([...prev, numericId]))
-      setFavoriteItems(prev => [...prev, item])
+      setFavoriteIds((prev) => new Set([...prev, numericId]))
+      setFavoriteItems((prev) => [...prev, item])
 
       const { error } = await supabase
         .from('favorites')
@@ -228,9 +144,9 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         setFavoriteItems(previousItems)
         return false
       }
-
-      return true
     }
+
+    return true
   }
 
   return (
