@@ -8,7 +8,6 @@ import { AuthProvider } from "@/context/authContext";
 import { CartProvider } from "@/context/cartContext";
 import { FavoritesProvider } from "@/context/favoritesContext";
 import { PostHogProvider } from "@/components/PostHogProvider";
-import { Toaster } from "sonner";
 
 const headingText = DM_Sans({
   variable: "--font-heading",
@@ -48,7 +47,6 @@ export default function RootLayout({
               <CartProvider>
                 <FavoritesProvider>
                   <NavBar />
-                  <Toaster position="top-center" duration={3000} />
                   <main className="flex flex-col grow">{children}</main>
                   <Footer />
                 </FavoritesProvider>
