@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import supabase from "@/utils/supabase/client";
-import { toast } from "sonner";
+
 
 const navLinks = [
   { label: "Favourites", href: "/favorites" },
