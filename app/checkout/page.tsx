@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import supabase from "@/utils/supabase/client";
 import { usePostHog } from "posthog-js/react";
 import PaymentForm, { PaymentFormHandle } from "@/components/PaymentForm";
 import OrderSummary from "@/components/OrderSummary";
@@ -32,6 +33,13 @@ export default function CheckoutPage() {
   const [appliedPromo, setAppliedPromo] = useState("");
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [pickupTime, setPickupTime] = useState("");
+  const [customerId, setCustomerId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setCustomerId(data.user?.id ?? null);
+    });
+  }, []);
 
   // Convert cart context items (dollars) into API payload format (cents).
   const cartItems = items.map((item) => ({
@@ -55,7 +63,7 @@ export default function CheckoutPage() {
     0,
   );
   const discountCents = Math.round(subtotalCents * (promoDiscount / 100));
-  const taxCents = 0; // Tax calculation pending address
+  const taxCents = Math.round((subtotalCents - discountCents) * 0.13);
   const totalCents = subtotalCents - discountCents + taxCents;
 
   // Promo handling is currently local/simple (single code flow).
@@ -97,6 +105,7 @@ export default function CheckoutPage() {
     totalCents,
     pickupTime: getPickupTime(),
     restaurantId: currentLocation?.id ?? "",
+    customerId: customerId ?? undefined,
   };
 
   // Keep receipt token out of URL and hand it to confirmation page via sessionStorage.
