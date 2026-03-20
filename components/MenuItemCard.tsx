@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MenuItem } from "@/types";
+import type { MenuItemCardProps } from "@/types";
 import { useState } from "react";
 import { useCart } from "@/context/cartContext";
 import { useAuth } from "@/context/authContext";
@@ -22,7 +23,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
     return item.name
       .replace(/_/g, " ") // replace where there's underscore with a space
       .split(" ") // then split where there's a space
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // use map function to convert each of the words to uppercase
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // use map function to convert each of the words to uppercase
       .join(" "); // group words together again
   };
 
@@ -78,7 +79,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
     <div className="group card bg-background w-full h-full shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer flex flex-col relative">
         {/* Image Container */}
         {item.image_url && (
-          <figure className="flex-shrink-0 relative">
+          <figure className="shrink-0 relative">
             {item.image_url ? (
               <img
                 src={item.image_url}
@@ -132,7 +133,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
         )}
 
         {/* Card Body */}
-        <div className="card-body flex flex-col flex-grow">
+        <div className="card-body flex flex-col grow">
           {/* Stretched link on title: after:absolute after:inset-0 covers the full
               card area so it's still fully clickable, with no nested <a> elements. */}
           <h2 className="card-title text-foreground font-heading line-clamp-2">
@@ -148,7 +149,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
             ${item.price.toFixed(2)}
           </p>
 
-          <p className="text-foreground font-body text-sm line-clamp-4 flex-grow mb-4">
+          <p className="text-foreground font-body text-sm line-clamp-4 grow mb-4">
             {item.description}
           </p>
 

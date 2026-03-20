@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import supabase from "@/utils/supabase/client";
-import { toast } from "sonner";
 
 const navLinks = [
   { label: "Favourites", href: "/favorites", icon: (
@@ -22,7 +21,6 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   const router = useRouter();
 
   const handleLogout = async () => {
-    toast("Signing out...");
     await supabase.auth.signOut();
     router.push("/");
   };
@@ -30,25 +28,17 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex flex-col md:flex-row min-h-screen">
       {/* Sidebar */}
-      <aside className="w-full md:w-52 border-b md:border-b-0 md:border-r border-base-200 pt-3 md:pt-10 px-3 md:px-4 shrink-0 bg-white">
-        <div className="flex md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0">
+      <aside className="w-full md:w-60 border-b md:border-b-0 md:border-r border-base-200 pt-6 md:pt-12 px-4 md:px-6 shrink-0 bg-gradient-to-b from-white via-slate-50 to-slate-100">
+        <div className="flex md:flex-col gap-3 overflow-x-auto pb-2 md:pb-0">
           {navLinks.map(({ label, href, icon }) => (
             <Link
               key={href}
               href={href}
-<<<<<<< HEAD
-              className={`text-sm font-body py-2 px-3 rounded transition-colors whitespace-nowrap ${
-                pathname === href
-                  ? "font-semibold text-neutral-900"
-                  : "text-neutral-700 hover:text-neutral-900"
-              }`}
-=======
-              className={`text-sm font-body py-2 px-3 rounded transition-colors whitespace-nowrap ${
-                pathname === href
-                  ? "font-semibold text-neutral-900"
-                  : "text-neutral-700 hover:text-neutral-900"
-              }`}
->>>>>>> origin/main
+              className={`text-lg font-body py-3 px-4 rounded-lg whitespace-nowrap transition-colors flex items-center cursor-pointer shadow-sm
+                ${pathname === href
+                  ? "bg-red-50 text-red-700 font-semibold"
+                  : "text-neutral-700 hover:bg-red-100 hover:text-red-700"}
+              `}
             >
               {icon}
               {label}
@@ -56,16 +46,12 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           ))}
         </div>
 
-        <div className="mt-2 md:mt-4 border-t border-base-200 pt-2 md:pt-4 pb-2 md:pb-0">
+        <div className="mt-8 md:mt-12 border-t border-base-200 pt-4 pb-4 flex flex-col gap-2">
           <button
             onClick={handleLogout}
-<<<<<<< HEAD
-            className="text-sm font-body py-2 px-3 rounded text-neutral-700 hover:text-neutral-900 transition-colors w-full text-left"
-=======
-            className="text-sm font-body py-2 px-3 rounded text-neutral-700 hover:text-neutral-900 transition-colors w-full text-left"
->>>>>>> origin/main
+            className="text-lg font-body py-3 px-4 rounded-lg text-neutral-700 hover:bg-red-100 hover:text-red-700 transition-colors w-full text-left flex items-center cursor-pointer shadow-sm"
           >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             Log Out
           </button>
         </div>
