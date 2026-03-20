@@ -8,6 +8,7 @@ import supabase from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/cartContext";
 import { useLocation } from "@/context/locationContext";
+import { toast } from "sonner";
 
 const NavBar = () => {
   const pathname = usePathname();
