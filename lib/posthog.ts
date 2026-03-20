@@ -48,6 +48,8 @@ export async function queryTopItems(
     .slice(0, 7);
 }
 
+
+// Returns a single value from a HogQL query .
 export async function runHogQLQuery(
   projectId: string,
   personalApiKey: string,
@@ -57,6 +59,8 @@ export async function runHogQLQuery(
   return (results?.[0]?.[0] as number) ?? 0;
 }
 
+
+// Returns a series from a HogQL query as { labels, data } arrays (one entry per row).
 export async function runHogQLSeries(
   projectId: string,
   personalApiKey: string,
