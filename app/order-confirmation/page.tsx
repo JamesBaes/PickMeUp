@@ -66,33 +66,34 @@ export default function OrderConfirmationPage() {
     fetchOrderData();
   }, [router]);
 
-  const handleEmailReceipt = async () => {
-    setSendingEmail(true);
-    setError(null);
+  // const handleEmailReceipt = async () => {
+  //   setSendingEmail(true);
+  //   setError(null);
 
-    try {
-      const response = await fetch("/api/send-receipt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderData }),
-      });
+  //   try {
+  //     const response = await fetch("/api/send-receipt", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ orderData }),
+  //     });
 
-      const data = await response.json();
+  //     const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to send receipt");
-      }
+  //     if (!response.ok) {
+  //       throw new Error(data.error || "Failed to send receipt");
+  //     }
 
-      setEmailSent(true);
-      setTimeout(() => setEmailSent(false), 5000);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to send receipt";
-      console.error("Error sending receipt:", err);
-      setError(message);
-    } finally {
-      setSendingEmail(false);
-    }
-  };
+  //     setEmailSent(true);
+  //     setTimeout(() => setEmailSent(false), 5000);
+  //   } catch (err: unknown) {
+  //     const message =
+  //       err instanceof Error ? err.message : "Failed to send receipt";
+  //     console.error("Error sending receipt:", err);
+  //     setError(message);
+  //   } finally {
+  //     setSendingEmail(false);
+  //   }
+  // };
 
   const formatPickupTime = (isoString: string) => {
     const date = new Date(isoString);
@@ -115,7 +116,9 @@ export default function OrderConfirmationPage() {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="font-body text-danger-dark mb-4">{error || "Order not found"}</p>
+          <p className="font-body text-danger-dark mb-4">
+            {error || "Order not found"}
+          </p>
           <button
             onClick={() => router.push("/")}
             className="text-accent hover:underline font-body"
@@ -147,7 +150,9 @@ export default function OrderConfirmationPage() {
               {/* Pickup Time */}
               <div className="font-heading text-3xl text-neutral-900">
                 <span className="font-semibold">Pick Up Time:</span>{" "}
-                <span className="font-bold">{formatPickupTime(orderData.pickupTime)}</span>
+                <span className="font-bold">
+                  {formatPickupTime(orderData.pickupTime)}
+                </span>
               </div>
             </div>
 
@@ -183,7 +188,7 @@ export default function OrderConfirmationPage() {
               </div>
 
               {/* Email Receipt Button */}
-              <div>
+              {/* <div>
                 <button
                   onClick={handleEmailReceipt}
                   disabled={sendingEmail || emailSent}
@@ -196,7 +201,7 @@ export default function OrderConfirmationPage() {
                     Receipt sent to {orderData.customerEmail}
                   </p>
                 )}
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -210,7 +215,9 @@ export default function OrderConfirmationPage() {
             <div className="space-y-3 mb-6 font-body">
               <div className="flex justify-between">
                 <span className="text-neutral-600">Order Number:</span>
-                <span className="text-neutral-900">{orderData.orderNumber}</span>
+                <span className="text-neutral-900">
+                  {orderData.orderNumber}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-neutral-600">Date:</span>
@@ -218,7 +225,9 @@ export default function OrderConfirmationPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-neutral-600">Payment Method:</span>
-                <span className="text-neutral-900">{orderData.paymentMethod}</span>
+                <span className="text-neutral-900">
+                  {orderData.paymentMethod}
+                </span>
               </div>
             </div>
 
@@ -262,11 +271,15 @@ export default function OrderConfirmationPage() {
             <div className="space-y-3 font-body mb-6">
               <div className="flex justify-between">
                 <span className="text-neutral-600">Subtotal</span>
-                <span className="text-neutral-900">${orderData.subtotal.toFixed(2)}</span>
+                <span className="text-neutral-900">
+                  ${orderData.subtotal.toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-neutral-600">Tax</span>
-                <span className="text-neutral-900">${orderData.tax.toFixed(2)}</span>
+                <span className="text-neutral-900">
+                  ${orderData.tax.toFixed(2)}
+                </span>
               </div>
             </div>
 
