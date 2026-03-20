@@ -7,7 +7,6 @@ import type { User } from "@supabase/supabase-js";
 import supabase from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/cartContext";
-import { toast } from "sonner";
 import { useLocation } from "@/context/locationContext";
 
 const NavBar = () => {
