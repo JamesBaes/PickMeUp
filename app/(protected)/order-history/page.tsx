@@ -312,10 +312,24 @@ export default function OrderHistoryPage() {
           return;
         }
 
+        const orConditions: string[] = [];
+        if (user.id) {
+          orConditions.push(`customer_id.eq.${user.id}`);
+        }
+        if (user.email) {
+          // Wrap email in quotes so PostgREST correctly parses the @ character
+          orConditions.push(`customer_email.eq."${user.email}"`);
+        }
+
+        if (orConditions.length === 0) {
+          setOrders([]);
+          return;
+        }
+
         const { data, error } = await supabase
           .from("orders")
           .select("*")
-          .or(`customer_id.eq.${user.id},customer_email.eq.${user.email}`)
+          .or(orConditions.join(","))
           .order("created_at", { ascending: false });
 
         if (error) throw error;
@@ -471,113 +485,117 @@ export default function OrderHistoryPage() {
           Active Order
         </h2>
 
-        {activeOrder ? (
-          <div className="relative bg-background rounded-[22px] border border-stone-200 shadow-[0_10px_28px_rgba(0,0,0,0.08)] overflow-hidden">
-            <div className="h-1.5 bg-accent"></div>
+        <div className="min-h-[120px]">
+          {activeOrder ? (
+            <div className="relative bg-background rounded-[22px] border border-stone-200 shadow-[0_10px_28px_rgba(0,0,0,0.08)] overflow-hidden">
+              <div className="h-1.5 bg-accent"></div>
 
-            <div className="pt-6 p-6 md:p-8">
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-6">
-                <div className="min-w-0 md:max-w-[70%]">
-                  <p className="font-heading font-semibold text-neutral-900">
-                    {formatDate(activeOrder.created_at)}
-                  </p>
-                  <p className="text-sm text-neutral-500 wrap-break-word">
-                    {activeOrder.location ?? "Pick Up Location"}
-                  </p>
-                  <p className="text-xs text-neutral-400 mt-1 break-all">
-                    Order #{activeOrder.id.slice(-10)}
+              <div className="p-6 md:p-8">
+                <div className="flex items-start justify-between gap-4 mb-6">
+                  <div className="min-w-0">
+                    <p className="font-heading font-semibold text-neutral-900">
+                      {formatDate(activeOrder.created_at)}
+                    </p>
+                    <p className="text-sm text-neutral-500 mt-0.5">
+                      {activeOrder.location ?? "Pick Up Location"}
+                    </p>
+                    <p className="text-xs text-neutral-400 mt-1">
+                      Order #{activeOrder.id.slice(-10)}
+                    </p>
+                  </div>
+                  <p className="text-3xl font-heading font-bold text-neutral-900 shrink-0">
+                    {formatCurrency(activeOrder.total_cents)}
                   </p>
                 </div>
-                <p className="text-3xl font-heading font-bold text-neutral-900">
-                  {formatCurrency(activeOrder.total_cents)}
-                </p>
-              </div>
 
-              <div className="mb-6">
-                <div className="w-full overflow-x-auto pb-2">
-                  <div className="min-w-max mx-auto flex items-start px-1">
-                    {STEP_ORDER.map((step, index) => {
-                      const currentIndex = getStepIndex(activeOrder.status);
-                      const done = index <= currentIndex;
-                      const isCurrent = index === currentIndex;
+                <div className="mb-6">
+                  <div className="w-full overflow-x-auto pb-2 flex justify-center">
+                    <div className="flex items-start px-1">
+                      {STEP_ORDER.map((step, index) => {
+                        const currentIndex = getStepIndex(activeOrder.status);
+                        const done = index <= currentIndex;
+                        const isCurrent = index === currentIndex;
 
-                      return (
-                        <Fragment key={step.key}>
-                          {index > 0 && (
-                            <div
-                              className={`w-8 sm:w-12 md:w-14 h-1 rounded-full mt-4 mx-1 ${index <= currentIndex ? "bg-success" : "bg-stone-200"}`}
-                            ></div>
-                          )}
+                        return (
+                          <Fragment key={step.key}>
+                            {index > 0 && (
+                              <div
+                                className={`w-8 sm:w-12 md:w-14 h-1 rounded-full mt-4 mx-1 ${index <= currentIndex ? "bg-success" : "bg-stone-200"}`}
+                              ></div>
+                            )}
 
-                          <div className="w-[62px] sm:w-[78px] md:w-20 flex flex-col items-center">
-                            <div
-                              className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 ${done ? "bg-success border-success text-white" : "bg-neutral-100 border-neutral-200 text-neutral-500"}`}
-                            >
-                              {step.key === "in_progress" && isCurrent
-                                ? "👨‍🍳"
-                                : index + 1}
+                            <div className="w-[62px] sm:w-[78px] md:w-20 flex flex-col items-center">
+                              <div
+                                className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 ${done ? "bg-success border-success text-white" : "bg-neutral-100 border-neutral-200 text-neutral-500"}`}
+                              >
+                                {step.key === "in_progress" && isCurrent
+                                  ? "👨‍🍳"
+                                  : index + 1}
+                              </div>
+                              <p
+                                className={`text-[11px] leading-tight text-center mt-2 px-1 ${done ? "text-neutral-800" : "text-neutral-400"}`}
+                              >
+                                {step.label}
+                              </p>
                             </div>
-                            <p
-                              className={`text-[11px] leading-tight text-center mt-2 px-1 wrap-break-word ${done ? "text-neutral-800" : "text-neutral-400"}`}
-                            >
-                              {step.label}
-                            </p>
-                          </div>
-                        </Fragment>
-                      );
-                    })}
+                          </Fragment>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="text-center mb-6">
-                <h3 className="text-2xl font-heading font-semibold text-neutral-900">
-                  {getStatusHeading(activeOrder.status)}
-                </h3>
-              </div>
-
-              <div className="grid md:grid-cols-[1fr_1.5fr] gap-6 mb-6">
-                <div>
-                  <p className="text-xs font-semibold tracking-wide uppercase text-neutral-400 mb-2">
-                    Date
-                  </p>
-                  <p className="text-sm font-medium text-neutral-900">
-                    {formatDate(activeOrder.created_at)}
-                  </p>
-                  <p className="text-sm text-neutral-500">
-                    {activeOrder.location ?? "Pick Up Location"}
-                  </p>
+                <div className="text-center mb-6">
+                  <h3 className="text-2xl font-heading font-semibold text-neutral-900">
+                    {getStatusHeading(activeOrder.status)}
+                  </h3>
                 </div>
 
-                <div>
-                  <p className="text-xs font-semibold tracking-wide uppercase text-neutral-400 mb-2">
-                    Items
-                  </p>
-                  <div className="grid sm:grid-cols-2 gap-x-6 gap-y-1 text-sm text-neutral-700 max-h-40 overflow-y-auto pr-1">
-                    {activeOrder.items.map((item, idx) => (
-                      <p key={idx} className="wrap-break-word">
-                        • {item.name} ×{item.quantity}
-                      </p>
-                    ))}
+                <div className="flex flex-wrap gap-8 mb-6">
+                  <div>
+                    <p className="text-xs font-semibold tracking-wide uppercase text-neutral-400 mb-2">
+                      Date
+                    </p>
+                    <p className="text-sm font-medium text-neutral-900">
+                      {formatDate(activeOrder.created_at)}
+                    </p>
+                    <p className="text-sm text-neutral-500">
+                      {activeOrder.location ?? "Pick Up Location"}
+                    </p>
+                  </div>
+
+                  <div className="flex-1 min-w-[180px]">
+                    <p className="text-xs font-semibold tracking-wide uppercase text-neutral-400 mb-2">
+                      Items
+                    </p>
+                    <ul className="flex flex-col gap-1.5 text-sm max-h-40 overflow-y-auto pr-1">
+                      {activeOrder.items.map((item, idx) => (
+                        <li key={idx} className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-neutral-300 shrink-0" />
+                          <span className="font-medium text-neutral-800 capitalize">{item.name}</span>
+                          <span className="text-neutral-400 text-xs">×{item.quantity}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => openOrderDetails(activeOrder)}
-                  className="btn bg-accent hover:bg-secondary border-0 text-white font-heading px-6"
-                >
-                  View Details
-                </button>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => openOrderDetails(activeOrder)}
+                    className="btn bg-accent hover:bg-secondary border-0 text-white font-heading px-6"
+                  >
+                    View Details
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="bg-background rounded-2xl border border-stone-200 shadow-sm p-6 text-neutral-500">
-            No active order right now.
-          </div>
-        )}
+          ) : (
+            <div className="bg-background rounded-2xl border border-stone-200 shadow-sm p-6 text-neutral-500">
+              No active order right now.
+            </div>
+          )}
+        </div>
       </section>
 
       <section>
