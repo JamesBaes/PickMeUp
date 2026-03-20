@@ -44,13 +44,13 @@ export default function MenuPage() {
 
     const requestId = ++fetchRequestIdRef.current;
     const isInitialLoad = !hasFetchedMenu;
-
+    
     if (isInitialLoad) {
       setLoading(true);
     } else {
       setIsRefreshingMenu(true);
     }
-
+  // Fetch menu items based on current location (or default if no location selected)
     const loadMenu = async () => {
       try {
         const items = currentLocation?.id
@@ -64,7 +64,8 @@ export default function MenuPage() {
         if (fetchRequestIdRef.current !== requestId) return;
         console.error("Error loading menu:", error);
         setMenuItems([]);
-      } finally {
+      }
+      finally {
         if (fetchRequestIdRef.current !== requestId) return;
         setLoading(false);
         setHasFetchedMenu(true);
@@ -225,6 +226,7 @@ export default function MenuPage() {
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
+  // Show loading state while menu is being fetched
   if (loading)
     return (
       <div className="container mx-auto px-4 py-8 text-center">
@@ -234,6 +236,7 @@ export default function MenuPage() {
 
   return (
     <div className="relative">
+      {/* Category navigation bar with scrollable category buttons */}
       {categories.length > 0 && (
         <nav className="sticky top-16 z-20 bg-background border-b border-neutral-200 shadow-sm">
           <div
@@ -241,6 +244,7 @@ export default function MenuPage() {
             className="overflow-x-auto no-scrollbar px-4 py-2"
           >
             <div className="flex w-max min-w-full flex-nowrap gap-1 md:justify-center">
+              {/* Category buttons for quick navigation */}
               {categories.map((category) => (
                 <button
                   key={category}
@@ -261,12 +265,14 @@ export default function MenuPage() {
           </div>
         </nav>
       )}
+      {/* Main menu content area */}
+      
       <div
         className={`container mx-auto px-4 py-8 transition-opacity duration-300 ${
           isRefreshingMenu ? "opacity-45" : "opacity-100"
         }`}
       >
-        {/* Location selector */}
+        {/* Location selector dropdown */}
         <div className="mb-6 w-56">
           <select
             value={currentLocation?.id || ""}
@@ -277,6 +283,7 @@ export default function MenuPage() {
             <option value="" disabled>
               {locationLoading ? "Loading locations..." : "Select Location"}
             </option>
+            {/* Location options */}
             {locations.map((location) => (
               <option key={location.id} value={location.id}>
                 {location.name}
@@ -284,6 +291,7 @@ export default function MenuPage() {
             ))}
           </select>
         </div>
+        {/* Render menu item cards grouped by category */}
         {categories.length === 0 ? (
           <div>
             <p>No items found.</p>
@@ -298,6 +306,7 @@ export default function MenuPage() {
           ))
         )}
       </div>
+      {/* Show menu updating spinner when refreshing */}
       {isRefreshingMenu && (
         <div className="pointer-events-none fixed inset-x-0 top-20 z-20 flex justify-center">
           <div className="rounded-full border border-neutral-200 bg-background/95 px-4 py-1.5 shadow-sm">
@@ -305,6 +314,7 @@ export default function MenuPage() {
           </div>
         </div>
       )}
+      {/* Scroll-to-top floating button */}
       {showScrollTop && (
         <button
           onClick={scrollToTop}

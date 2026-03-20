@@ -27,6 +27,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
       .join(" "); // group words together again
   };
 
+  //Add to cart logic
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -49,18 +50,20 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
     }, 1500);
   };
 
+  // Quantity increment/decrement handlers with bounds checking and event handling to prevent card click-through.
   const handleDecrement = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setQuantity((q) => Math.max(1, q - 1));
   };
 
+
   const handleIncrement = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setQuantity((q) => q + 1);
   };
-
+// Favorite button click handler with animation trigger and event handling to prevent card click-through.
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -73,7 +76,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
   };
 
   return (
-    // Outer div is NOT a link — avoids nested interactive controls (WCAG 4.1.3).
+    
     // The title carries a "stretched link" (after:absolute after:inset-0) that
     // makes the whole card visually clickable. Buttons sit above it via z-10.
     <div className="group card bg-background w-full h-full shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer flex flex-col relative">
