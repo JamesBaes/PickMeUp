@@ -380,6 +380,23 @@ useEffect(() => {
     setCommentSuccess(null);
 
     try {
+      // --- Azure AI Content Safety moderation ---
+      const modRes = await fetch("/api/moderate-comment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: trimmedComment }),
+      });
+      if (modRes.ok) {
+        const modData = await modRes.json();
+        if (modData.flagged) {
+          setCommentError(
+            modData.reason ?? "Your comment was flagged for inappropriate content."
+          );
+          return;
+        }
+      }
+      // ------------------------------------------
+
       if (userHasCommented) {
         if (!currentUserComment || currentUserComment.id.startsWith("comment-")) {
           setCommentError("Unable to edit this review right now. Please refresh and try again.");
@@ -497,6 +514,23 @@ useEffect(() => {
     setEditCommentSuccess(null);
 
     try {
+      // --- Azure AI Content Safety moderation ---
+      const modRes = await fetch("/api/moderate-comment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: trimmedComment }),
+      });
+      if (modRes.ok) {
+        const modData = await modRes.json();
+        if (modData.flagged) {
+          setEditCommentError(
+            modData.reason ?? "Your comment was flagged for inappropriate content."
+          );
+          return;
+        }
+      }
+      // ------------------------------------------
+
       const { error } = await supabase
         .from("comments")
         .update({
