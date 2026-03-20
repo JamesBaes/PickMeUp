@@ -147,7 +147,7 @@ const formatDate = (dateString: string) => {
     return "-";
   }
 };
-
+// A shorter date format for the active order card.
 const formatShortDate = (dateString: string) => {
   try {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -272,7 +272,7 @@ const getStepIndex = (status: OrderStatus) => {
   const index = STEP_ORDER.findIndex((step) => step.key === status);
   return index === -1 ? 0 : index;
 };
-
+// Converts raw order status to a user-friendly heading for the active order card.
 const getStatusHeading = (status: OrderStatus) => {
   switch (status) {
     case "ordered":
@@ -393,12 +393,12 @@ export default function OrderHistoryPage() {
     () => orders.find((order) => ACTIVE_STATUSES.includes(order.status)),
     [orders],
   );
-
+// Filters, searches, and sorts past orders based on user input.
   const filteredPastOrders = useMemo(() => {
     const lowered = searchQuery.trim().toLowerCase();
 
     const base = orders.filter((order) => PAST_STATUSES.includes(order.status));
-
+    // If there's a search query, filter orders by ID or item name
     const searched = lowered
       ? base.filter((order) => {
           const idMatch = order.id.toLowerCase().includes(lowered);
@@ -408,12 +408,12 @@ export default function OrderHistoryPage() {
           return idMatch || itemMatch;
         })
       : base;
-
+    // Then sort by date and/or amount based on user selection
     const sorted = [...searched].sort((a, b) => {
       const dateDiff =
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       const dateValue = dateSort === "newest" ? dateDiff : -dateDiff;
-
+      
       if (amountSort === "none") return dateValue;
       const amountDiff = b.total_cents - a.total_cents;
       return amountSort === "high" ? amountDiff : -amountDiff;
@@ -421,7 +421,7 @@ export default function OrderHistoryPage() {
 
     return sorted;
   }, [orders, searchQuery, dateSort, amountSort]);
-
+  
   if (loading) {
     return (
       <div className="flex justify-center items-center py-20">
@@ -429,7 +429,7 @@ export default function OrderHistoryPage() {
       </div>
     );
   }
-
+  // If no user is logged in, prompt them to log in to view their order history.
   if (!user) {
     return (
       <div className="py-20">
@@ -446,7 +446,7 @@ export default function OrderHistoryPage() {
       </div>
     );
   }
-
+  // If there was an error fetching orders, display the error message and a retry button.
   if (error) {
     return (
       <div className="text-center py-20">
@@ -461,8 +461,9 @@ export default function OrderHistoryPage() {
       </div>
     );
   }
-
+  // Main content of the Order History page, including active order card and past orders list with search/sort controls.
   return (
+    //
     <div className="max-w-6xl mx-auto px-3 md:px-6 py-6 md:py-10">
       {USE_MOCK_DATA && (
         <div className="alert alert-warning mb-6 text-sm shadow-sm border border-warning-highlight">
@@ -504,7 +505,7 @@ export default function OrderHistoryPage() {
                   {formatCurrency(activeOrder.total_cents)}
                 </p>
               </div>
-
+                // Order progress stepper
               <div className="mb-6">
                 <div className="w-full overflow-x-auto pb-2">
                   <div className="min-w-max mx-auto flex items-start px-1">
@@ -512,7 +513,7 @@ export default function OrderHistoryPage() {
                       const currentIndex = getStepIndex(activeOrder.status);
                       const done = index <= currentIndex;
                       const isCurrent = index === currentIndex;
-
+                      // Each step is a circle with a label below. Completed steps are highlighted, the current step has an emoji, and future steps are grayed out.
                       return (
                         <Fragment key={step.key}>
                           {index > 0 && (
@@ -597,12 +598,12 @@ export default function OrderHistoryPage() {
           <h2 className="text-2xl font-heading font-semibold text-neutral-900">
             Past Orders ({filteredPastOrders.length})
           </h2>
-
+     
           <div className="w-full xl:w-auto flex flex-col sm:flex-row sm:items-center gap-2 xl:min-w-[520px] xl:justify-end">
             <span className="text-sm text-neutral-500 font-medium">
               Filters & Sorting
             </span>
-
+          
             <select
               className="h-10 w-full sm:w-auto rounded-lg border border-stone-300 bg-background px-3 text-sm text-neutral-700 focus:outline-none focus:ring-2 focus:ring-accent/20"
               value={dateSort}

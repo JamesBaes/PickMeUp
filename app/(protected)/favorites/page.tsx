@@ -27,7 +27,7 @@ export default function FavoritesPage() {
       </div>
     );
   }
-
+// Main content of the Favorites page
   return (
     <div className="min-h-screen bg-stone-50">
       <section className="border-b border-stone-300 bg-white">
@@ -37,7 +37,7 @@ export default function FavoritesPage() {
           </h1>
         </div>
       </section>
-
+ 
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="rounded-2xl border-2 border-accent/70 bg-white shadow-md p-5 md:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
@@ -45,7 +45,7 @@ export default function FavoritesPage() {
               {favoriteItems.length} Favorite Items
             </h2>
           </div>
-
+      
           {favoriteItems.length > 0 && (
             <button
               onClick={handleOrderAllFavorites}
