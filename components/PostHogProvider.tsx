@@ -6,9 +6,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com";
-
-const isPostHogEnabled = typeof POSTHOG_KEY === "string" && POSTHOG_KEY.trim().length > 0;
+const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST;
 
 function PostHogPageView() {
   const pathname = usePathname();
@@ -21,28 +19,15 @@ function PostHogPageView() {
       });
     }
   }, [pathname, ph]);
-  
-  
-  
-  
-  // note it couyld also be this wasn't sure
-//   if (!isPostHogEnabled) return;
 
-//     posthog.capture("$pageview", {
-//       $current_url: window.location.href,
-//     });
-//   }, [pathname]);
-
-//   return null;
+  return null;
 }
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (!isPostHogEnabled) return;
-
-    posthog.init(POSTHOG_KEY, {
+    posthog.init(POSTHOG_KEY!, {
       api_host: POSTHOG_HOST,
       capture_pageview: false,
       capture_pageleave: true,
@@ -50,8 +35,6 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
       loaded: () => setReady(true),
     });
   }, []);
-
-  if (!isPostHogEnabled) return <>{children}</>;
 
   return (
     <PHProvider client={posthog}>
