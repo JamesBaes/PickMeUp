@@ -7,7 +7,7 @@ import { MenuItem } from "@/types";
 import Image from "next/image";
 import { useCart } from "@/context/cartContext";
 import { useLocation } from "@/context/locationContext";
-import { USE_MOCK_FAVORITES, useFavorites } from "@/context/favoritesContext";
+import { useFavorites } from "@/context/favoritesContext";
 import { useAuth } from "@/context/authContext";
 import { usePostHog } from "posthog-js/react";
 import { stripInjectionChars } from "@/helpers/checkoutValidation";
@@ -173,7 +173,8 @@ useEffect(() => {
     let query = supabase
       .from("menu_items_restaurant_locations")
       .select("*")
-      .eq("item_id", itemId);
+      .eq("item_id", itemId)
+      .neq("is_hidden", true);
 
     // Only filter by restaurant_id if a location is selected
     if (currentLocation?.id) {
@@ -583,7 +584,7 @@ useEffect(() => {
               {formatName(item.name)}
             </h1>
             {/* Favourite button */}
-            {(user || USE_MOCK_FAVORITES) && (
+            {user && (
               <button
                 onClick={() => toggleFavorite(item)}
                 className="p-2 rounded-full hover:bg-base-200 transition-colors shrink-0"
@@ -614,8 +615,7 @@ useEffect(() => {
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 border-white border-2 bg-neutral-100 rounded-lg">
               <p className="text-xl font-heading font-medium text-black mb-1">Calories</p>
-              {/* <p className="text-md font-body font-sm capitalize">{item.calories}</p> */}  {/* add this line back after design review LOLLLLLL*/}
-              <p className="text-md font-body font-sm capitalize">450 Cal</p>
+              <p className="text-md font-body font-sm capitalize">{item.calories}</p>
             </div>
             
             <div className="p-4 border-white border-2 bg-neutral-100 rounded-lg">

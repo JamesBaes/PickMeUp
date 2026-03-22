@@ -91,6 +91,7 @@ export default function MenuPage() {
       const { data, error } = await supabase
         .from("menu_items")
         .select("*")
+        .neq("is_hidden", true)
         .order("category", { ascending: true })
         .order("name", { ascending: true });
 
@@ -112,9 +113,10 @@ export default function MenuPage() {
       const { data: locationData, error: locationError } = await supabase
         .from("menu_items_restaurant_locations")
         .select(
-          "item_id, restaurant_id, name, price, popular, description, category, bogo, image_url, calories, allergy_information",
+          "item_id, restaurant_id, name, price, popular, description, category, bogo, image_url, calories, allergy_information, is_hidden",
         )
         .eq("restaurant_id", numericRestaurantId)
+        .neq("is_hidden", true)
         .order("category", { ascending: true })
         .order("name", { ascending: true });
 

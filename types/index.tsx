@@ -11,6 +11,7 @@ export interface MenuItem {
   list_of_ingredients?: string[]; // List of ingredients used in the menu item
   popular?: boolean; // Whether the item is marked as popular
   bogo?: boolean; // Whether the item has a buy-one-get-one offer
+  is_hidden?: boolean; // Whether the item is hidden from customers
 }
 
 export interface MenuItemCardProps {
