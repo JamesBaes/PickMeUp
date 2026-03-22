@@ -23,7 +23,7 @@ export async function GET(
     // Look up by receipt_token — the real order UUID never leaves the server
     const { data: order, error } = await supabase
       .from("orders")
-      .select("*")
+      .select("*, restaurant_locations(location_name)")
       .eq("receipt_token", receiptToken)
       .single();
 
@@ -65,6 +65,9 @@ export async function GET(
       total: parseFloat(totalDollars.toFixed(2)),
       status: order.status,
       pickupTime: order.pickup_time,
+      locationName: (order.restaurant_locations as any)?.location_name
+        ?.replace(/_/g, " ")
+        .replace(/\b\w/g, (c: string) => c.toUpperCase()) ?? null,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Failed to fetch order";

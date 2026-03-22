@@ -24,7 +24,7 @@ export async function GET(
     // Fetch canonical order record.
     const { data: order, error } = await supabase
       .from("orders")
-      .select("*")
+      .select("*, restaurant_locations(location_name)")
       .eq("id", orderId)
       .single();
 
@@ -75,6 +75,9 @@ export async function GET(
       total: parseFloat(totalDollars.toFixed(2)),
       status: order.status,
       pickupTime: order.pickup_time,
+      locationName: (order.restaurant_locations as any)?.location_name
+        ?.replace(/_/g, " ")
+        .replace(/\b\w/g, (c: string) => c.toUpperCase()) ?? null,
     };
 
     return NextResponse.json(formattedOrder);
