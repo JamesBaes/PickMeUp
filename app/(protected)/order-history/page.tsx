@@ -572,7 +572,7 @@ export default function OrderHistoryPage() {
                       {activeOrder.items.map((item, idx) => (
                         <li key={idx} className="flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-neutral-300 shrink-0" />
-                          <span className="font-medium text-neutral-800 capitalize">{item.name}</span>
+                          <span className="font-medium text-neutral-800 capitalize">{item.name.replace(/_/g, ' ')}</span>
                           <span className="text-neutral-400 text-xs">×{item.quantity}</span>
                         </li>
                       ))}
@@ -698,7 +698,7 @@ export default function OrderHistoryPage() {
                     {(expandedItems.has(order.id) ? order.items : order.items.slice(0, 3)).map((item, idx) => (
                       <li key={idx} className="flex items-center gap-2 wrap-break-word">
                         <span className="w-1.5 h-1.5 rounded-full bg-neutral-300 shrink-0" />
-                        <span className="font-semibold capitalize">{item.name}</span>
+                        <span className="font-semibold capitalize">{item.name.replace(/_/g, ' ')}</span>
                         <span className="text-neutral-400 text-xs">×{item.quantity}</span>
                       </li>
                     ))}
