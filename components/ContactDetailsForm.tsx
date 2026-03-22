@@ -11,6 +11,7 @@ interface ContactDetailsFormProps {
     email?: string;
     phone?: string;
   };
+  isGuest?: boolean;
 }
 
 export default function ContactDetailsForm({
@@ -19,6 +20,7 @@ export default function ContactDetailsForm({
   onEmailChange,
   onPhoneChange,
   errors,
+  isGuest,
 }: ContactDetailsFormProps) {
   const emailErrorId = errors.email ? "contact-email-error" : undefined;
   const phoneErrorId = errors.phone ? "contact-phone-error" : undefined;
@@ -50,6 +52,9 @@ export default function ContactDetailsForm({
           />
           {errors.email && (
             <p id="contact-email-error" className="mt-1 text-sm text-danger-dark">{errors.email}</p>
+          )}
+          {isGuest && !errors.email && (
+            <p className="mt-1 text-sm text-red-500">Enter a valid email — your receipt will be sent here.</p>
           )}
         </div>
         <div>

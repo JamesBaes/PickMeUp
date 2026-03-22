@@ -7,7 +7,7 @@ const supabase = createClient(
 );
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   context: { params: Promise<{ receiptToken: string }> }
 ) {
   try {
@@ -42,7 +42,7 @@ export async function GET(
 
     return NextResponse.json({
       id: order.id,
-      orderNumber: `ORD-${order.id.toString().padStart(8, "0")}`,
+      orderNumber: `ORD-${order.id.toString().slice(0, 8).toUpperCase()}`,
       date: new Date(order.created_at).toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",

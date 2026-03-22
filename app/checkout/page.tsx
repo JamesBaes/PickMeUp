@@ -10,6 +10,12 @@ import ContactDetailsForm from "@/components/ContactDetailsForm";
 import CardholderForm from "@/components/CardholderForm";
 import BillingAddressForm from "@/components/BillingAddressForm";
 import { generatePickupTime } from "@/helpers/checkoutHelpers";
+import {
+  validateEmail,
+  validatePhone,
+  validateName,
+  validateAddress,
+} from "@/helpers/checkoutValidation";
 import { useCart } from "@/context/cartContext";
 import { useLocation } from "@/context/locationContext";
 
@@ -30,14 +36,27 @@ export default function CheckoutPage() {
   const [billingCountry, setBillingCountry] = useState("Canada");
   const [billingAddress, setBillingAddress] = useState("");
   const [saveInfo, setSaveInfo] = useState(false);
+  const [formErrors, setFormErrors] = useState<{
+    email?: string;
+    phone?: string;
+    name?: string;
+    address?: string;
+  }>({});
   const [appliedPromo, setAppliedPromo] = useState("");
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [pickupTime, setPickupTime] = useState("");
   const [customerId, setCustomerId] = useState<string | null>(null);
+  const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      setCustomerId(data.user?.id ?? null);
+      const user = data.user;
+      setCustomerId(user?.id ?? null);
+      if (user?.email) {
+        setCustomerEmail(user.email);
+      } else {
+        setIsGuest(true);
+      }
     });
   }, []);
 
@@ -128,8 +147,20 @@ export default function CheckoutPage() {
   }, []);
 
   const handlePayButtonClick = async () => {
-    // Parent triggers PaymentForm imperatively after validating visual readiness.
     if (!paymentFormRef.current) return;
+
+    const errors = {
+      email: validateEmail(customerEmail),
+      phone: validatePhone(customerPhone),
+      name: validateName(customerName),
+      address: validateAddress(billingAddress),
+    };
+
+    setFormErrors(errors);
+
+    if (errors.email || errors.phone || errors.name || errors.address) {
+      return;
+    }
 
     setError(null);
     setIsProcessing(true);
@@ -163,14 +194,7 @@ export default function CheckoutPage() {
 
           {/* Right Column - Payment Form */}
           <div className="bg-background rounded-lg p-8">
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-neutral-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-background text-neutral-500">OR</span>
-              </div>
-            </div>
+            <h2 className="text-2xl font-bold text-neutral-900 mb-6">Checkout</h2>
 
             {error && (
               <div className="bg-danger-subtle border border-danger-border text-danger-dark p-3 rounded-lg mb-4">
@@ -184,7 +208,8 @@ export default function CheckoutPage() {
               phone={customerPhone}
               onEmailChange={setCustomerEmail}
               onPhoneChange={setCustomerPhone}
-              errors={{}}
+              errors={{ email: formErrors.email, phone: formErrors.phone }}
+              isGuest={isGuest}
             />
 
             {/* Payment Method */}
@@ -208,6 +233,7 @@ export default function CheckoutPage() {
             <CardholderForm
               name={customerName}
               onNameChange={setCustomerName}
+              error={formErrors.name}
             />
 
             {/* Billing Address */}
@@ -216,7 +242,7 @@ export default function CheckoutPage() {
               address={billingAddress}
               onCountryChange={setBillingCountry}
               onAddressChange={setBillingAddress}
-              errors={{}}
+              errors={{ address: formErrors.address }}
             />
 
             {/* Save Info Checkbox */}
@@ -257,7 +283,7 @@ export default function CheckoutPage() {
             <div className="mt-8 pt-6 border-t border-neutral-200">
               <div className="flex items-center justify-center gap-4 text-xs text-neutral-600">
                 <span>
-                  Power by <span className="font-semibold">stripe</span>
+                  Power by <span className="font-semibold">Square</span>
                 </span>
                 <span>|</span>
                 <a href="#" className="hover:text-neutral-700">
