@@ -7,7 +7,7 @@ import { MenuItem } from "@/types";
 import Image from "next/image";
 import { useCart } from "@/context/cartContext";
 import { useLocation } from "@/context/locationContext";
-import { USE_MOCK_FAVORITES, useFavorites } from "@/context/favoritesContext";
+import { useFavorites } from "@/context/favoritesContext";
 import { useAuth } from "@/context/authContext";
 import { usePostHog } from "posthog-js/react";
 import { stripInjectionChars } from "@/helpers/checkoutValidation";
@@ -583,7 +583,7 @@ useEffect(() => {
               {formatName(item.name)}
             </h1>
             {/* Favourite button */}
-            {(user || USE_MOCK_FAVORITES) && (
+            {user && (
               <button
                 onClick={() => toggleFavorite(item)}
                 className="p-2 rounded-full hover:bg-base-200 transition-colors shrink-0"
