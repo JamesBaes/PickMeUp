@@ -38,7 +38,7 @@ const Login = () => {
         width="80"
         height="80"
       />
-      <h1 className="font-heading text-4xl font-black text-center leading-tight text-neutral-700">
+      <h1 className="font-heading text-4xl font-black text-foreground text-center leading-tight">
         Welcome to
         <br />
         Gladiator Burger
