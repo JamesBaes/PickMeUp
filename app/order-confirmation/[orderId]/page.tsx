@@ -272,7 +272,7 @@ export default function OrderConfirmationPage() {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-heading font-semibold text-lg text-neutral-900">
-                      {item.name}
+                      {item.name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                     </h3>
                     <p className="font-body text-sm text-neutral-600">
                       Quantity: {item.quantity}

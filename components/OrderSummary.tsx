@@ -70,7 +70,9 @@ export default function OrderSummary({
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-neutral-900 font-medium">{item.name}</h3>
+              <h3 className="text-neutral-900 font-medium">
+                {item.name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+              </h3>
               <div className="mt-2 flex items-center gap-2">
                 <button
                   type="button"
@@ -135,7 +137,7 @@ export default function OrderSummary({
 
         <div className="flex justify-between text-neutral-500 text-sm">
           <span>Tax</span>
-          {/* <span>Enter address to calculate</span> */}
+          <span>{formatCurrency(taxCents)}</span>
         </div>
 
         <div className="flex justify-between text-lg font-semibold text-neutral-900 pt-3 border-t">
