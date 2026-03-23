@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans, Nunito } from "next/font/google";
+import { Inter } from "next/font/google";
 import Footer from "@/components/Footer";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
@@ -9,12 +9,12 @@ import { CartProvider } from "@/context/cartContext";
 import { FavoritesProvider } from "@/context/favoritesContext";
 import { PostHogProvider } from "@/components/PostHogProvider";
 
-const headingText = DM_Sans({
+const headingText = Inter({
   variable: "--font-heading",
   subsets: ["latin"],
 });
 
-const bodyText = Nunito({
+const bodyText = Inter({
   variable: "--font-body",
   subsets: ["latin"],
 });

@@ -385,7 +385,7 @@ export default function OrderHistoryPage() {
   return (
     <div className="max-w-6xl mx-auto px-3 md:px-6 py-6 md:py-10">
       <div className="mb-8 md:mb-10">
-        <h1 className="text-4xl md:text-5xl font-heading font-bold text-neutral-900">
+        <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-neutral-900">
           Order History
         </h1>
       </div>

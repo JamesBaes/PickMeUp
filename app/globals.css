@@ -3,11 +3,12 @@
 
 :root {
   --background: #FFFFFF;
-  --foreground: #001219;
+  --foreground: #28231C;
   --offwhite: #F2F0EF;
-  --accent: #A30000;
-  --secondary: #850000;
-  --active: #6d0000;
+  --accent: #B6244F;
+  --accent-hover: #9A1E42;
+  --secondary: #9A1E42;
+  --active: #7D1534;
 
   /* Neutral scale */
   --neutral-50: #F9FAFB;
@@ -21,26 +22,31 @@
   --neutral-800: #1F2937;
   --neutral-900: #111827;
 
-  /* Danger / Error */
-  --danger: #EF4444;
-  --danger-dark: #DC2626;
-  --danger-subtle: #FEE2E2;
-  --danger-border: #FECACA;
-  --danger-text: #B91C1C;
+  /* Danger / Error — B6244F based */
+  --danger: #B6244F;
+  --danger-dark: #9A1E42;
+  --danger-darker: #7D1534;
+  --danger-subtle: #F5D0DA;
+  --danger-border: #EAA1B5;
+  --danger-text: #7D1534;
 
-  /* Info (blue) */
-  --info-muted: #3B82F6;
-  --info: #2563EB;
-  --info-hover: #1D4ED8;
-  --info-dark: #1E40AF;
-  --info-bg: #EFF6FF;
-  --info-border: #BFDBFE;
+  /* Info (blue) — C1EEFF based */
+  --info-bg: #EBF9FF;
+  --info-border: #C1EEFF;
+  --info-muted: #70CFFF;
+  --info: #3BBDF5;
+  --info-hover: #1AAEE8;
+  --info-dark: #0077AA;
+  --info-text: #004E73;
 
-  /* Success (green/emerald) */
-  --success: #16A34A;
-  --success-dark: #15803D;
-  --success-subtle: #DCFCE7;
-  --success-indicator: #10B981;
+  /* Success (green) — A9E5BB based */
+  --success-subtle: #E2F8EA;
+  --success-border: #A9E5BB;
+  --success-indicator: #A9E5BB;
+  --success: #3DBD6E;
+  --success-hover: #2EA05C;
+  --success-dark: #1A8449;
+  --success-text: #115C32;
 
   /* Warning (amber) */
   --warning-bg: #FFFBEB;
@@ -52,7 +58,7 @@
   /* Misc */
   --heart: #EC4899;
   --rating: #F59E0B;
-  --black: #000000;
+  --black: #B6244F;
 }
 
 @theme inline {
@@ -67,6 +73,7 @@
   --color-foreground: var(--foreground);
   --color-offwhite: var(--offwhite);
   --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
   --font-heading: var(--font-heading);
   --font-body: var(--font-body);
   --color-secondary: var(--secondary);
@@ -87,23 +94,28 @@
   /* Danger */
   --color-danger: var(--danger);
   --color-danger-dark: var(--danger-dark);
+  --color-danger-darker: var(--danger-darker);
   --color-danger-subtle: var(--danger-subtle);
   --color-danger-border: var(--danger-border);
   --color-danger-text: var(--danger-text);
 
   /* Info */
+  --color-info-bg: var(--info-bg);
+  --color-info-border: var(--info-border);
   --color-info-muted: var(--info-muted);
   --color-info: var(--info);
   --color-info-hover: var(--info-hover);
   --color-info-dark: var(--info-dark);
-  --color-info-bg: var(--info-bg);
-  --color-info-border: var(--info-border);
+  --color-info-text: var(--info-text);
 
   /* Success */
-  --color-success: var(--success);
-  --color-success-dark: var(--success-dark);
   --color-success-subtle: var(--success-subtle);
+  --color-success-border: var(--success-border);
   --color-success-indicator: var(--success-indicator);
+  --color-success: var(--success);
+  --color-success-hover: var(--success-hover);
+  --color-success-dark: var(--success-dark);
+  --color-success-text: var(--success-text);
 
   /* Warning */
   --color-warning-bg: var(--warning-bg);
