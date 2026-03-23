@@ -9,7 +9,6 @@ import { useCart } from "@/context/cartContext";
 import { useLocation } from "@/context/locationContext";
 import { useFavorites } from "@/context/favoritesContext";
 import { useAuth } from "@/context/authContext";
-import { useFavorites } from "@/context/favoritesContext";
 import { usePostHog } from "posthog-js/react";
 import { stripInjectionChars } from "@/helpers/checkoutValidation";
 
@@ -195,8 +194,6 @@ export default function ItemPage({ params }: ItemPageProps) {
     }
 
     const { data, error } = await query.single();
-
-      const { data, error } = await query.single();
 
       if (error) throw error;
 
