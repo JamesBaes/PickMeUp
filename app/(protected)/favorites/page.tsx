@@ -29,7 +29,7 @@ export default function FavoritesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen">
       <section className="border-b border-stone-300 bg-white">
         <div className="max-w-6xl mx-auto px-4 py-10">
           <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-neutral-900">
@@ -39,7 +39,7 @@ export default function FavoritesPage() {
       </section>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="rounded-2xl border-2 border-accent/70 bg-white shadow-md p-5 md:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="rounded-2xl border border-neutral-200 bg-white shadow-md p-5 md:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h2 className="font-heading text-2xl font-bold text-neutral-900">
               {favoriteItems.length} Favorite Items
