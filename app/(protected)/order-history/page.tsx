@@ -36,84 +36,7 @@ interface Order {
   pickup_time: string | null;
 }
 
-// ===========================
-// MOCK DATA MODE (temporary)
-// ===========================
-// Keep this `true` while designing/testing UI.
-// When your database is populated, switch this to `false`
-// and the real Supabase fetch below will run automatically.
-const USE_MOCK_DATA = false;
 const ORDER_DETAILS_SNAPSHOT_PREFIX = "order-details:";
-
-const MOCK_ORDERS: Order[] = [
-  {
-    id: "c5cf6b22-31f4-4f60-a8f6-a2e4fd8d1011",
-    created_at: "2025-10-02T12:30:00.000Z",
-    customer_name: "Manraj",
-    customer_email: "mock@gladiator.com",
-    customer_phone: "555-123-4567",
-    location: "Brampton, ON (Pick Up Location)",
-    items: [
-      { name: "Combo Plate", quantity: 1, priceCents: 1499, image: undefined },
-      {
-        name: "Strawberry Milkshake",
-        quantity: 2,
-        priceCents: 799,
-        image: undefined,
-      },
-      {
-        name: "Chicken Burger",
-        quantity: 1,
-        priceCents: 1099,
-        image: undefined,
-      },
-      { name: "Fries", quantity: 3, priceCents: 399, image: undefined },
-    ],
-    total_cents: 17770,
-    status: "in_progress",
-    pickup_time: "2025-10-02T13:00:00.000Z",
-  },
-  {
-    id: "18ff66aa-402f-45c2-9ab7-c9839ad90001",
-    created_at: "2025-10-01T18:30:00.000Z",
-    customer_name: "Manraj",
-    customer_email: "mock@gladiator.com",
-    customer_phone: "555-123-4567",
-    location: "Brampton, ON",
-    items: [
-      { name: "Combo Plate", quantity: 1, priceCents: 1499, image: undefined },
-      {
-        name: "Strawberry Milkshake",
-        quantity: 1,
-        priceCents: 799,
-        image: undefined,
-      },
-    ],
-    total_cents: 5172,
-    status: "completed",
-    pickup_time: "2025-10-01T19:00:00.000Z",
-  },
-  {
-    id: "82ddf2ec-7ab1-4dc6-9129-5f29fd3a1110",
-    created_at: "2025-09-28T16:00:00.000Z",
-    customer_name: "Manraj",
-    customer_email: "mock@gladiator.com",
-    customer_phone: "555-123-4567",
-    location: "Brampton, ON",
-    items: [
-      {
-        name: "Chicken Burger",
-        quantity: 2,
-        priceCents: 1099,
-        image: undefined,
-      },
-      { name: "Fries", quantity: 1, priceCents: 399, image: undefined },
-    ],
-    total_cents: 5172,
-    status: "completed",
-    pickup_time: "2025-09-28T16:30:00.000Z",
-  },
-];
 
 const ACTIVE_STATUSES: OrderStatus[] = ["paid", "in_progress", "ready"];
 const PAST_STATUSES: OrderStatus[] = ["completed", "refunded"];
@@ -252,13 +175,9 @@ const getStatusHeading = (status: OrderStatus) => {
 export default function OrderHistoryPage() {
   const router = useRouter();
   const { addItem, clearCart } = useCart();
-  const [user, setUser] = useState<User | null>(
-    USE_MOCK_DATA ? ({} as User) : null,
-  );
-  const [orders, setOrders] = useState<Order[]>(
-    USE_MOCK_DATA ? MOCK_ORDERS : [],
-  );
-  const [loading, setLoading] = useState(!USE_MOCK_DATA);
+  const [user, setUser] = useState<User | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -289,17 +208,10 @@ export default function OrderHistoryPage() {
   };
 
   useEffect(() => {
-    if (USE_MOCK_DATA) return;
-
     const load = async () => {
       try {
         setLoading(true);
         setError(null);
-
-        // ======================
-        // REAL DATABASE FETCHING
-        // ======================
-        // This runs when USE_MOCK_DATA = false
 
         const {
           data: { user },
@@ -466,14 +378,6 @@ export default function OrderHistoryPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-3 md:px-6 py-6 md:py-10">
-      {USE_MOCK_DATA && (
-        <div className="alert alert-warning mb-6 text-sm shadow-sm border border-warning-highlight">
-          Mock data mode is ON. Set{" "}
-          <span className="font-semibold">USE_MOCK_DATA</span> to false in this
-          file to fetch real orders.
-        </div>
-      )}
-
       <div className="mb-8 md:mb-10">
         <h1 className="text-4xl md:text-5xl font-heading font-bold text-neutral-900">
           Order History
