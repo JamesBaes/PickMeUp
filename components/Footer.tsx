@@ -2,8 +2,19 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import React from 'react';
+import { useAuth } from '@/context/authContext';
+import supabase from '@/utils/supabase/client';
+import { useRouter } from 'next/navigation';
 
 const Footer = () => {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
+  };
+
   return (
     <footer className="w-full border-t border-neutral-100  bg-neutral-50 mt-auto">
       <div className="px-20 py-12">
@@ -47,16 +58,43 @@ const Footer = () => {
           <div>
             <h3 className="font-heading font-bold text-lg mb-4">Account</h3>
             <ul className="space-y-2">
-              <li>
-                <Link href="/login" className="text-neutral-600 hover:text-accent transition-all">
-                  Login
-                </Link>
-              </li>
-              <li>
-                <Link href="/sign-up" className="text-neutral-600 hover:text-accent transition-all">
-                  Sign Up
-                </Link>
-              </li>
+              {user ? (
+                <>
+                  <li>
+                    <Link href="/account" className="text-neutral-600 hover:text-accent transition-all">
+                      Account
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/order-history" className="text-neutral-600 hover:text-accent transition-all">
+                      Order History
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/favorites" className="text-neutral-600 hover:text-accent transition-all">
+                      Favorites
+                    </Link>
+                  </li>
+                  <li>
+                    <button onClick={handleSignOut} className="text-neutral-600 hover:text-accent transition-all">
+                      Sign Out
+                    </button>
+                  </li>
+                </>
+              ) : (
+                <>
+                  <li>
+                    <Link href="/login" className="text-neutral-600 hover:text-accent transition-all">
+                      Login
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/sign-up" className="text-neutral-600 hover:text-accent transition-all">
+                      Sign Up
+                    </Link>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
 
