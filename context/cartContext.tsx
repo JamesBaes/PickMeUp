@@ -371,7 +371,7 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
           })
 
         if (error) {
-          console.error('Failed to insert cart item:', error)
+          console.error('Failed to insert cart item:', error.message, error.code, error.details, error.hint)
           await fetchUserCart()
         }
       }
@@ -469,30 +469,23 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
   }
 
     // Remove all cart contents at once.
-  const clearCart = () => {
-      if (user) {
-        setItems([])
+  const clearCart = async (): Promise<void> => {
+    setItems([])
 
-        const clearUserCart = async () => {
-          let query = supabase
-            .from('cart_items')
-            .delete()
-            .eq('user_id', user.id)
+    if (user) {
+      let query = supabase
+        .from('cart_items')
+        .delete()
+        .eq('user_id', user.id)
 
-          query = applyLocationFilter(query)
+      query = applyLocationFilter(query)
 
-          const { error } = await query
-          if (error) {
-            console.error('Failed to clear cart:', error)
-            await fetchUserCart()
-          }
-        }
-
-        void clearUserCart()
-        return
+      const { error } = await query
+      if (error) {
+        console.error('Failed to clear cart:', error)
+        await fetchUserCart()
       }
-
-      setItems([]);
+    }
   }
 
   // Swap cart items from one location to equivalent items at another location.

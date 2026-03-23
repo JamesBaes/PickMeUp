@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import supabase from "@/utils/supabase/client";
 
 interface OrderItem {
   name: string;
@@ -10,6 +11,8 @@ interface OrderItem {
   price: number;
   image_url: string;
 }
+
+type OrderStatus = "paid" | "in_progress" | "ready" | "completed";
 
 interface OrderData {
   id: string;
@@ -25,7 +28,23 @@ interface OrderData {
   tax: number;
   total: number;
   pickupTime: string;
+  status: OrderStatus;
+  locationName?: string | null;
 }
+
+const STEPS: { key: OrderStatus; label: string; icon: string }[] = [
+  { key: "paid",        label: "Order Placed", icon: "1" },
+  { key: "in_progress", label: "Preparing",    icon: "2" },
+  { key: "ready",       label: "Ready",        icon: "3" },
+  { key: "completed",   label: "Completed",    icon: "4" },
+];
+
+const STATUS_INDEX: Record<OrderStatus, number> = {
+  paid: 0,
+  in_progress: 1,
+  ready: 2,
+  completed: 3,
+};
 
 export default function OrderConfirmationPage() {
   const router = useRouter();
@@ -33,8 +52,6 @@ export default function OrderConfirmationPage() {
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sendingEmail, setSendingEmail] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
 
   useEffect(() => {
     const receiptToken = sessionStorage.getItem("pendingReceiptToken");
@@ -65,6 +82,38 @@ export default function OrderConfirmationPage() {
 
     fetchOrderData();
   }, [router]);
+
+  // Real-time listener: update progress bar when status changes in the DB
+  useEffect(() => {
+    if (!orderData?.id) return;
+
+    const channel = supabase
+      .channel(`order-confirmation-receipt-${orderData.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "orders",
+          filter: `id=eq.${orderData.id}`,
+        },
+        (payload) => {
+          setOrderData((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              status: (payload.new.status as OrderStatus) ?? prev.status,
+              pickupTime: payload.new.pickup_time ?? prev.pickupTime,
+            };
+          });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [orderData?.id]);
 
   // const handleEmailReceipt = async () => {
   //   setSendingEmail(true);
@@ -147,6 +196,7 @@ export default function OrderConfirmationPage() {
                 You can view the status of your order below.
               </p>
 
+
               {/* Pickup Time */}
               <div className="font-heading text-3xl text-neutral-900">
                 <span className="font-semibold">Pick Up Time:</span>{" "}
@@ -156,11 +206,56 @@ export default function OrderConfirmationPage() {
               </div>
             </div>
 
+            {/* Order Progress */}
+            <div className="bg-white rounded-2xl shadow-md p-6">
+              <div className="flex items-center justify-between">
+                {STEPS.map((step, i) => {
+                  const currentIndex = STATUS_INDEX[orderData.status] ?? 0;
+                  const isCompleted = i < currentIndex;
+                  const isActive = i === currentIndex;
+                  return (
+                    <div key={step.key} className="flex items-center flex-1">
+                      <div className="flex flex-col items-center gap-1">
+                        <div
+                          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${
+                            isCompleted || isActive
+                              ? "bg-success text-white"
+                              : "bg-neutral-200 text-neutral-500"
+                          }`}
+                        >
+                          {step.icon}
+                        </div>
+                        <span
+                          className={`text-xs font-body text-center whitespace-nowrap ${
+                            isCompleted || isActive ? "text-neutral-900 font-semibold" : "text-neutral-400"
+                          }`}
+                        >
+                          {step.label}
+                        </span>
+                      </div>
+                      {i < STEPS.length - 1 && (
+                        <div
+                          className={`flex-1 h-0.5 mx-2 mb-5 ${
+                            i < currentIndex ? "bg-success" : "bg-neutral-200"
+                          }`}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Payment Summary Card */}
             <div className="bg-white rounded-2xl shadow-md p-8">
-              <h2 className="font-heading font-bold text-3xl text-neutral-900 mb-6">
+              <h2 className="font-heading font-bold text-3xl text-neutral-900 mb-2">
                 Payment Summary
               </h2>
+              {orderData.locationName && (
+                <p className="font-body text-neutral-500 text-sm mb-6">
+                  📍 {orderData.locationName}
+                </p>
+              )}
 
               {/* Billing Address */}
               <div className="mb-8">

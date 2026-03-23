@@ -78,7 +78,7 @@ export interface CartContextType {
   items: CartItem[];
   addItem: (item: MenuItem, quantity?: number) => void;
   removeItem: (itemId: string) => void;
-  clearCart: () => void;
+  clearCart: () => Promise<void>;
   updateQuantity: (itemId: string, quantity: number) => void;
   getItemCount: () => number;
   getTotal: () => number;

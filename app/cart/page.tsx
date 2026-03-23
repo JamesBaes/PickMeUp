@@ -283,7 +283,7 @@ const Cart = () => {
               )}
             </div>
             <div className="flex items-center gap-3">
-            <h2 className="font-body text-neutral-600 text-md">{cartItems.length} items</h2>
+            <h2 className="font-body text-neutral-600 text-md">{cartItems.reduce((sum, item) => sum + item.quantity, 0)} items</h2>
             {cartItems.length > 0 && (
               <button
                 className="font-body text-sm text-danger hover:text-danger-dark hover:cursor-pointer"
@@ -354,7 +354,7 @@ const Cart = () => {
       <section className="flex flex-col lg:w-2/5 bg-neutral-50 shadow-md p-8 xl:p-12 rounded-2xl h-fit">
         <header className="flex justify-between items-end pb-4">
           <h2 className="font-heading font-bold text-3xl">Order Summary</h2>
-          <h2 className="font-body text-neutral-600 text-md">{cartItems.length} items</h2>
+          <h2 className="font-body text-neutral-600 text-md">{cartItems.reduce((sum, item) => sum + item.quantity, 0)} items</h2>
         </header>
         
         <hr className="border-neutral-300" />

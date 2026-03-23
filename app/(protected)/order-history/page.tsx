@@ -17,6 +17,7 @@ type OrderStatus =
   | "cancelled";
 
 interface OrderItem {
+  itemId: string;
   name: string;
   quantity: number;
   priceCents: number;
@@ -30,6 +31,7 @@ interface Order {
   customer_email: string | null;
   customer_phone: string;
   location?: string;
+  restaurant_id: string;
   items: OrderItem[];
   total_cents: number;
   status: OrderStatus;
@@ -65,11 +67,10 @@ const formatDate = (dateString: string) => {
 
 const toMenuItemFromOrderItem = (
   orderItem: OrderItem,
-  index: number,
-  orderId: string,
+  restaurantId: string,
 ): MenuItem => ({
-  item_id: `${orderId}-${index}-${orderItem.name}`,
-  restaurant_id: "",
+  item_id: orderItem.itemId,
+  restaurant_id: restaurantId,
   name: orderItem.name,
   description: "",
   price: Number((orderItem.priceCents / 100).toFixed(2)),
@@ -115,6 +116,7 @@ const normalizeItems = (value: unknown): OrderItem[] => {
     .map((item) => {
       if (!item || typeof item !== "object") return null;
       const raw = item as Record<string, unknown>;
+      const itemId = raw.itemId != null ? String(raw.itemId) : "";
       const name = typeof raw.name === "string" ? raw.name : "Item";
       const quantity = typeof raw.quantity === "number" ? raw.quantity : 1;
       const priceCents =
@@ -124,7 +126,7 @@ const normalizeItems = (value: unknown): OrderItem[] => {
             ? Math.round(raw.price * 100)
             : 0;
       const image = typeof raw.image === "string" ? raw.image : undefined;
-      return { name, quantity, priceCents, image };
+      return { itemId, name, quantity, priceCents, image };
     })
     .filter((item): item is OrderItem => item !== null);
 };
@@ -185,12 +187,22 @@ export default function OrderHistoryPage() {
     router.push(`/order-confirmation/${order.id}`);
   };
 
-  const handleOrderAgain = (order: Order) => {
-    clearCart();
+  const handleOrderAgain = async (order: Order) => {
+    await clearCart();
 
-    order.items.forEach((item, index) => {
-      const menuItem = toMenuItemFromOrderItem(item, index, order.id);
-      addItem(menuItem, item.quantity);
+    const merged = new Map<string, { item: OrderItem; quantity: number }>();
+    for (const item of order.items) {
+      const key = item.itemId || item.name;
+      const existing = merged.get(key);
+      if (existing) {
+        existing.quantity += item.quantity;
+      } else {
+        merged.set(key, { item, quantity: item.quantity });
+      }
+    }
+
+    merged.forEach(({ item, quantity }) => {
+      addItem(toMenuItemFromOrderItem(item, order.restaurant_id), quantity);
     });
 
     router.push("/cart");
@@ -241,6 +253,7 @@ export default function OrderHistoryPage() {
           customer_name: row.customer_name,
           customer_email: row.customer_email,
           customer_phone: row.customer_phone,
+          restaurant_id: row.restaurant_id ?? "",
           location: row.restaurant_locations?.location_name
             ? row.restaurant_locations.location_name.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())
             : (row.location ?? "Pick Up Location"),
@@ -262,42 +275,44 @@ export default function OrderHistoryPage() {
     load();
   }, []);
 
-  const activeOrder = useMemo(
-    () => orders.find((order) => ACTIVE_STATUSES.includes(order.status)),
+  const activeOrders = useMemo(
+    () => orders.filter((order) => ACTIVE_STATUSES.includes(order.status)),
     [orders],
   );
 
-  // Real-time listener: update active order's status when it changes in the DB
+  // Real-time listener: update all active orders' statuses when they change in the DB
   useEffect(() => {
-    if (!activeOrder) return;
+    if (activeOrders.length === 0) return;
 
-    const channel = supabase
-      .channel(`order-status-${activeOrder.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "orders",
-          filter: `id=eq.${activeOrder.id}`,
-        },
-        (payload) => {
-          const newStatus = normalizeStatus(payload.new.status);
-          setOrders((prev) =>
-            prev.map((order) =>
-              order.id === activeOrder.id
-                ? { ...order, status: newStatus }
-                : order,
-            ),
-          );
-        },
-      )
-      .subscribe();
+    const channels = activeOrders.map((activeOrder) =>
+      supabase
+        .channel(`order-status-${activeOrder.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "orders",
+            filter: `id=eq.${activeOrder.id}`,
+          },
+          (payload) => {
+            const newStatus = normalizeStatus(payload.new.status);
+            setOrders((prev) =>
+              prev.map((order) =>
+                order.id === activeOrder.id
+                  ? { ...order, status: newStatus }
+                  : order,
+              ),
+            );
+          },
+        )
+        .subscribe(),
+    );
 
     return () => {
-      supabase.removeChannel(channel);
+      channels.forEach((channel) => supabase.removeChannel(channel));
     };
-  }, [activeOrder?.id]);
+  }, [activeOrders.map((o) => o.id).join(",")]);
 
   const filteredPastOrders = useMemo(() => {
     const lowered = searchQuery.trim().toLowerCase();
@@ -377,114 +392,196 @@ export default function OrderHistoryPage() {
 
       <section className="mb-12">
         <h2 className="text-2xl font-heading font-semibold text-neutral-900 mb-4">
-          Active Order
+          {activeOrders.length > 1 ? `Active Orders (${activeOrders.length})` : "Active Order"}
         </h2>
 
         <div className="min-h-[120px]">
-          {activeOrder ? (
-            <div className="relative bg-background rounded-[22px] border border-stone-200 shadow-[0_10px_28px_rgba(0,0,0,0.08)] overflow-hidden">
-              <div className="h-1.5 bg-accent"></div>
+          {activeOrders.length > 0 ? (
+            activeOrders.length === 1 ? (
+              // Full card for a single active order
+              <div className="relative bg-background rounded-[22px] border border-stone-200 shadow-[0_10px_28px_rgba(0,0,0,0.08)] overflow-hidden">
+                <div className="h-1.5 bg-accent"></div>
 
-              <div className="p-6 md:p-8">
-                <div className="flex items-start justify-between gap-4 mb-6">
-                  <div className="min-w-0">
-                    <p className="font-heading font-semibold text-neutral-900">
-                      {formatDate(activeOrder.created_at)}
-                    </p>
-                    <p className="text-sm text-neutral-500 mt-0.5">
-                      {activeOrder.location ?? "Pick Up Location"}
-                    </p>
-                    <p className="text-xs text-neutral-400 mt-1">
-                      Order #{activeOrder.id.slice(0, 8).toUpperCase()}
+                <div className="p-6 md:p-8">
+                  <div className="flex items-start justify-between gap-4 mb-6">
+                    <div className="min-w-0">
+                      <p className="font-heading font-semibold text-neutral-900">
+                        {formatDate(activeOrders[0].created_at)}
+                      </p>
+                      <p className="text-sm text-neutral-500 mt-0.5">
+                        {activeOrders[0].location ?? "Pick Up Location"}
+                      </p>
+                      <p className="text-xs text-neutral-400 mt-1">
+                        Order #{activeOrders[0].id.slice(0, 8).toUpperCase()}
+                      </p>
+                    </div>
+                    <p className="text-3xl font-heading font-bold text-neutral-900 shrink-0">
+                      {formatCurrency(activeOrders[0].total_cents)}
                     </p>
                   </div>
-                  <p className="text-3xl font-heading font-bold text-neutral-900 shrink-0">
-                    {formatCurrency(activeOrder.total_cents)}
-                  </p>
-                </div>
 
-                <div className="mb-6">
-                  <div className="w-full overflow-x-auto pb-2 flex justify-center">
-                    <div className="flex items-start px-1">
-                      {STEP_ORDER.map((step, index) => {
-                        const currentIndex = getStepIndex(activeOrder.status);
-                        const done = index <= currentIndex;
-                        const isCurrent = index === currentIndex;
+                  <div className="mb-6">
+                    <div className="w-full overflow-x-auto pb-2 flex justify-center">
+                      <div className="flex items-start px-1">
+                        {STEP_ORDER.map((step, index) => {
+                          const currentIndex = getStepIndex(activeOrders[0].status);
+                          const done = index <= currentIndex;
+                          const isCurrent = index === currentIndex;
 
-                        return (
-                          <Fragment key={step.key}>
-                            {index > 0 && (
-                              <div
-                                className={`w-8 sm:w-12 md:w-14 h-1 rounded-full mt-4 mx-1 ${index <= currentIndex ? "bg-success" : "bg-stone-200"}`}
-                              ></div>
-                            )}
+                          return (
+                            <Fragment key={step.key}>
+                              {index > 0 && (
+                                <div
+                                  className={`w-8 sm:w-12 md:w-14 h-1 rounded-full mt-4 mx-1 ${index <= currentIndex ? "bg-success" : "bg-stone-200"}`}
+                                ></div>
+                              )}
 
-                            <div className="w-[62px] sm:w-[78px] md:w-20 flex flex-col items-center">
-                              <div
-                                className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 ${done ? "bg-success border-success text-white" : "bg-neutral-100 border-neutral-200 text-neutral-500"}`}
-                              >
-                                {step.key === "in_progress" && isCurrent
-                                  ? "👨‍🍳"
-                                  : index + 1}
+                              <div className="w-[62px] sm:w-[78px] md:w-20 flex flex-col items-center">
+                                <div
+                                  className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 ${done ? "bg-success border-success text-white" : "bg-neutral-100 border-neutral-200 text-neutral-500"}`}
+                                >
+                                  {step.key === "in_progress" && isCurrent
+                                    ? "👨‍🍳"
+                                    : index + 1}
+                                </div>
+                                <p
+                                  className={`text-[11px] leading-tight text-center mt-2 px-1 ${done ? "text-neutral-800" : "text-neutral-400"}`}
+                                >
+                                  {step.label}
+                                </p>
                               </div>
-                              <p
-                                className={`text-[11px] leading-tight text-center mt-2 px-1 ${done ? "text-neutral-800" : "text-neutral-400"}`}
-                              >
-                                {step.label}
-                              </p>
-                            </div>
-                          </Fragment>
-                        );
-                      })}
+                            </Fragment>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-heading font-semibold text-neutral-900">
-                    {getStatusHeading(activeOrder.status)}
-                  </h3>
-                </div>
-
-                <div className="flex flex-wrap gap-8 mb-6">
-                  <div>
-                    <p className="text-xs font-semibold tracking-wide uppercase text-neutral-400 mb-2">
-                      Date
-                    </p>
-                    <p className="text-sm font-medium text-neutral-900">
-                      {formatDate(activeOrder.created_at)}
-                    </p>
-                    <p className="text-sm text-neutral-500">
-                      {activeOrder.location ?? "Pick Up Location"}
-                    </p>
+                  <div className="text-center mb-6">
+                    <h3 className="text-2xl font-heading font-semibold text-neutral-900">
+                      {getStatusHeading(activeOrders[0].status)}
+                    </h3>
                   </div>
 
-                  <div className="flex-1 min-w-[180px]">
-                    <p className="text-xs font-semibold tracking-wide uppercase text-neutral-400 mb-2">
-                      Items
-                    </p>
-                    <ul className="flex flex-col gap-1.5 text-sm max-h-40 overflow-y-auto pr-1">
-                      {activeOrder.items.map((item, idx) => (
-                        <li key={idx} className="flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-neutral-300 shrink-0" />
-                          <span className="font-medium text-neutral-800 capitalize">{item.name.replace(/_/g, ' ')}</span>
-                          <span className="text-neutral-400 text-xs">×{item.quantity}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
+                  <div className="flex flex-wrap gap-8 mb-6">
+                    <div>
+                      <p className="text-xs font-semibold tracking-wide uppercase text-neutral-400 mb-2">
+                        Date
+                      </p>
+                      <p className="text-sm font-medium text-neutral-900">
+                        {formatDate(activeOrders[0].created_at)}
+                      </p>
+                      <p className="text-sm text-neutral-500">
+                        {activeOrders[0].location ?? "Pick Up Location"}
+                      </p>
+                    </div>
 
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    onClick={() => openOrderDetails(activeOrder)}
-                    className="btn bg-accent hover:bg-secondary border-0 text-white font-heading px-6"
-                  >
-                    View Details
-                  </button>
+                    <div className="flex-1 min-w-[180px]">
+                      <p className="text-xs font-semibold tracking-wide uppercase text-neutral-400 mb-2">
+                        Items
+                      </p>
+                      <ul className="flex flex-col gap-1.5 text-sm max-h-40 overflow-y-auto pr-1">
+                        {activeOrders[0].items.map((item, idx) => (
+                          <li key={idx} className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-neutral-300 shrink-0" />
+                            <span className="font-medium text-neutral-800 capitalize">{item.name.replace(/_/g, ' ')}</span>
+                            <span className="text-neutral-400 text-xs">×{item.quantity}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => openOrderDetails(activeOrders[0])}
+                      className="btn bg-accent hover:bg-secondary border-0 text-white font-heading px-6"
+                    >
+                      View Details
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              // Compact cards grid for multiple active orders
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {activeOrders.map((order) => {
+                  const currentIndex = getStepIndex(order.status);
+                  return (
+                    <div
+                      key={order.id}
+                      className="relative bg-background rounded-[18px] border border-stone-200 shadow-[0_6px_18px_rgba(0,0,0,0.07)] overflow-hidden"
+                    >
+                      <div className="h-1 bg-accent"></div>
+                      <div className="p-4">
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="min-w-0">
+                            <p className="text-xs text-neutral-400">
+                              Order #{order.id.slice(0, 8).toUpperCase()}
+                            </p>
+                            <p className="text-sm font-semibold text-neutral-900 mt-0.5">
+                              {formatDate(order.created_at)}
+                            </p>
+                            <p className="text-xs text-neutral-500 truncate">
+                              {order.location ?? "Pick Up Location"}
+                            </p>
+                          </div>
+                          <p className="text-lg font-heading font-bold text-neutral-900 shrink-0">
+                            {formatCurrency(order.total_cents)}
+                          </p>
+                        </div>
+
+                        {/* Compact stepper */}
+                        <div className="flex items-center gap-1 mb-3">
+                          {STEP_ORDER.map((step, index) => {
+                            const done = index <= currentIndex;
+                            const isCurrent = index === currentIndex;
+                            return (
+                              <Fragment key={step.key}>
+                                {index > 0 && (
+                                  <div className={`flex-1 h-0.5 rounded-full ${index <= currentIndex ? "bg-success" : "bg-stone-200"}`}></div>
+                                )}
+                                <div
+                                  title={step.label}
+                                  className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border-2 shrink-0 ${done ? "bg-success border-success text-white" : "bg-neutral-100 border-neutral-200 text-neutral-500"}`}
+                                >
+                                  {step.key === "in_progress" && isCurrent ? "🍳" : index + 1}
+                                </div>
+                              </Fragment>
+                            );
+                          })}
+                        </div>
+
+                        <p className="text-xs font-semibold text-neutral-600 mb-3">
+                          {getStatusHeading(order.status)}
+                        </p>
+
+                        {/* Items preview */}
+                        <ul className="flex flex-col gap-1 text-xs mb-4">
+                          {order.items.slice(0, 3).map((item, idx) => (
+                            <li key={idx} className="flex items-center gap-1.5">
+                              <span className="w-1 h-1 rounded-full bg-neutral-300 shrink-0" />
+                              <span className="font-medium text-neutral-700 capitalize truncate">{item.name.replace(/_/g, ' ')}</span>
+                              <span className="text-neutral-400 shrink-0">×{item.quantity}</span>
+                            </li>
+                          ))}
+                          {order.items.length > 3 && (
+                            <li className="text-neutral-400 pl-2.5">+{order.items.length - 3} more</li>
+                          )}
+                        </ul>
+
+                        <button
+                          onClick={() => openOrderDetails(order)}
+                          className="btn btn-sm bg-accent hover:bg-secondary border-0 text-white font-heading w-full"
+                        >
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
           ) : (
             <div className="bg-background rounded-2xl border border-stone-200 shadow-sm p-6 text-neutral-500">
               No active order right now.

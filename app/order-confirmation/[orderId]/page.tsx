@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
+import supabase from "@/utils/supabase/client";
 
 const ORDER_DETAILS_SNAPSHOT_PREFIX = "order-details:";
 
@@ -12,6 +13,8 @@ interface OrderItem {
   price: number;
   image_url: string;
 }
+
+type OrderStatus = "paid" | "in_progress" | "ready" | "completed";
 
 interface OrderData {
   id: string;
@@ -27,7 +30,23 @@ interface OrderData {
   tax: number;
   total: number;
   pickupTime?: string | null; // remember this line because it could but that it shouldn't be null
+  status: OrderStatus;
+  locationName?: string | null;
 }
+
+const STEPS: { key: OrderStatus; label: string; icon: string }[] = [
+  { key: "paid",        label: "Order Placed", icon: "1" },
+  { key: "in_progress", label: "Preparing",    icon: "2" },
+  { key: "ready",       label: "Ready",        icon: "3" },
+  { key: "completed",   label: "Completed",    icon: "4" },
+];
+
+const STATUS_INDEX: Record<OrderStatus, number> = {
+  paid: 0,
+  in_progress: 1,
+  ready: 2,
+  completed: 3,
+};
 
 export default function OrderConfirmationPage() {
   const params = useParams();
@@ -83,6 +102,38 @@ export default function OrderConfirmationPage() {
       fetchOrderData();
     }
   }, [orderId]);
+
+  // Real-time listener: update status and pickup time when the order changes in the DB
+  useEffect(() => {
+    if (!orderId || !orderData) return;
+
+    const channel = supabase
+      .channel(`order-confirmation-${orderId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "orders",
+          filter: `id=eq.${orderId}`,
+        },
+        (payload) => {
+          setOrderData((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              status: (payload.new.status as OrderStatus) ?? prev.status,
+              pickupTime: payload.new.pickup_time ?? prev.pickupTime,
+            };
+          });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [orderId, orderData?.id]);
 
   const handleEmailReceipt = async () => {
     setSendingEmail(true);
@@ -176,11 +227,56 @@ export default function OrderConfirmationPage() {
               </div>
             </div>
 
+            {/* Order Progress */}
+            <div className="bg-white rounded-2xl shadow-md p-6">
+              <div className="flex items-center justify-between">
+                {STEPS.map((step, i) => {
+                  const currentIndex = STATUS_INDEX[orderData.status] ?? 0;
+                  const isCompleted = i < currentIndex;
+                  const isActive = i === currentIndex;
+                  return (
+                    <div key={step.key} className="flex items-center flex-1">
+                      <div className="flex flex-col items-center gap-1">
+                        <div
+                          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${
+                            isCompleted || isActive
+                              ? "bg-success text-white"
+                              : "bg-neutral-200 text-neutral-500"
+                          }`}
+                        >
+                          {step.icon}
+                        </div>
+                        <span
+                          className={`text-xs font-body text-center whitespace-nowrap ${
+                            isCompleted || isActive ? "text-neutral-900 font-semibold" : "text-neutral-400"
+                          }`}
+                        >
+                          {step.label}
+                        </span>
+                      </div>
+                      {i < STEPS.length - 1 && (
+                        <div
+                          className={`flex-1 h-0.5 mx-2 mb-5 ${
+                            i < currentIndex ? "bg-success" : "bg-neutral-200"
+                          }`}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Payment Summary Card */}
             <div className="bg-white rounded-2xl shadow-md p-8">
-              <h2 className="font-heading font-bold text-3xl text-neutral-900 mb-6">
+              <h2 className="font-heading font-bold text-3xl text-neutral-900 mb-2">
                 Payment Summary
               </h2>
+              {orderData.locationName && (
+                <p className="font-body text-neutral-500 text-sm mb-6">
+                  📍 {orderData.locationName}
+                </p>
+              )}
 
               {/* Billing Address */}
               <div className="mb-8">
@@ -188,22 +284,19 @@ export default function OrderConfirmationPage() {
                   Billing Address
                 </h3>
                 <div className="space-y-2 font-body text-neutral-700">
-                  <div className="flex">
-                    <span className="w-20 text-neutral-600">Name:</span>
-                    <span>{orderData.customerName}</span>
-                  </div>
-                  <div className="flex">
-                    <span className="w-20 text-neutral-600">Address:</span>
-                    <span>{orderData.billingAddress}</span>
-                  </div>
-                  <div className="flex">
-                    <span className="w-20 text-neutral-600">Email:</span>
-                    <span>{orderData.customerEmail}</span>
-                  </div>
-                  <div className="flex">
-                    <span className="w-20 text-neutral-600">Phone:</span>
-                    <span>{orderData.customerPhone}</span>
-                  </div>
+                  {[
+                    { label: "Name",    value: orderData.customerName },
+                    { label: "Address", value: orderData.billingAddress },
+                    { label: "Email",   value: orderData.customerEmail },
+                    { label: "Phone",   value: orderData.customerPhone },
+                  ]
+                    .filter(({ value }) => value && value !== "N/A")
+                    .map(({ label, value }) => (
+                      <div key={label} className="flex">
+                        <span className="w-20 text-neutral-600">{label}:</span>
+                        <span>{value}</span>
+                      </div>
+                    ))}
                 </div>
               </div>
 
