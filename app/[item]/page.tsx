@@ -7,6 +7,7 @@ import { MenuItem } from "@/types";
 import Image from "next/image";
 import { useCart } from "@/context/cartContext";
 import { useLocation } from "@/context/locationContext";
+import { useFavorites } from "@/context/favoritesContext";
 import { useAuth } from "@/context/authContext";
 import { useFavorites } from "@/context/favoritesContext";
 import { usePostHog } from "posthog-js/react";
@@ -176,20 +177,24 @@ export default function ItemPage({ params }: ItemPageProps) {
   }, [itemId, isHydrated, currentLocation?.id]);
 
   const fetchItem = async () => {
-    setLoading(true);
-    try {
-      let query = supabase
-        .from("menu_items_restaurant_locations")
-        .select("*")
-        .eq("item_id", itemId);
+  setLoading(true);
+  try {
+    
+    let query = supabase
+      .from("menu_items_restaurant_locations")
+      .select("*")
+      .eq("item_id", itemId)
+      .neq("is_hidden", true);
 
-      // Only filter by restaurant_id if a location is selected
-      if (currentLocation?.id) {
-        const numericId = parseInt(currentLocation.id, 10);
-        query = query.eq("restaurant_id", numericId);
-      } else {
-        console.log("No location selected, fetching any available item");
-      }
+    // Only filter by restaurant_id if a location is selected
+    if (currentLocation?.id) {
+      const numericId = parseInt(currentLocation.id, 10);
+      query = query.eq("restaurant_id", numericId);
+    } else {
+      console.log("No location selected, fetching any available item");
+    }
+
+    const { data, error } = await query.single();
 
       const { data, error } = await query.single();
 
@@ -663,12 +668,8 @@ export default function ItemPage({ params }: ItemPageProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 border-white border-2 bg-neutral-100 rounded-lg">
-              <p className="text-xl font-heading font-medium text-black mb-1">
-                Calories
-              </p>
-              {/* <p className="text-md font-body font-sm capitalize">{item.calories}</p> */}{" "}
-              {/* add this line back after design review LOLLLLLL*/}
-              <p className="text-md font-body font-sm capitalize">450 Cal</p>
+              <p className="text-xl font-heading font-medium text-black mb-1">Calories</p>
+              <p className="text-md font-body font-sm capitalize">{item.calories}</p>
             </div>
 
             <div className="p-4 border-white border-2 bg-neutral-100 rounded-lg">
