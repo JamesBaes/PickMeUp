@@ -16,13 +16,25 @@ export async function login(email: string, password: string) {
 
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email: trimmedEmail,
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
     password,
   });
 
   if (error) {
     return { error: "Invalid email or password" };
+  }
+
+  const restrictedRoles = ["staff", "admin", "super_admin"];
+  const accessToken = data.session?.access_token;
+  const tokenPayload = accessToken
+    ? JSON.parse(Buffer.from(accessToken.split('.')[1], 'base64').toString())
+    : null;
+  const appRole = tokenPayload?.app_metadata?.app_role;
+
+  if (restrictedRoles.includes(appRole)) {
+    await supabase.auth.signOut();
+    return { error: "This account is not authorized to access this application. Please use a customer email address." };
   }
 
   redirect("/");
