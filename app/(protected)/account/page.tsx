@@ -111,7 +111,7 @@ const Account = () => {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen">
       {/* Header */}
       <section className="border-b border-stone-300 bg-white">
         <div className="max-w-6xl mx-auto px-4 py-10">
