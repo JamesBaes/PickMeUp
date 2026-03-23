@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MenuItem } from "@/types";
+import type { MenuItemCardProps } from "@/types";
 import { useState } from "react";
 import { useCart } from "@/context/cartContext";
 import { useAuth } from "@/context/authContext";
@@ -22,10 +23,11 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
     return item.name
       .replace(/_/g, " ") // replace where there's underscore with a space
       .split(" ") // then split where there's a space
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // use map function to convert each of the words to uppercase
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // use map function to convert each of the words to uppercase
       .join(" "); // group words together again
   };
 
+  //Add to cart logic
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -48,18 +50,20 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
     }, 1500);
   };
 
+  // Quantity increment/decrement handlers with bounds checking and event handling to prevent card click-through.
   const handleDecrement = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setQuantity((q) => Math.max(1, q - 1));
   };
 
+
   const handleIncrement = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setQuantity((q) => q + 1);
   };
-
+// Favorite button click handler with animation trigger and event handling to prevent card click-through.
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -72,13 +76,13 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
   };
 
   return (
-    // Outer div is NOT a link — avoids nested interactive controls (WCAG 4.1.3).
+    
     // The title carries a "stretched link" (after:absolute after:inset-0) that
     // makes the whole card visually clickable. Buttons sit above it via z-10.
     <div className="group card bg-background w-full h-full shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer flex flex-col relative">
         {/* Image Container */}
         {item.image_url && (
-          <figure className="flex-shrink-0 relative">
+          <figure className="shrink-0 relative">
             {item.image_url ? (
               <img
                 src={item.image_url}
@@ -106,7 +110,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
                     fill="currentColor"
-                    className="w-5 h-5 text-red-500 opacity-95 group-hover:opacity-80 transition-all duration-300"
+                    className="w-5 h-5 text-danger opacity-95 group-hover:opacity-80 transition-all duration-300"
                   >
                     <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
                   </svg>
@@ -117,7 +121,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
                     stroke="currentColor"
-                    className="w-5 h-5 text-gray-500 opacity-85 group-hover:opacity-65 transition-opacity duration-300"
+                    className="w-5 h-5 text-neutral-500 opacity-85 group-hover:opacity-65 transition-opacity duration-300"
                   >
                     <path
                       strokeLinecap="round"
@@ -132,7 +136,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
         )}
 
         {/* Card Body */}
-        <div className="card-body flex flex-col flex-grow">
+        <div className="card-body flex flex-col grow">
           {/* Stretched link on title: after:absolute after:inset-0 covers the full
               card area so it's still fully clickable, with no nested <a> elements. */}
           <h2 className="card-title text-foreground font-heading line-clamp-2">
@@ -148,7 +152,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
             ${item.price.toFixed(2)}
           </p>
 
-          <p className="text-foreground font-body text-sm line-clamp-4 flex-grow mb-4">
+          <p className="text-foreground font-body text-sm line-clamp-4 grow mb-4">
             {item.description}
           </p>
 
@@ -162,8 +166,8 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
                 aria-label={`Decrease quantity of ${formattedName()}`}
                 className={`btn btn-circle btn-xs border-0 shadow-none text-base ${
                   quantity === 1 || isAdding
-                    ? "bg-gray-100 text-gray-300 cursor-not-allowed"
-                    : "bg-gray-300 text-black hover:bg-gray-400"
+                    ? "bg-neutral-100 text-neutral-300 cursor-not-allowed"
+                    : "bg-neutral-300 text-black hover:bg-neutral-400"
                 }`}
               >
                 <span aria-hidden="true">-</span>
@@ -175,7 +179,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
                 onClick={handleIncrement}
                 disabled={isAdding}
                 aria-label={`Increase quantity of ${formattedName()}`}
-                className="btn btn-circle btn-xs border-0 shadow-none text-base bg-gray-300 text-black hover:bg-gray-400"
+                className="btn btn-circle btn-xs border-0 shadow-none text-base bg-neutral-300 text-black hover:bg-neutral-400"
               >
                 <span aria-hidden="true">+</span>
               </button>
@@ -183,7 +187,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
 
             {/* Add to cart / success feedback */}
             {showSuccess ? (
-              <div className="btn btn-medium border-0 shadow-none bg-green-600 pointer-events-none">
+              <div className="btn btn-medium border-0 shadow-none bg-success pointer-events-none">
                 <p className="font-heading text-white text-medium">Added!</p>
               </div>
             ) : (

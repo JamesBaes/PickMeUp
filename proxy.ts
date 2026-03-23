@@ -18,6 +18,7 @@ export async function proxy(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      cookieOptions: { name: 'customer' },
       cookies: {
         getAll() {
           return request.cookies.getAll()
@@ -31,10 +32,24 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  const { data: { user }} = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
 
-  const path = request.nextUrl.pathname;
+  // Block staff/admin roles — they belong in the restaurant app, not here
+  if (session?.access_token) {
+    try {
+      const payload = JSON.parse(atob(session.access_token.split('.')[1]))
+      const appRole = payload.app_role
+      if (appRole === 'staff' || appRole === 'admin' || appRole === 'super_admin') {
+        await supabase.auth.signOut()
+        return NextResponse.redirect(new URL('/login', request.url))
+      }
+    } catch {
+      // Malformed token — fall through to normal auth handling
+    }
+  }
 
+  const path = request.nextUrl.pathname
 
   const protectedRoutes = ["/account", "/order-history", "/favorites"]
   const authRoutes = ["/login", "/sign-up"]

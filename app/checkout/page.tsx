@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import supabase from "@/utils/supabase/client";
 import { usePostHog } from "posthog-js/react";
 import PaymentForm, { PaymentFormHandle } from "@/components/PaymentForm";
 import OrderSummary from "@/components/OrderSummary";
@@ -14,7 +15,7 @@ import { useLocation } from "@/context/locationContext";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, updateQuantity } = useCart();
+  const { items, updateQuantity, clearCart } = useCart();
   const { currentLocation } = useLocation();
   const posthog = usePostHog();
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +33,13 @@ export default function CheckoutPage() {
   const [appliedPromo, setAppliedPromo] = useState("");
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [pickupTime, setPickupTime] = useState("");
+  const [customerId, setCustomerId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setCustomerId(data.user?.id ?? null);
+    });
+  }, []);
 
   // Convert cart context items (dollars) into API payload format (cents).
   const cartItems = items.map((item) => ({
@@ -42,18 +50,20 @@ export default function CheckoutPage() {
     image: item.image_url,
   }));
 
-  
   // Temp comment just not sure if this function was created from a branch ahead of behind main so uncomment if necessary.
-  const handleQuantityChange = useCallback((itemId: string, quantity: number) => {
-    updateQuantity(itemId, quantity);
-  }, [updateQuantity]);
+  const handleQuantityChange = useCallback(
+    (itemId: string, quantity: number) => {
+      updateQuantity(itemId, quantity);
+    },
+    [updateQuantity],
+  );
 
   const subtotalCents = cartItems.reduce(
     (sum, item) => sum + item.priceCents * item.quantity,
     0,
   );
   const discountCents = Math.round(subtotalCents * (promoDiscount / 100));
-  const taxCents = 0; // Tax calculation pending address
+  const taxCents = Math.round((subtotalCents - discountCents) * 0.13);
   const totalCents = subtotalCents - discountCents + taxCents;
 
   // Promo handling is currently local/simple (single code flow).
@@ -95,17 +105,22 @@ export default function CheckoutPage() {
     totalCents,
     pickupTime: getPickupTime(),
     restaurantId: currentLocation?.id ?? "",
+    customerId: customerId ?? undefined,
   };
 
   // Keep receipt token out of URL and hand it to confirmation page via sessionStorage.
-  const handleSuccess = useCallback((receiptToken: string) => {
-    posthog.capture("payment_success", {
-      total_cents: totalCents,
-      items_count: cartItems.length,
-    });
-    sessionStorage.setItem("pendingReceiptToken", receiptToken);
-    router.push("/order-confirmation");
-  }, [router, posthog, totalCents, cartItems.length]);
+  const handleSuccess = useCallback(
+    (receiptToken: string) => {
+      posthog.capture("payment_success", {
+        total_cents: totalCents,
+        items_count: cartItems.length,
+      });
+      clearCart();
+      sessionStorage.setItem("pendingReceiptToken", receiptToken);
+      router.push("/order-confirmation");
+    },
+    [router, posthog, totalCents, cartItems.length, clearCart],
+  );
 
   const handleError = useCallback((errorMessage: string) => {
     setError(errorMessage);
@@ -128,7 +143,7 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-neutral-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left Column - Order Summary */}
@@ -147,23 +162,18 @@ export default function CheckoutPage() {
           />
 
           {/* Right Column - Payment Form */}
-          <div className="bg-white rounded-lg p-8">
-            {/* Apple Pay Button */}
-            <button className="w-full bg-black text-white py-4 rounded-lg font-medium mb-4 flex items-center justify-center hover:bg-gray-900 transition-colors">
-              <span className="text-xl"> Pay</span>
-            </button>
-
+          <div className="bg-background rounded-lg p-8">
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
+                <div className="w-full border-t border-neutral-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">OR</span>
+                <span className="px-4 bg-background text-neutral-500">OR</span>
               </div>
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg mb-4">
+              <div className="bg-danger-subtle border border-danger-border text-danger-dark p-3 rounded-lg mb-4">
                 {error}
               </div>
             )}
@@ -179,8 +189,8 @@ export default function CheckoutPage() {
 
             {/* Payment Method */}
             <div className="mb-6">
-              <h3 className="text-gray-900 font-medium mb-4">Payment method</h3>
-              <p className="text-sm text-gray-600 mb-3">Card information</p>
+              <h3 className="text-neutral-900 font-medium mb-4">Payment method</h3>
+              <p className="text-sm text-neutral-600 mb-3">Card information</p>
 
               {/* Square Payment Form will be inserted here */}
               <div className="mb-4">
@@ -216,13 +226,13 @@ export default function CheckoutPage() {
                   type="checkbox"
                   checked={saveInfo}
                   onChange={(e) => setSaveInfo(e.target.checked)}
-                  className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="mt-1 w-4 h-4 text-info border-neutral-300 rounded focus:ring-info-muted"
                 />
                 <div>
-                  <p className="text-sm text-gray-900">
+                  <p className="text-sm text-neutral-900">
                     Save my information for faster checkout
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">
+                  <p className="text-xs text-neutral-600 mt-1">
                     Pay securely at Gladiator Burger and everywhere Square is
                     accepted.
                   </p>
@@ -234,8 +244,8 @@ export default function CheckoutPage() {
             <button
               onClick={handlePayButtonClick}
               disabled={isProcessing || !isPaymentReady}
-              className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold text-lg
-                         hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed
+              className="w-full bg-success text-white py-4 rounded-lg font-semibold text-lg
+                         hover:bg-success-dark disabled:bg-neutral-400 disabled:cursor-not-allowed
                          transition-colors mb-6"
             >
               {isProcessing
@@ -244,21 +254,21 @@ export default function CheckoutPage() {
             </button>
 
             {/* Footer */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <div className="flex items-center justify-center gap-4 text-xs text-gray-600">
+            <div className="mt-8 pt-6 border-t border-neutral-200">
+              <div className="flex items-center justify-center gap-4 text-xs text-neutral-600">
                 <span>
                   Power by <span className="font-semibold">stripe</span>
                 </span>
                 <span>|</span>
-                <a href="#" className="hover:text-gray-700">
+                <a href="#" className="hover:text-neutral-700">
                   Legal
                 </a>
                 <span>|</span>
-                <a href="#" className="hover:text-gray-700">
+                <a href="#" className="hover:text-neutral-700">
                   Returns
                 </a>
                 <span>|</span>
-                <a href="#" className="hover:text-gray-700">
+                <a href="#" className="hover:text-neutral-700">
                   Contact
                 </a>
               </div>

@@ -193,7 +193,7 @@ const PaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
     return (
       <div
         id="card-container"
-        className="border border-gray-300 rounded-lg p-4 min-h-[50px] bg-white"
+        className="border border-neutral-300 rounded-lg p-4 min-h-[50px] bg-background"
       />
     );
   },

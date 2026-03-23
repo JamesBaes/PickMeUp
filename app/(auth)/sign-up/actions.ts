@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 
 export async function signUp(formData: FormData) {
   const firstName = formData.get("firstName") as string;
@@ -54,8 +55,13 @@ export async function signUp(formData: FormData) {
   }
 
   // create a new account
+  const headersList = await headers();
+  const host = headersList.get('host') ?? '';
+  const protocol = host.startsWith('localhost') ? 'http' : 'https';
+  const origin = `${protocol}://${host}`;
+
   const supabase = await createClient();
-  
+
   const { error } = await supabase.auth.signUp({
     email,
     password,

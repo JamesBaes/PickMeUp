@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { login } from "./actions";
+import { toast } from "sonner";
 import Link from "next/link";
 
 const Login = () => {
@@ -12,6 +13,7 @@ const Login = () => {
   const handleLogin = async (formData: FormData) => {
     setLoading(true);
     setError(null);
+    toast("Signing in...");
 
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
@@ -20,6 +22,7 @@ const Login = () => {
 
     // if login failed (success redirects)
     if (result?.error) {
+      toast.dismiss();
       setError(result.error);
       setLoading(false);
     }
@@ -77,9 +80,11 @@ const Login = () => {
             placeholder="Email address"
             aria-label="Email address"
             autoComplete="email"
+            maxLength={254}
             required
             disabled={loading}
-            className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
+            onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/[<>"`;\\]/g, ""); }}
+            className="grow font-heading placeholder:text-neutral-400 disabled:opacity-50"
           />
         </label>
 
@@ -107,9 +112,10 @@ const Login = () => {
             placeholder="Password"
             aria-label="Password"
             autoComplete="current-password"
+            maxLength={128}
             required
             disabled={loading}
-            className="grow font-heading placeholder:text-gray-400 disabled:opacity-50"
+            className="grow font-heading placeholder:text-neutral-400 disabled:opacity-50"
           />
           <button
             type="button"
@@ -152,7 +158,7 @@ const Login = () => {
         <div className="text-right">
           <Link
             href="/forgot-password"
-            className="font-heading text-blue-500 hover:text-blue-700 text-sm"
+            className="font-heading text-info-muted hover:text-info-hover text-sm"
           >
             Forgot Password?
           </Link>
@@ -161,15 +167,15 @@ const Login = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg py-3 font-heading font-medium text-lg transition-colors hover:cursor-pointer disabled:opacity-50"
+          className="w-full bg-info hover:bg-info-hover active:bg-info-dark text-white rounded-lg py-3 font-heading font-medium text-lg transition-colors hover:cursor-pointer disabled:opacity-50"
         >
           {loading ? "Signing in..." : "Sign In"}
         </button>
 
-        <p className="text-center font-heading text-sm text-gray-500 mt-2 pb-20">
+        <p className="text-center font-heading text-sm text-neutral-500 mt-2 pb-20">
           New to Gladiator Burger?
           <br />
-          <Link href="/sign-up" className="text-blue-500 hover:text-blue-700">
+          <Link href="/sign-up" className="text-info-muted hover:text-info-hover">
             Create your account.
           </Link>
         </p>

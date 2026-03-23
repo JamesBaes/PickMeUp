@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
         pickup_time: orderDetails.pickupTime || new Date(Date.now() + 30 * 60000).toISOString(),
         receipt_token: receiptToken,
         restaurant_id: orderDetails.restaurantId,
+        customer_id: orderDetails.customerId ?? null,
     })
     .select()
     .single();
