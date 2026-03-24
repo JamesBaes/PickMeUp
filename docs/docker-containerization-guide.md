@@ -6,10 +6,10 @@ This guide walks through containerizing both PickMeUp apps and connecting them i
 
 ### Apps Involved
 
-| App | Role | Default Port |
-|-----|------|-------------|
+| App                      | Role                  | Default Port   |
+| ------------------------ | --------------------- | -------------- |
 | **PickMeUp** (this repo) | Customer ordering app | 3001 (on host) |
-| **PickMeUp-Manager** | Staff/admin app | 3000 (on host) |
+| **PickMeUp-Manager**     | Staff/admin app       | 3000 (on host) |
 
 ### How They Connect
 
@@ -37,7 +37,7 @@ Browser → localhost:3001 → [pickmeup-customer container]
 
 ---
 
-## Understanding NEXT_PUBLIC_* Variables
+## Understanding NEXT*PUBLIC*\* Variables
 
 > This is the most important concept before you start.
 
@@ -62,13 +62,13 @@ Edit [next.config.ts](../next.config.ts) — add `output: 'standalone'`:
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'standalone',           // ← add this line
+  output: "standalone", // ← add this line
   serverExternalPackages: ["square"],
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'res.cloudinary.com',
+        protocol: "https",
+        hostname: "res.cloudinary.com",
       },
     ],
   },
@@ -85,7 +85,7 @@ Edit `next.config.ts` in the Manager repo — add `output: 'standalone'`:
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'standalone',           // ← add this line
+  output: "standalone", // ← add this line
 };
 
 export default nextConfig;
@@ -114,6 +114,7 @@ coverage
 ```
 
 **Why each entry matters:**
+
 - `node_modules` — Docker installs its own inside the container (Linux vs your Mac ARM); copying yours would break it
 - `.next` — the build stage regenerates this from scratch
 - `.env*` — keeps your secrets out of the image layers
@@ -307,7 +308,7 @@ services:
     image: <dockerhub-user>/pickmeup-customer:latest
     container_name: pickmeup-customer
     ports:
-      - "3001:3000"     # Customer app reachable at http://localhost:3001
+      - "3001:3000" # Customer app reachable at http://localhost:3001
     environment:
       # Runtime secrets — injected from .env file at container start
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
@@ -321,7 +322,15 @@ services:
     networks:
       - pickmeup-net
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -331,7 +340,7 @@ services:
     image: <dockerhub-user>/pickmeup-manager:latest
     container_name: pickmeup-manager
     ports:
-      - "3000:3000"     # Manager app reachable at http://localhost:3000
+      - "3000:3000" # Manager app reachable at http://localhost:3000
     environment:
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
       SQUARE_ACCESS_TOKEN: ${SQUARE_ACCESS_TOKEN}
@@ -343,7 +352,7 @@ services:
       CLIENT_APP_URL: http://customer:3000
     depends_on:
       customer:
-        condition: service_healthy   # Wait for customer healthcheck to pass
+        condition: service_healthy # Wait for customer healthcheck to pass
     restart: unless-stopped
     networks:
       - pickmeup-net
@@ -373,37 +382,39 @@ docker login
 ### Build & Push the Customer App
 
 ```bash
-cd /path/to/PickMeUp
+cd /Users/datdo/Desktop/Fall-2025/CPSY-301/Phase3/PickMeUp
 
 docker build \
-  --build-arg NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co" \
-  --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="sb_publishable_..." \
-  --build-arg NEXT_PUBLIC_SQUARE_APP_ID="sandbox-sq0idb-..." \
-  --build-arg NEXT_PUBLIC_SQUARE_LOCATION_ID="..." \
-  --build-arg NEXT_PUBLIC_POSTHOG_KEY="phc_..." \
+  --platform linux/amd64 \
+  --build-arg NEXT_PUBLIC_SUPABASE_URL="https://teluwmhtaiysxcpdxjwg.supabase.co" \
+  --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="sb_publishable_JhZBSJ83xIUe5KkqzDLUvw_PLy0WVQ9" \
+  --build-arg NEXT_PUBLIC_SQUARE_APP_ID="sandbox-sq0idb-xgO4HPQe6BfTVXx_xgwbEA" \
+  --build-arg NEXT_PUBLIC_SQUARE_LOCATION_ID="sq0idp-0h6m0obMcnvieKDFM2j6og" \
+  --build-arg NEXT_PUBLIC_POSTHOG_KEY="phc_VkxZHiIlofKgSSAt1J2qV4x2iYaqgwuA2GRvII6VEiL" \
   --build-arg NEXT_PUBLIC_POSTHOG_HOST="https://us.i.posthog.com" \
-  --build-arg NEXT_PUBLIC_RECAPTCHA_SITE_KEY="6L..." \
-  -t <dockerhub-user>/pickmeup-customer:latest \
+  --build-arg NEXT_PUBLIC_RECAPTCHA_SITE_KEY="6LegN4QsAAAAALRyJAstgcQWU_iaVJAndWkLpsBA" \
+  -t tayuun/pickmeup-customer:latest \
   .
 
-docker push <dockerhub-user>/pickmeup-customer:latest
+docker push tayuun/pickmeup-customer:latest
 ```
 
 ### Build & Push the Manager App
 
 ```bash
-cd /path/to/PickMeUp-Manager
+cd /Users/datdo/Desktop/Winter-2026/Capstone/PickMeUp-Staff/PickMeUp-Manager
 
 docker build \
-  --build-arg NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co" \
-  --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="sb_publishable_..." \
-  --build-arg NEXT_PUBLIC_POSTHOG_KEY="phc_..." \
+  --platform linux/amd64 \
+  --build-arg NEXT_PUBLIC_SUPABASE_URL="https://teluwmhtaiysxcpdxjwg.supabase.co" \
+  --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="sb_publishable_JhZBSJ83xIUe5KkqzDLUvw_PLy0WVQ9" \
+  --build-arg NEXT_PUBLIC_POSTHOG_KEY="phc_VkxZHiIlofKgSSAt1J2qV4x2iYaqgwuA2GRvII6VEiL" \
   --build-arg NEXT_PUBLIC_POSTHOG_HOST="https://us.i.posthog.com" \
   --build-arg NEXT_PUBLIC_APP_URL="http://localhost:3000" \
-  -t <dockerhub-user>/pickmeup-manager:latest \
+  -t tayuun/pickmeup-manager:latest \
   .
 
-docker push <dockerhub-user>/pickmeup-manager:latest
+docker push tayuun/pickmeup-manager:latest
 ```
 
 ### Apple Silicon Note (M1/M2/M3)
@@ -433,6 +444,7 @@ docker-compose ps
 ```
 
 Expected output:
+
 ```
 NAME                  IMAGE                                    STATUS
 pickmeup-customer     <dockerhub-user>/pickmeup-customer:latest   Up (healthy)
@@ -440,6 +452,7 @@ pickmeup-manager      <dockerhub-user>/pickmeup-manager:latest    Up
 ```
 
 **Access the apps:**
+
 - Customer app: http://localhost:3001
 - Manager/staff app: http://localhost:3000
 
@@ -472,24 +485,24 @@ docker-compose down --rmi all
 
 ### What Goes Where
 
-| Variable | Type | Set At | Where |
-|----------|------|--------|-------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Public | Build time | `--build-arg` |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public | Build time | `--build-arg` |
-| `NEXT_PUBLIC_SQUARE_APP_ID` | Public | Build time | `--build-arg` (customer only) |
-| `NEXT_PUBLIC_SQUARE_LOCATION_ID` | Public | Build time | `--build-arg` (customer only) |
-| `NEXT_PUBLIC_POSTHOG_KEY` | Public | Build time | `--build-arg` |
-| `NEXT_PUBLIC_POSTHOG_HOST` | Public | Build time | `--build-arg` |
-| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` | Public | Build time | `--build-arg` (customer only) |
-| `NEXT_PUBLIC_APP_URL` | Public | Build time | `--build-arg` (manager only) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Secret | Runtime | `~/pickmeup-docker/.env` |
-| `SQUARE_ACCESS_TOKEN` | Secret | Runtime | `~/pickmeup-docker/.env` |
-| `RESEND_API_KEY` | Secret | Runtime | `~/pickmeup-docker/.env` (customer only) |
-| `POSTHOG_PERSONAL_API_KEY` | Secret | Runtime | `~/pickmeup-docker/.env` |
-| `POSTHOG_PROJECT_ID` | Secret | Runtime | `~/pickmeup-docker/.env` |
-| `ANALYTICS_API_KEY` | Secret | Runtime | `~/pickmeup-docker/.env` |
-| `RECAPTCHA_SECRET_KEY` | Secret | Runtime | `~/pickmeup-docker/.env` (customer only) |
-| `CLIENT_APP_URL` | Internal | Runtime | Hardcoded in `docker-compose.yml` as `http://customer:3000` |
+| Variable                               | Type     | Set At     | Where                                                       |
+| -------------------------------------- | -------- | ---------- | ----------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Public   | Build time | `--build-arg`                                               |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public   | Build time | `--build-arg`                                               |
+| `NEXT_PUBLIC_SQUARE_APP_ID`            | Public   | Build time | `--build-arg` (customer only)                               |
+| `NEXT_PUBLIC_SQUARE_LOCATION_ID`       | Public   | Build time | `--build-arg` (customer only)                               |
+| `NEXT_PUBLIC_POSTHOG_KEY`              | Public   | Build time | `--build-arg`                                               |
+| `NEXT_PUBLIC_POSTHOG_HOST`             | Public   | Build time | `--build-arg`                                               |
+| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`       | Public   | Build time | `--build-arg` (customer only)                               |
+| `NEXT_PUBLIC_APP_URL`                  | Public   | Build time | `--build-arg` (manager only)                                |
+| `SUPABASE_SERVICE_ROLE_KEY`            | Secret   | Runtime    | `~/pickmeup-docker/.env`                                    |
+| `SQUARE_ACCESS_TOKEN`                  | Secret   | Runtime    | `~/pickmeup-docker/.env`                                    |
+| `RESEND_API_KEY`                       | Secret   | Runtime    | `~/pickmeup-docker/.env` (customer only)                    |
+| `POSTHOG_PERSONAL_API_KEY`             | Secret   | Runtime    | `~/pickmeup-docker/.env`                                    |
+| `POSTHOG_PROJECT_ID`                   | Secret   | Runtime    | `~/pickmeup-docker/.env`                                    |
+| `ANALYTICS_API_KEY`                    | Secret   | Runtime    | `~/pickmeup-docker/.env`                                    |
+| `RECAPTCHA_SECRET_KEY`                 | Secret   | Runtime    | `~/pickmeup-docker/.env` (customer only)                    |
+| `CLIENT_APP_URL`                       | Internal | Runtime    | Hardcoded in `docker-compose.yml` as `http://customer:3000` |
 
 ---
 
@@ -498,6 +511,7 @@ docker-compose down --rmi all
 ### Container exits immediately on start
 
 Check logs for errors:
+
 ```bash
 docker-compose logs customer
 docker-compose logs manager
@@ -526,6 +540,7 @@ The `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` must h
 ### Port already in use
 
 If port 3000 or 3001 is already occupied on your machine:
+
 ```bash
 # Find what's using the port
 lsof -i :3000
@@ -537,6 +552,7 @@ Either stop the conflicting process or change the host-side port mapping in `doc
 ### Images are out of date
 
 After making code changes, rebuild and re-push:
+
 ```bash
 docker build ... -t <dockerhub-user>/pickmeup-customer:latest .
 docker push <dockerhub-user>/pickmeup-customer:latest
