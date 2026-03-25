@@ -176,6 +176,12 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-neutral-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
+        <button
+          onClick={() => router.push("/cart")}
+          className="flex items-center gap-1 text-neutral-600 hover:cursor-pointer hover:text-neutral-900 text-sm font-medium mb-6 transition-colors"
+        >
+          ← Back to Cart
+        </button>
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left Column - Order Summary */}
           <OrderSummary

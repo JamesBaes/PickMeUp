@@ -273,15 +273,6 @@ const Cart = () => {
         <header className="flex justify-between items-end pb-4">
           <h2 className="font-heading font-bold text-3xl">Shopping Cart</h2>
           <div className="flex flex-col items-end gap-1">
-            <div className="flex items-center gap-2">
-              <span className={`h-2 w-2 rounded-full ${isRealtimeSyncEnabled ? 'bg-success-indicator' : 'bg-neutral-300'}`} />
-              <span className="font-body text-xs text-neutral-500">
-                {isRealtimeSyncEnabled ? 'Auto-sync on' : 'Auto-sync off (guest)'}
-              </span>
-              {lastCartSyncAt && (
-                <span className="font-body text-xs text-success-indicator">Updated from another session just now</span>
-              )}
-            </div>
             <div className="flex items-center gap-3">
             <h2 className="font-body text-neutral-600 text-md">{cartItems.reduce((sum, item) => sum + item.quantity, 0)} items</h2>
             {cartItems.length > 0 && (
