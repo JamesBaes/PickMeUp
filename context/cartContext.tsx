@@ -56,6 +56,7 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
       : Math.random().toString(36).slice(2)
   );
   const lastSyncedHashRef = useRef('');
+  const hasLoadedRef = useRef(false);
   const realtimeChannelRef = useRef<any>(null);
   const isRealtimeSyncEnabled = Boolean(user?.id);
 
@@ -181,6 +182,7 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
 
       try {
         const savedCart = localStorage.getItem(GUEST_CART_KEY);
+        hasLoadedRef.current = true;
         if (savedCart) {
           setItems(JSON.parse(savedCart));
           return;
@@ -227,7 +229,7 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
 
   // Persist cart after every mutation to keep page refreshes non-destructive.
   useEffect(() => {
-    if (user) {
+    if (user || !hasLoadedRef.current) {
       return;
     }
 
