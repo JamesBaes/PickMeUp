@@ -52,6 +52,8 @@ export default function OrderConfirmationPage() {
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   useEffect(() => {
     const receiptToken = sessionStorage.getItem("pendingReceiptToken");
@@ -115,34 +117,34 @@ export default function OrderConfirmationPage() {
     };
   }, [orderData?.id]);
 
-  // const handleEmailReceipt = async () => {
-  //   setSendingEmail(true);
-  //   setError(null);
+  const handleEmailReceipt = async () => {
+    setSendingEmail(true);
+    setError(null);
 
-  //   try {
-  //     const response = await fetch("/api/send-receipt", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ orderData }),
-  //     });
+    try {
+      const response = await fetch("/api/send-receipt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderData }),
+      });
 
-  //     const data = await response.json();
+      const data = await response.json();
 
-  //     if (!response.ok) {
-  //       throw new Error(data.error || "Failed to send receipt");
-  //     }
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send receipt");
+      }
 
-  //     setEmailSent(true);
-  //     setTimeout(() => setEmailSent(false), 5000);
-  //   } catch (err: unknown) {
-  //     const message =
-  //       err instanceof Error ? err.message : "Failed to send receipt";
-  //     console.error("Error sending receipt:", err);
-  //     setError(message);
-  //   } finally {
-  //     setSendingEmail(false);
-  //   }
-  // };
+      setEmailSent(true);
+      setTimeout(() => setEmailSent(false), 5000);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to send receipt";
+      console.error("Error sending receipt:", err);
+      setError(message);
+    } finally {
+      setSendingEmail(false);
+    }
+  };
 
   const formatPickupTime = (isoString: string) => {
     const date = new Date(isoString);
@@ -283,7 +285,7 @@ export default function OrderConfirmationPage() {
               </div>
 
               {/* Email Receipt Button */}
-              {/* <div>
+              <div>
                 <button
                   onClick={handleEmailReceipt}
                   disabled={sendingEmail || emailSent}
@@ -296,7 +298,7 @@ export default function OrderConfirmationPage() {
                     Receipt sent to {orderData.customerEmail}
                   </p>
                 )}
-              </div> */}
+              </div>
             </div>
           </div>
 

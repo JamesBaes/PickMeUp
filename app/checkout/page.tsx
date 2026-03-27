@@ -292,15 +292,15 @@ export default function CheckoutPage() {
                   Power by <span className="font-semibold">Square</span>
                 </span>
                 <span>|</span>
-                <a href="#" className="hover:text-neutral-700">
+                <a href="https://squareup.com/shop/hardware/v2/us/en/return" target="_blank" className="hover:text-neutral-700">
                   Legal
                 </a>
                 <span>|</span>
-                <a href="#" className="hover:text-neutral-700">
+                <a href="https://squareup.com/ca/en/legal/general/ua" target="_blank" className="hover:text-neutral-700">
                   Returns
                 </a>
                 <span>|</span>
-                <a href="#" className="hover:text-neutral-700">
+                <a href="https://squareup.com/help/ca/en" target="_blank" className="hover:text-neutral-700">
                   Contact
                 </a>
               </div>

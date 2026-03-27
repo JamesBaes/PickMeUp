@@ -28,167 +28,234 @@ export async function POST(request: NextRequest) {
       <!DOCTYPE html>
       <html>
         <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
           <style>
             body {
-              font-family: Arial, sans-serif;
-              line-height: 1.6;
-              color: #333;
-              max-width: 600px;
-              margin: 0 auto;
-              padding: 20px;
+              font-family: 'DM Sans', Arial, sans-serif;
+              background-color: #F9FAFB;
+              color: #111827;
+              margin: 0;
+              padding: 0;
             }
-            .header {
-              background-color: #f8f9fa;
-              padding: 20px;
+            .wrapper {
+              max-width: 580px;
+              margin: 40px auto;
+              padding: 0 16px 40px;
+            }
+            .brand {
               text-align: center;
-              border-radius: 8px;
-              margin-bottom: 20px;
+              padding: 32px 0 24px;
             }
-            .header h1 {
-              color: #e63946;
+            .brand h1 {
+              font-size: 24px;
+              font-weight: 700;
+              color: #B6244F;
+              margin: 0 0 4px;
+              letter-spacing: -0.3px;
+            }
+            .brand p {
+              font-size: 14px;
+              color: #4B5563;
               margin: 0;
             }
-            .section {
-              background-color: #fff;
-              padding: 20px;
-              border: 1px solid #e0e0e0;
-              border-radius: 8px;
+            .pickup-banner {
+              background-color: #B6244F;
+              color: #ffffff;
+              border-radius: 10px;
+              padding: 18px 24px;
+              text-align: center;
               margin-bottom: 20px;
             }
-            .section h2 {
-              color: #333;
-              border-bottom: 2px solid #e63946;
-              padding-bottom: 10px;
-              margin-top: 0;
+            .pickup-banner .label {
+              font-size: 12px;
+              font-weight: 600;
+              letter-spacing: 0.08em;
+              text-transform: uppercase;
+              opacity: 0.85;
+              margin-bottom: 4px;
             }
-            .info-row {
+            .pickup-banner .time {
+              font-size: 26px;
+              font-weight: 700;
+              letter-spacing: -0.5px;
+            }
+            .card {
+              background-color: #ffffff;
+              border: 1px solid #E5E7EB;
+              border-radius: 12px;
+              padding: 24px;
+              margin-bottom: 16px;
+            }
+            .card-title {
+              font-size: 13px;
+              font-weight: 700;
+              letter-spacing: 0.07em;
+              text-transform: uppercase;
+              color: #4B5563;
+              margin: 0 0 16px;
+              padding-bottom: 12px;
+              border-bottom: 1px solid #E5E7EB;
+            }
+            .row {
               display: flex;
               justify-content: space-between;
+              align-items: baseline;
               padding: 8px 0;
-              border-bottom: 1px solid #f0f0f0;
+              border-bottom: 1px solid #F3F4F6;
+              font-size: 14px;
             }
-            .info-label {
-              font-weight: bold;
-              color: #666;
+            .row:last-child {
+              border-bottom: none;
+            }
+            .row .label {
+              color: #4B5563;
+            }
+            .row .value {
+              color: #111827;
+              font-weight: 500;
             }
             .item-row {
               display: flex;
               justify-content: space-between;
-              padding: 12px 0;
-              border-bottom: 1px solid #f0f0f0;
+              align-items: baseline;
+              padding: 10px 0;
+              border-bottom: 1px solid #F3F4F6;
+              font-size: 14px;
             }
-            .total-row {
+            .item-row:last-of-type {
+              border-bottom: none;
+            }
+            .item-name {
+              font-weight: 600;
+              color: #111827;
+            }
+            .item-qty {
+              font-size: 12px;
+              color: #6B7280;
+              margin-top: 2px;
+            }
+            .item-price {
+              color: #111827;
+              font-weight: 500;
+            }
+            .totals {
+              margin-top: 12px;
+              padding-top: 12px;
+              border-top: 1px solid #E5E7EB;
+            }
+            .total-final {
               display: flex;
               justify-content: space-between;
-              padding: 12px 0;
-              font-size: 1.2em;
-              font-weight: bold;
-              border-top: 2px solid #333;
-              margin-top: 10px;
-            }
-            .pickup-time {
-              background-color: #e63946;
-              color: white;
-              padding: 15px;
-              text-align: center;
-              border-radius: 8px;
-              font-size: 1.3em;
-              font-weight: bold;
-              margin: 20px 0;
+              font-size: 16px;
+              font-weight: 700;
+              color: #111827;
+              padding-top: 12px;
+              margin-top: 8px;
+              border-top: 2px solid #111827;
             }
             .footer {
               text-align: center;
-              color: #666;
-              font-size: 0.9em;
-              margin-top: 30px;
-              padding-top: 20px;
-              border-top: 1px solid #e0e0e0;
+              font-size: 12px;
+              color: #9CA3AF;
+              margin-top: 32px;
+              line-height: 1.6;
+            }
+            .footer a {
+              color: #B6244F;
+              text-decoration: none;
             }
           </style>
         </head>
         <body>
-          <div class="header">
-            <h1>🍔 Gladiator Burger</h1>
-            <p>Order Confirmation</p>
-          </div>
+          <div class="wrapper">
 
-          <div class="pickup-time">
-            Pick Up Time: ${pickupTime}
-          </div>
+            <div class="brand">
+              <h1>Gladiator Burger</h1>
+              <p>Order Confirmation</p>
+            </div>
 
-          <div class="section">
-            <h2>Order Summary</h2>
-            <div class="info-row">
-              <span class="info-label">Order Number:</span>
-              <span>${orderData.orderNumber}</span>
+            <div class="pickup-banner">
+              <div class="label">Estimated Pick Up</div>
+              <div class="time">${pickupTime}</div>
             </div>
-            <div class="info-row">
-              <span class="info-label">Date:</span>
-              <span>${orderData.date}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Payment Method:</span>
-              <span>${orderData.paymentMethod}</span>
-            </div>
-          </div>
 
-          <div class="section">
-            <h2>Your Items</h2>
-            ${orderData.items
-              .map(
-                (item: any) => `
-              <div class="item-row">
-                <div>
-                  <strong>${item.name}</strong>
-                  <br />
-                  <small>Quantity: ${item.quantity}</small>
-                </div>
-                <span>$${(item.price * item.quantity).toFixed(2)}</span>
+            <!-- Order Details -->
+            <div class="card">
+              <div class="card-title">Order Details</div>
+              <div class="row">
+                <span class="label">Order ID:</span>
+                <span class="value">${orderData.id}</span>
               </div>
-            `
-              )
-              .join("")}
+              <div class="row">
+                <span class="label">Date:</span>
+                <span class="value">${orderData.date}</span>
+              </div>
+              <div class="row">
+                <span class="label">Payment:</span>
+                <span class="value">${orderData.paymentMethod}</span>
+              </div>
+            </div>
 
-            <div class="info-row" style="margin-top: 15px;">
-              <span class="info-label">Subtotal:</span>
-              <span>$${orderData.subtotal.toFixed(2)}</span>
+            <!-- Items -->
+            <div class="card">
+              <div class="card-title">Your Items</div>
+              ${orderData.items
+                .map(
+                  (item: any) => `
+                <div class="item-row">
+                  <div>
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-qty">Qty: ${item.quantity}</div>
+                  </div>
+                  <span class="item-price">: $${(item.price * item.quantity).toFixed(2)}</span>
+                </div>
+              `
+                )
+                .join("")}
+              <div class="totals">
+                <div class="row">
+                  <span class="label">Subtotal:</span>
+                  <span class="value">$${orderData.subtotal.toFixed(2)}</span>
+                </div>
+                <div class="row">
+                  <span class="label">Tax:</span>
+                  <span class="value">$${orderData.tax.toFixed(2)}</span>
+                </div>
+                <div class="total-final">
+                  <span>Order Total:</span>
+                  <span>$${orderData.total.toFixed(2)}</span>
+                </div>
+              </div>
             </div>
-            <div class="info-row">
-              <span class="info-label">Tax:</span>
-              <span>$${orderData.tax.toFixed(2)}</span>
-            </div>
-            <div class="total-row">
-              <span>Order Total:</span>
-              <span>$${orderData.total.toFixed(2)}</span>
-            </div>
-          </div>
 
-          <div class="section">
-            <h2>Billing Information</h2>
-            <div class="info-row">
-              <span class="info-label">Name:</span>
-              <span>${orderData.customerName}</span>
+            <!-- Billing -->
+            <div class="card">
+              <div class="card-title">Billing Information</div>
+              <div class="row">
+                <span class="label">Name:</span>
+                <span class="value">${orderData.customerName}</span>
+              </div>
+              <div class="row">
+                <span class="label">Email:</span>
+                <span class="value">${orderData.customerEmail}</span>
+              </div>
+              <div class="row">
+                <span class="label">Phone:</span>
+                <span class="value">${orderData.customerPhone}</span>
+              </div>
+              <div class="row">
+                <span class="label">Address:</span>
+                <span class="value">${orderData.billingAddress}</span>
+              </div>
             </div>
-            <div class="info-row">
-              <span class="info-label">Email:</span>
-              <span>${orderData.customerEmail}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Phone:</span>
-              <span>${orderData.customerPhone}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Address:</span>
-              <span>${orderData.billingAddress}</span>
-            </div>
-          </div>
 
-          <div class="footer">
-            <p>Thank you for your order!</p>
-            <p>We'll notify you when your order is ready for pickup.</p>
-            <p style="margin-top: 20px; color: #999; font-size: 0.8em;">
-              This is an automated email. Please do not reply.
-            </p>
+            <div class="footer">
+              <p>Thank you for your order. We'll have it ready for you soon.</p>
+              <p style="margin-top: 8px; color: #D1D5DB;">This is an automated email — please do not reply.</p>
+            </div>
+
           </div>
         </body>
       </html>
