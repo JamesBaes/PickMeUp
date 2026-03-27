@@ -59,22 +59,30 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    // Fetch all available pickup locations from Supabase once per load.
+    // Fetch all available pickup locations from Supabase once per browser session.
+    // Locations rarely change, so we cache them in sessionStorage to avoid a
+    // redundant DB round-trip on every page load.
+    const CACHE_KEY = "restaurant_locations_cache";
+
     const fetchLocations = async () => {
       setLoading(true);
       try {
+        const cached = sessionStorage.getItem(CACHE_KEY);
+        if (cached) {
+          setLocations(JSON.parse(cached) as Location[]);
+          return;
+        }
+
         const { data, error } = await supabase.from("restaurant_locations").select("*");
-        // console.log("Raw data from Supabase:", data);
-        console.log("Error:", error);
-        
+
         if (error) throw error;
         if (data) {
           const mappedLocations = data.map((loc: any) => ({
             id: loc.restaurant_id.toString(),
             name: toTitleCase(loc.location_name),
           }));
-          // console.log("Mapped locations:", mappedLocations);
-          setLocations((mappedLocations as Location[]) || []);
+          sessionStorage.setItem(CACHE_KEY, JSON.stringify(mappedLocations));
+          setLocations(mappedLocations as Location[]);
         }
       } catch (error) {
         console.error("Error fetching locations:", error);

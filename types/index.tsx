@@ -87,7 +87,7 @@ export interface CartContextType {
   // Indicates whether cross-browser realtime sync can be used for this session.
   isRealtimeSyncEnabled: boolean;
   // Replaces mismatched-location cart items with equivalent items from a new location.
-  swapItemsToNewLocation: (swaps: Array<{ oldItemId: string; newItem: MenuItem }>) => void;
+  swapItemsToNewLocation: (swaps: Array<{ oldItemId: string; newItem: MenuItem; quantity: number }>) => void;
 }
 
 export interface CartProvideProps {

@@ -296,20 +296,26 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
   useEffect(() => {
     const currentHash = getCartHash(items);
     if (currentHash === lastSyncedHashRef.current) return;
+    if (!user?.id || !realtimeChannelRef.current) return;
 
-    lastSyncedHashRef.current = currentHash;
-    if (!user?.id) return;
+    // Debounce broadcasts by 300 ms so rapid mutations (e.g. cart merge on
+    // sign-in) only send one message instead of one per item.
+    const timer = setTimeout(() => {
+      const latestHash = getCartHash(items);
+      if (latestHash === lastSyncedHashRef.current) return;
+      lastSyncedHashRef.current = latestHash;
 
-    if (!realtimeChannelRef.current) return;
+      void realtimeChannelRef.current?.send({
+        type: 'broadcast',
+        event: 'cart-updated',
+        payload: {
+          sourceId: tabInstanceIdRef.current,
+          items,
+        },
+      });
+    }, 300);
 
-    void realtimeChannelRef.current.send({
-      type: 'broadcast',
-      event: 'cart-updated',
-      payload: {
-        sourceId: tabInstanceIdRef.current,
-        items,
-      },
-    });
+    return () => clearTimeout(timer);
   }, [items, user?.id]);
 
   // Add a new item, or increment quantity when it already exists.
@@ -491,18 +497,37 @@ export const CartProvider: React.FC<CartProvideProps> = ({ children }) => {
   }
 
   // Swap cart items from one location to equivalent items at another location.
-  // Each swap provides the old item_id and the replacement MenuItem from the target location.
-  // Quantity is preserved; only item_id and restaurant_id change.
-  const swapItemsToNewLocation = (swaps: Array<{ oldItemId: string; newItem: MenuItem }>) => {
-    setItems((prevItems) =>
-      prevItems.map((cartItem) => {
-        const swap = swaps.find((s) => s.oldItemId === cartItem.item_id);
-        if (swap) {
-          return { ...swap.newItem, quantity: cartItem.quantity };
-        }
-        return cartItem;
-      })
-    );
+  // Each swap provides the old item_id, the replacement MenuItem, and the quantity
+  // (captured at suggestion time, so it's available even if the cart was re-fetched).
+  const swapItemsToNewLocation = (swaps: Array<{ oldItemId: string; newItem: MenuItem; quantity: number }>) => {
+    setItems((prevItems) => {
+      const swapMap = new Map(swaps.map((s) => [s.oldItemId, s]));
+      return prevItems.map((cartItem) => {
+        const swap = swapMap.get(cartItem.item_id);
+        return swap ? { ...swap.newItem, quantity: swap.quantity } : cartItem;
+      });
+    });
+
+    if (!user) return;
+
+    // Persist the swap to the DB for logged-in users by updating each row in place.
+    // This keeps quantity and location_id; only item identity fields change.
+    void Promise.all(
+      swaps.map(({ oldItemId, newItem, quantity }) =>
+        supabase
+          .from('cart_items')
+          .update({
+            item_id: newItem.item_id,
+            restaurant_id: newItem.restaurant_id,
+            name: newItem.name,
+            unit_price_cents: toUnitPriceCents(newItem.price),
+            image_url: newItem.image_url,
+            quantity,
+          })
+          .eq('user_id', user.id)
+          .eq('item_id', oldItemId)
+      )
+    ).then(() => fetchUserCart());
   };
 
     // Helper used by navbar badge.

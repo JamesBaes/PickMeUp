@@ -38,7 +38,7 @@ const Cart = () => {
   // Suggestion shown when the user changes pickup location and matching items exist at the new location.
   type LocationSwapSuggestion = {
     targetLocation: { id: string; name: string };
-    swaps: Array<{ oldItemId: string; newItem: MenuItem }>;
+    swaps: Array<{ oldItemId: string; newItem: MenuItem; quantity: number }>;
     unavailableNames: string[];
   };
   const [locationSwapSuggestion, setLocationSwapSuggestion] = useState<LocationSwapSuggestion | null>(null);
@@ -126,13 +126,13 @@ const Cart = () => {
       const targetItems = (data || []).map(transformMenuItemData);
       const targetByName = new Map(targetItems.map((item) => [item.name.toLowerCase(), item]));
 
-      const swaps: Array<{ oldItemId: string; newItem: MenuItem }> = [];
+      const swaps: Array<{ oldItemId: string; newItem: MenuItem; quantity: number }> = [];
       const unavailableNames: string[] = [];
 
       for (const cartItem of mismatchedItems) {
         const match = targetByName.get(cartItem.name.toLowerCase());
         if (match) {
-          swaps.push({ oldItemId: cartItem.item_id, newItem: match });
+          swaps.push({ oldItemId: cartItem.item_id, newItem: match, quantity: cartItem.quantity });
         } else {
           unavailableNames.push(cartItem.name);
         }
@@ -147,24 +147,19 @@ const Cart = () => {
   };
 
   const handleSwapItems = () => {
-    if (!locationSwapSuggestion) return;
-    const activeMismatchedIds = new Set(mismatchedItems.map((item) => item.item_id));
-    const activeSwaps = locationSwapSuggestion.swaps.filter((swap) => activeMismatchedIds.has(swap.oldItemId));
-    if (activeSwaps.length === 0) return;
-
-    swapItemsToNewLocation(activeSwaps);
+    if (!locationSwapSuggestion || locationSwapSuggestion.swaps.length === 0) return;
+    // Use the swaps stored in the suggestion (which captured quantities at suggestion
+    // creation time) rather than re-deriving from cartItems, which may have been
+    // re-fetched and emptied by the location change before the user clicks this button.
+    swapItemsToNewLocation(locationSwapSuggestion.swaps);
     setLocationSwapSuggestion(null);
   };
 
   const handleRemoveUnavailableItems = () => {
     if (!locationSwapSuggestion) return;
 
-    const activeMismatchedIds = new Set(mismatchedItems.map((item) => item.item_id));
-    const swappableOldIds = new Set(
-      locationSwapSuggestion.swaps
-        .filter((swap) => activeMismatchedIds.has(swap.oldItemId))
-        .map((swap) => swap.oldItemId),
-    );
+    const swappableOldIds = new Set(locationSwapSuggestion.swaps.map((swap) => swap.oldItemId));
+    // Remove items that were in the suggestion's unavailable list (not in swaps).
     mismatchedItems
       .filter((item) => !swappableOldIds.has(item.item_id))
       .forEach((item) => removeItem(item.item_id));

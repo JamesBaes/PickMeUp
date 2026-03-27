@@ -280,39 +280,37 @@ export default function OrderHistoryPage() {
     [orders],
   );
 
-  // Real-time listener: update all active orders' statuses when they change in the DB
+  // Real-time listener: one channel per user (not per order) to track all active
+  // order status changes. Client-side filtering keeps only the relevant orders.
   useEffect(() => {
-    if (activeOrders.length === 0) return;
+    if (!user?.id || activeOrders.length === 0) return;
 
-    const channels = activeOrders.map((activeOrder) =>
-      supabase
-        .channel(`order-status-${activeOrder.id}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "orders",
-            filter: `id=eq.${activeOrder.id}`,
-          },
-          (payload) => {
-            const newStatus = normalizeStatus(payload.new.status);
-            setOrders((prev) =>
-              prev.map((order) =>
-                order.id === activeOrder.id
-                  ? { ...order, status: newStatus }
-                  : order,
-              ),
-            );
-          },
-        )
-        .subscribe(),
-    );
+    const channel = supabase
+      .channel(`order-status-user-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "orders",
+          filter: `customer_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const updatedId = payload.new.id as string;
+          const newStatus = normalizeStatus(payload.new.status);
+          setOrders((prev) =>
+            prev.map((order) =>
+              order.id === updatedId ? { ...order, status: newStatus } : order,
+            ),
+          );
+        },
+      )
+      .subscribe();
 
     return () => {
-      channels.forEach((channel) => supabase.removeChannel(channel));
+      supabase.removeChannel(channel);
     };
-  }, [activeOrders.map((o) => o.id).join(",")]);
+  }, [user?.id, activeOrders.length === 0]);
 
   const filteredPastOrders = useMemo(() => {
     const lowered = searchQuery.trim().toLowerCase();

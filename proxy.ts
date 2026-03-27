@@ -33,20 +33,13 @@ export async function proxy(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: { session } } = await supabase.auth.getSession()
 
-  // Block staff/admin roles — they belong in the restaurant app, not here
-  if (session?.access_token) {
-    try {
-      const payload = JSON.parse(atob(session.access_token.split('.')[1]))
-      const appRole = payload.app_role
-      if (appRole === 'staff' || appRole === 'admin' || appRole === 'super_admin') {
-        await supabase.auth.signOut()
-        return NextResponse.redirect(new URL('/login', request.url))
-      }
-    } catch {
-      // Malformed token — fall through to normal auth handling
-    }
+  // Block staff/admin roles — they belong in the restaurant app, not here.
+  // app_metadata is set server-side and is included in the validated user object.
+  const appRole = user?.app_metadata?.app_role
+  if (appRole === 'staff' || appRole === 'admin' || appRole === 'super_admin') {
+    await supabase.auth.signOut()
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   const path = request.nextUrl.pathname

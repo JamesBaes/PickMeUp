@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSquareClient } from "@/lib/square";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin as supabase } from "@/lib/supabaseAdmin";
 import { randomUUID } from "crypto";
 
 export async function POST(request: NextRequest) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
   try {
     // `sourceId` is the Square tokenized card payload from the client.
     // `orderDetails` contains customer + order metadata used for DB persistence.

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 type CommentRow = Record<string, unknown>;
 
@@ -69,10 +69,6 @@ const normalizeItemName = (value: string): string => {
 };
 
 export async function GET(request: NextRequest) {
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
   try {
     const itemId = request.nextUrl.searchParams.get("itemId");
     const itemName = request.nextUrl.searchParams.get("itemName");
@@ -87,9 +83,11 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabaseAdmin
       .from("comments")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(200);
 
     if (error) {
+      console.error("[comments] Supabase query error:", error);
       return NextResponse.json(
         { error: error.message || "Failed to fetch comments" },
         { status: 500 }
@@ -120,14 +118,13 @@ export async function GET(request: NextRequest) {
       )
     );
 
+    // Fetch only the specific users who commented on this item.
+    // In practice each item has a small number of unique commenters, so this
+    // is far cheaper than listUsers() which fetches every user in the project.
     const emailEntries = await Promise.all(
       userIds.map(async (userId) => {
-        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
-        if (userError) {
-          return [userId, null] as const;
-        }
-
-        return [userId, userData.user?.email ?? null] as const;
+        const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
+        return [userId, userData?.user?.email ?? null] as const;
       })
     );
 
@@ -147,6 +144,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ comments });
   } catch (error: any) {
+    console.error("[comments] Unexpected error:", error);
     return NextResponse.json(
       { error: error.message || "Unexpected error while fetching comments" },
       { status: 500 }
