@@ -289,7 +289,7 @@ export default function OrderConfirmationPage() {
                 <button
                   onClick={handleEmailReceipt}
                   disabled={sendingEmail || emailSent}
-                  className="bg-accent text-white font-heading font-semibold py-3 px-8 rounded-lg hover:shadow-lg transition-all disabled:bg-neutral-400 disabled:cursor-not-allowed"
+                  className="bg-accent text-white font-heading hover:cursor-pointer font-semibold py-3 px-8 rounded-lg hover:shadow-lg transition-all disabled:bg-neutral-400 disabled:cursor-not-allowed"
                 >
                   {sendingEmail ? "Sending..." : emailSent ? "Email Sent!" : "Email Receipt"}
                 </button>
