@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import PromoCodeInput from "@/components/PromoCodeInput";
+import PromoCodeInput from "./PromoCodeInput";
 import { formatCurrency } from "@/helpers/checkoutHelpers";
 
 interface CartItem {
@@ -57,7 +57,7 @@ export default function OrderSummary({
       <div className="space-y-6 mb-6">
         {cartItems.map((item) => (
           <div key={item.itemId} className="flex items-start gap-4">
-            <div className="w-16 h-16 rounded-lg flex-shrink-0 relative overflow-hidden bg-neutral-100">
+            <div className="w-16 h-16 rounded-lg shrink-0 relative overflow-hidden bg-neutral-100">
               {item.image ? (
                 <Image
                   src={item.image}

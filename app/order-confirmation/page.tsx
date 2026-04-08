@@ -2,54 +2,25 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import supabase from "@/utils/supabase/client";
+import { OrderConfirmationData, ConfirmationOrderStatus } from "@/components/order-confirmation/types";
+import OrderProgressStepper from "@/components/order-confirmation/OrderProgressStepper";
+import PaymentSummaryCard from "@/components/order-confirmation/PaymentSummaryCard";
+import OrderSummaryCard from "@/components/order-confirmation/OrderSummaryCard";
 
-interface OrderItem {
-  name: string;
-  quantity: number;
-  price: number;
-  image_url: string;
-}
-
-type OrderStatus = "paid" | "in_progress" | "ready" | "completed";
-
-interface OrderData {
-  id: string;
-  orderNumber: string;
-  date: string;
-  paymentMethod: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  billingAddress: string;
-  items: OrderItem[];
-  subtotal: number;
-  tax: number;
-  total: number;
-  pickupTime: string;
-  status: OrderStatus;
-  locationName?: string | null;
-}
-
-const STEPS: { key: OrderStatus; label: string; icon: string }[] = [
-  { key: "paid",        label: "Order Placed", icon: "1" },
-  { key: "in_progress", label: "Preparing",    icon: "2" },
-  { key: "ready",       label: "Ready",        icon: "3" },
-  { key: "completed",   label: "Completed",    icon: "4" },
-];
-
-const STATUS_INDEX: Record<OrderStatus, number> = {
-  paid: 0,
-  in_progress: 1,
-  ready: 2,
-  completed: 3,
+const formatPickupTime = (isoString?: string | null): string => {
+  if (!isoString) return "—";
+  return new Date(isoString).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
 };
 
 export default function OrderConfirmationPage() {
   const router = useRouter();
 
-  const [orderData, setOrderData] = useState<OrderData | null>(null);
+  const [orderData, setOrderData] = useState<OrderConfirmationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -57,9 +28,7 @@ export default function OrderConfirmationPage() {
 
   useEffect(() => {
     const receiptToken = sessionStorage.getItem("pendingReceiptToken");
-
     if (!receiptToken) {
-      // No active checkout session — redirect home instead of showing a broken page
       router.replace("/");
       return;
     }
@@ -67,12 +36,8 @@ export default function OrderConfirmationPage() {
     const fetchOrderData = async () => {
       try {
         const response = await fetch(`/api/orders/receipt/${receiptToken}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch order");
-        }
-        const data = await response.json();
-        setOrderData(data);
-        // Clear the token after a successful fetch so the page cannot be replayed on refresh
+        if (!response.ok) throw new Error("Failed to fetch order");
+        setOrderData(await response.json());
         sessionStorage.removeItem("pendingReceiptToken");
       } catch (err) {
         console.error("Error fetching order:", err);
@@ -85,74 +50,42 @@ export default function OrderConfirmationPage() {
     fetchOrderData();
   }, [router]);
 
-  // Real-time listener: update progress bar when status changes in the DB
   useEffect(() => {
     if (!orderData?.id) return;
 
     const channel = supabase
       .channel(`order-confirmation-receipt-${orderData.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "orders",
-          filter: `id=eq.${orderData.id}`,
-        },
-        (payload) => {
-          setOrderData((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              status: (payload.new.status as OrderStatus) ?? prev.status,
-              pickupTime: payload.new.pickup_time ?? prev.pickupTime,
-            };
-          });
-        },
-      )
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${orderData.id}` }, (payload) => {
+        setOrderData((prev) => prev ? {
+          ...prev,
+          status: (payload.new.status as ConfirmationOrderStatus) ?? prev.status,
+          pickupTime: payload.new.pickup_time ?? prev.pickupTime,
+        } : prev);
+      })
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [orderData?.id]);
 
   const handleEmailReceipt = async () => {
     setSendingEmail(true);
     setError(null);
-
     try {
       const response = await fetch("/api/send-receipt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderData }),
       });
-
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to send receipt");
-      }
-
+      if (!response.ok) throw new Error(data.error || "Failed to send receipt");
       setEmailSent(true);
       setTimeout(() => setEmailSent(false), 5000);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to send receipt";
       console.error("Error sending receipt:", err);
-      setError(message);
+      setError(err instanceof Error ? err.message : "Failed to send receipt");
     } finally {
       setSendingEmail(false);
     }
-  };
-
-  const formatPickupTime = (isoString: string) => {
-    const date = new Date(isoString);
-    return date.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
   };
 
   if (loading) {
@@ -167,13 +100,8 @@ export default function OrderConfirmationPage() {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="font-body text-danger-dark mb-4">
-            {error || "Order not found"}
-          </p>
-          <button
-            onClick={() => router.push("/")}
-            className="text-accent hover:underline font-body"
-          >
+          <p className="font-body text-danger-dark mb-4">{error || "Order not found"}</p>
+          <button onClick={() => router.push("/")} className="text-accent hover:underline font-body">
             Return to menu
           </button>
         </div>
@@ -185,9 +113,7 @@ export default function OrderConfirmationPage() {
     <div className="min-h-screen bg-neutral-50">
       <div className="max-w-7xl mx-auto px-8 py-12">
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Left Column - Thank You Message & Payment Summary */}
           <div className="space-y-8">
-            {/* Thank You Message */}
             <div>
               <h1 className="font-heading font-bold text-5xl text-neutral-900 mb-6">
                 Thank you for your order!
@@ -197,199 +123,23 @@ export default function OrderConfirmationPage() {
                 <br />
                 You can view the status of your order below.
               </p>
-
-
-              {/* Pickup Time */}
               <div className="font-heading text-3xl text-neutral-900">
                 <span className="font-semibold">Pick Up Time:</span>{" "}
-                <span className="font-bold">
-                  {formatPickupTime(orderData.pickupTime)}
-                </span>
+                <span className="font-bold">{formatPickupTime(orderData.pickupTime)}</span>
               </div>
             </div>
 
-            {/* Order Progress */}
-            <div className="bg-white rounded-2xl shadow-md p-6">
-              <div className="flex items-center justify-between">
-                {STEPS.map((step, i) => {
-                  const currentIndex = STATUS_INDEX[orderData.status] ?? 0;
-                  const isCompleted = i < currentIndex;
-                  const isActive = i === currentIndex;
-                  return (
-                    <div key={step.key} className="flex items-center flex-1">
-                      <div className="flex flex-col items-center gap-1">
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${
-                            isCompleted || isActive
-                              ? "bg-success text-white"
-                              : "bg-neutral-200 text-neutral-500"
-                          }`}
-                        >
-                          {step.icon}
-                        </div>
-                        <span
-                          className={`text-xs font-body text-center whitespace-nowrap ${
-                            isCompleted || isActive ? "text-neutral-900 font-semibold" : "text-neutral-400"
-                          }`}
-                        >
-                          {step.label}
-                        </span>
-                      </div>
-                      {i < STEPS.length - 1 && (
-                        <div
-                          className={`flex-1 h-0.5 mx-2 mb-5 ${
-                            i < currentIndex ? "bg-success" : "bg-neutral-200"
-                          }`}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <OrderProgressStepper status={orderData.status} />
 
-            {/* Payment Summary Card */}
-            <div className="bg-white rounded-2xl shadow-md p-8">
-              <h2 className="font-heading font-bold text-3xl text-neutral-900 mb-2">
-                Payment Summary
-              </h2>
-              {orderData.locationName && (
-                <p className="font-body text-neutral-500 text-sm mb-6">
-                  📍 {orderData.locationName}
-                </p>
-              )}
-
-              {/* Billing Address */}
-              <div className="mb-8">
-                <h3 className="font-heading font-semibold text-xl text-neutral-800 mb-4">
-                  Billing Address
-                </h3>
-                <div className="space-y-2 font-body text-neutral-700">
-                  <div className="flex">
-                    <span className="w-20 text-neutral-600">Name:</span>
-                    <span>{orderData.customerName}</span>
-                  </div>
-                  <div className="flex">
-                    <span className="w-20 text-neutral-600">Address:</span>
-                    <span>{orderData.billingAddress}</span>
-                  </div>
-                  <div className="flex">
-                    <span className="w-20 text-neutral-600">Email:</span>
-                    <span>{orderData.customerEmail}</span>
-                  </div>
-                  <div className="flex">
-                    <span className="w-20 text-neutral-600">Phone:</span>
-                    <span>{orderData.customerPhone}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Email Receipt Button */}
-              <div>
-                <button
-                  onClick={handleEmailReceipt}
-                  disabled={sendingEmail || emailSent}
-                  className="bg-accent text-white font-heading hover:cursor-pointer font-semibold py-3 px-8 rounded-lg hover:shadow-lg transition-all disabled:bg-neutral-400 disabled:cursor-not-allowed"
-                >
-                  {sendingEmail ? "Sending..." : emailSent ? "Email Sent!" : "Email Receipt"}
-                </button>
-                {emailSent && (
-                  <p className="mt-2 text-sm text-success font-body">
-                    Receipt sent to {orderData.customerEmail}
-                  </p>
-                )}
-              </div>
-            </div>
+            <PaymentSummaryCard
+              orderData={orderData}
+              sendingEmail={sendingEmail}
+              emailSent={emailSent}
+              onEmailReceipt={handleEmailReceipt}
+            />
           </div>
 
-          {/* Right Column - Order Summary */}
-          <div className="bg-white rounded-2xl shadow-md p-8">
-            <h2 className="font-heading font-bold text-3xl text-neutral-900 mb-6">
-              Order Summary
-            </h2>
-
-            {/* Order Details */}
-            <div className="space-y-3 mb-6 font-body">
-              <div className="flex justify-between">
-                <span className="text-neutral-600">Order Number:</span>
-                <span className="text-neutral-900">
-                  {orderData.orderNumber}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-neutral-600">Date:</span>
-                <span className="text-neutral-900">{orderData.date}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-neutral-600">Payment Method:</span>
-                <span className="text-neutral-900">
-                  {orderData.paymentMethod}
-                </span>
-              </div>
-            </div>
-
-            <hr className="border-neutral-300 mb-6" />
-
-            {/* Order Items */}
-            <div className="space-y-4 mb-6">
-              {orderData.items.map((item, index) => (
-                <div key={index} className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 bg-neutral-100">
-                    {item.image_url ? (
-                      <Image
-                        src={item.image_url}
-                        alt={item.name}
-                        width={64}
-                        height={64}
-                        className="object-cover w-full h-full"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-neutral-200" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-heading font-semibold text-lg text-neutral-900">
-                      {item.name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-                    </h3>
-                    <p className="font-body text-sm text-neutral-600">
-                      Quantity: {item.quantity}
-                    </p>
-                  </div>
-                  <div className="font-body text-neutral-900">
-                    ${(item.price * item.quantity).toFixed(2)}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <hr className="border-neutral-300 mb-6" />
-
-            {/* Pricing */}
-            <div className="space-y-3 font-body mb-6">
-              <div className="flex justify-between">
-                <span className="text-neutral-600">Subtotal</span>
-                <span className="text-neutral-900">
-                  ${orderData.subtotal.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-neutral-600">Tax</span>
-                <span className="text-neutral-900">
-                  ${orderData.tax.toFixed(2)}
-                </span>
-              </div>
-            </div>
-
-            {/* Order Total */}
-            <div className="pt-4 border-t border-neutral-300">
-              <div className="flex justify-between font-heading text-2xl">
-                <span className="font-bold text-neutral-900">Order Total</span>
-                <span className="font-bold text-neutral-900">
-                  ${orderData.total.toFixed(2)}
-                </span>
-              </div>
-            </div>
-          </div>
+          <OrderSummaryCard orderData={orderData} />
         </div>
       </div>
     </div>

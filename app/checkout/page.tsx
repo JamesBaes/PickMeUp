@@ -4,11 +4,11 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import supabase from "@/utils/supabase/client";
 import { usePostHog } from "posthog-js/react";
-import PaymentForm, { PaymentFormHandle } from "@/components/PaymentForm";
-import OrderSummary from "@/components/OrderSummary";
-import ContactDetailsForm from "@/components/ContactDetailsForm";
-import CardholderForm from "@/components/CardholderForm";
-import BillingAddressForm from "@/components/BillingAddressForm";
+import PaymentForm, { PaymentFormHandle } from "@/components/checkout/PaymentForm";
+import OrderSummary from "@/components/checkout/OrderSummary";
+import ContactDetailsForm from "@/components/checkout/ContactDetailsForm";
+import CardholderForm from "@/components/checkout/CardholderForm";
+import BillingAddressForm from "@/components/checkout/BillingAddressForm";
 import { generatePickupTime } from "@/helpers/checkoutHelpers";
 import {
   validateEmail,

@@ -1,4 +1,4 @@
-import { MenuItem, MenuCategory } from '@/types/';
+import { MenuCategory } from '@/types/';
 import { formatCategoryName } from '@/helpers/menuHelpers';
 import MenuItemCard from './MenuItemCard';
 import { CategorySectionProps, CategoryDescriptions } from '@/types';
@@ -18,7 +18,6 @@ export default function CategorySection({
           {CategoryDescriptions[category as MenuCategory]}
         </h3>
       </div>
-      {/* FIX COLS TO ALIGN FOR SMALLER SCREENS/MOBILE SCREENS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
         {items.map((item) => (
           <MenuItemCard key={item.item_id || item.name} item={item} />

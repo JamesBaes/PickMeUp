@@ -73,8 +73,18 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
             id: loc.restaurant_id.toString(),
             name: toTitleCase(loc.location_name),
           }));
-          // console.log("Mapped locations:", mappedLocations);
           setLocations((mappedLocations as Location[]) || []);
+
+          // Set a default location for first-time visitors (no saved preference).
+          const savedLocation = localStorage.getItem("selectedLocation");
+          if (!savedLocation && mappedLocations.length > 0) {
+            const defaultLocation =
+              mappedLocations.find((loc) =>
+                loc.name.toLowerCase().includes("waterloo")
+              ) ?? mappedLocations[0];
+            setCurrentLocation(defaultLocation);
+            localStorage.setItem("selectedLocation", JSON.stringify(defaultLocation));
+          }
         }
       } catch (error) {
         console.error("Error fetching locations:", error);

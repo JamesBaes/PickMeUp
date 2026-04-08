@@ -1,4 +1,4 @@
-import { MenuItem, MenuCategory, GroupedMenuItems, CategoryDescriptions } from '@/types';
+import { MenuItem, MenuCategory, GroupedMenuItems } from '@/types';
 
 /**
  * Format price for display
@@ -6,6 +6,12 @@ import { MenuItem, MenuCategory, GroupedMenuItems, CategoryDescriptions } from '
 export const formatPrice = (price: number): string => {
   return `$${price.toFixed(2)}`;
 };
+
+/**
+ * Format item name — replaces underscores with spaces and title-cases each word
+ */
+export const formatItemName = (name: string): string =>
+  name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 /**
  * Group menu items by category
@@ -24,19 +30,18 @@ export const groupByCategory = (items: MenuItem[]): GroupedMenuItems => {
  * Category display order
  */
 export const categoryOrder: MenuCategory[] = [
-    'beef_burgers',
-    'chicken_burgers',
-    'veggie_burgers',
-    'steak_sandwiches',
-    'combos',
-    'crowds_sides',
-    'extra_armour_sides',
-    'beverages',
-    'juice',
-    'milkshakes',
-    'soda_and_water',
-    'treats',
-
+  'beef_burgers',
+  'chicken_burgers',
+  'veggie_burgers',
+  'steak_sandwiches',
+  'combos',
+  'crowds_sides',
+  'extra_armour_sides',
+  'beverages',
+  'juice',
+  'milkshakes',
+  'soda_and_water',
+  'treats',
 ];
 
 /**
@@ -56,11 +61,9 @@ export const formatCategoryName = (category: MenuCategory): string => {
     milkshakes: 'Milkshakes',
     soda_and_water: 'Soda & Water',
     treats: 'Treats',
-
   };
   return categoryMap[category] || category;
 };
-
 
 /**
  * Sort menu items by name
@@ -73,25 +76,39 @@ export const sortByName = (items: MenuItem[]): MenuItem[] => {
  * Sort menu items by price
  */
 export const sortByPrice = (items: MenuItem[], ascending = true): MenuItem[] => {
-  return [...items].sort((a, b) => 
+  return [...items].sort((a, b) =>
     ascending ? a.price - b.price : b.price - a.price
   );
 };
 
-/*
-  * transform menu item data from database to match MenuItem type
-  */
+interface RawMenuItemRow {
+  item_id: string;
+  restaurant_id: string | number;
+  name: string;
+  description: string | null;
+  price: number;
+  category: string;
+  calories?: number | null;
+  allergy_information?: string | null;
+  image_url?: string | null;
+  popular?: boolean | null;
+  bogo?: boolean | null;
+  [key: string]: unknown;
+}
 
-export const transformMenuItemData = (item: any): MenuItem => ({
+/**
+ * Transform menu item data from database to match MenuItem type
+ */
+export const transformMenuItemData = (item: RawMenuItemRow): MenuItem => ({
   item_id: item.item_id,
-  restaurant_id: item.restaurant_id,
+  restaurant_id: String(item.restaurant_id),
   name: item.name,
-  description: item.description,
+  description: item.description ?? '',
   price: item.price,
   category: item.category,
   calories: item.calories || 0,
-  allergy_information: item.allergy_information || "",
-  image_url: item.image_url || "",
+  allergy_information: item.allergy_information || '',
+  image_url: item.image_url || '',
   popular: item.popular || false,
   bogo: item.bogo || false,
 });

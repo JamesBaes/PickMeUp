@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { GoogleReCaptchaProvider, useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { signUp } from "./actions";
-import PasswordRequirements from "@/components/PasswordRequirements";
+import PasswordRequirements from "@/components/auth/PasswordRequirements";
 
 const SignUpForm = () => {
   const [error, setError] = useState<string | null>(null);

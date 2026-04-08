@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Footer from "@/components/Footer";
+import Footer from "@/components/layout/Footer";
 import "./globals.css";
-import NavBar from "@/components/NavBar";
+import NavBar from "@/components/layout/NavBar";
 import {LocationProvider} from "@/context/locationContext";
 import { AuthProvider } from "@/context/authContext";
 import { CartProvider } from "@/context/cartContext";
 import { FavoritesProvider } from "@/context/favoritesContext";
-import { PostHogProvider } from "@/components/PostHogProvider";
+import { PostHogProvider } from "@/components/providers/PostHogProvider";
 
 const headingText = Inter({
   variable: "--font-heading",
@@ -36,12 +36,6 @@ export default function RootLayout({
         className={`${headingText.variable} ${bodyText.variable} flex flex-col min-h-screen antialiased`}
       >
         <PostHogProvider>
-          {/*
-            Provider dependency order matters:
-            - Location is needed by menu/cart experiences.
-            - Auth must wrap Cart because CartProvider reads useAuth().
-            - Favorites/Nav/Footer consume the providers above.
-          */}
           <LocationProvider>
             <AuthProvider>
               <CartProvider>
