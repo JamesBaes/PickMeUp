@@ -90,6 +90,7 @@ export function useItemPage(itemId: string) {
     isFavorite,
     toggleFavorite,
     router,
+    handleAddToCart,
     ...comments,
   };
 }
